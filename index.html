@@ -26,6 +26,20 @@
             --text-muted: #6c757d;
             --input-bg: white;
             --preview-bg: white;
+            --tab-bg: #f8f9fa;
+            --tab-active-bg: white;
+            --tab-active-color: #667eea;
+            --btn-primary-bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --btn-success-bg: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            --btn-paste-bg: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            --btn-paste-color: #333;
+            --toast-bg: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            --code-bg: #f6f8fa;
+            --code-color: #e83e8c;
+            --blockquote-bg: linear-gradient(135deg, #e8f4fc 0%, #f0f9ff 100%);
+            --table-header-bg: #f8f9fa;
+            --table-border: #e9ecef;
+            --placeholder-color: #adb5bd;
         }
 
         body.dark {
@@ -33,12 +47,26 @@
             --bg-gradient-end: #16213e;
             --panel-bg: #1e1e1e;
             --panel-header-bg: #252525;
-            --panel-border: #333;
+            --panel-border: #3a3a3a;
             --text-primary: #e0e0e0;
             --text-secondary: #b0b0b0;
             --text-muted: #888;
             --input-bg: #2a2a2a;
             --preview-bg: #1e1e1e;
+            --tab-bg: #2a2a2a;
+            --tab-active-bg: #1e1e1e;
+            --tab-active-color: #a8b4ff;
+            --btn-primary-bg: linear-gradient(135deg, #5a6fd6 0%, #6a44a0 100%);
+            --btn-success-bg: linear-gradient(135deg, #0d7d74 0%, #2bc968 100%);
+            --btn-paste-bg: linear-gradient(135deg, #3d5a58 0%, #5a4a50 100%);
+            --btn-paste-color: #e0e0e0;
+            --toast-bg: linear-gradient(135deg, #0d7d74 0%, #2bc968 100%);
+            --code-bg: #2d2d2d;
+            --code-color: #ff79c6;
+            --blockquote-bg: linear-gradient(135deg, #1a2a3a 0%, #1a2530 100%);
+            --table-header-bg: #2a2a2a;
+            --table-border: #444;
+            --placeholder-color: #666;
         }
 
         body {
@@ -113,27 +141,28 @@
         /* Mobile Tab Navigation */
         .mobile-tabs {
             display: none;
-            background: white;
+            background: var(--panel-bg);
             border-radius: 12px 12px 0 0;
             overflow: hidden;
+            transition: background 0.3s ease;
         }
 
         .mobile-tabs button {
             flex: 1;
             padding: 14px 20px;
             border: none;
-            background: #f8f9fa;
+            background: var(--tab-bg);
             font-size: 15px;
             font-weight: 600;
-            color: #6c757d;
+            color: var(--text-muted);
             cursor: pointer;
             transition: all 0.2s;
         }
 
         .mobile-tabs button.active {
-            background: white;
-            color: #667eea;
-            box-shadow: 0 -2px 0 #667eea inset;
+            background: var(--tab-active-bg);
+            color: var(--tab-active-color);
+            box-shadow: 0 -2px 0 var(--tab-active-color) inset;
         }
 
         .editor-container {
@@ -183,7 +212,7 @@
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: var(--btn-primary-bg);
             color: white;
         }
 
@@ -194,7 +223,7 @@
         }
 
         .btn-success {
-            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            background: var(--btn-success-bg);
             color: white;
         }
 
@@ -225,12 +254,13 @@
         }
 
         #markdown-input::placeholder {
-            color: #adb5bd;
+            color: var(--placeholder-color);
         }
 
         .preview-panel {
-            background: #f8f9fa;
-            border-left: 1px solid #e9ecef;
+            background: var(--panel-header-bg);
+            border-left: 1px solid var(--panel-border);
+            transition: background 0.3s ease;
         }
 
         #preview {
@@ -246,10 +276,9 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             font-size: 16px;
             line-height: 1.8;
-            color: #333;
-            background: linear-gradient(rgba(255, 255, 255, 0.97), rgba(255, 255, 255, 0.97)),
-                repeating-linear-gradient(0deg, transparent, transparent 19px, #f0f0f0 20px),
-                repeating-linear-gradient(90deg, transparent, transparent 19px, #f0f0f0 20px);
+            color: var(--text-primary);
+            background: var(--preview-bg);
+            transition: background 0.3s ease, color 0.3s ease;
         }
 
         /* 主标题样式 - 蓝色 */
@@ -325,12 +354,13 @@
         }
 
         #preview code {
-            background: #f6f6f6;
-            color: #c7254e;
+            background: var(--code-bg);
+            color: var(--code-color);
             padding: 2px 6px;
             border-radius: 4px;
             font-family: "SF Mono", Monaco, "Courier New", monospace;
             font-size: 14px;
+            transition: background 0.3s ease, color 0.3s ease;
         }
 
         #preview pre code {
@@ -415,7 +445,7 @@
             top: 20px;
             left: 50%;
             transform: translateX(-50%);
-            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            background: var(--toast-bg);
             color: white;
             padding: 14px 28px;
             border-radius: 12px;
@@ -675,8 +705,9 @@
 
         /* 粘贴按钮样式 */
         .btn-paste {
-            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
-            color: #333;
+            background: var(--btn-paste-bg);
+            color: var(--btn-paste-color);
+            transition: background 0.3s ease, color 0.3s ease;
         }
 
         .btn-paste:hover,
