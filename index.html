@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Markdown → 公众号格式转换器</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            min-height: -webkit-fill-available;
+            padding: 20px;
+            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            height: 100%;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 24px;
+            padding: 20px 10px;
+        }
+
+        header h1 {
+            font-size: 28px;
+            margin-bottom: 8px;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        header p {
+            opacity: 0.9;
+            font-size: 15px;
+        }
+
+        /* Mobile Tab Navigation */
+        .mobile-tabs {
+            display: none;
+            background: white;
+            border-radius: 12px 12px 0 0;
+            overflow: hidden;
+        }
+
+        .mobile-tabs button {
+            flex: 1;
+            padding: 14px 20px;
+            border: none;
+            background: #f8f9fa;
+            font-size: 15px;
+            font-weight: 600;
+            color: #6c757d;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .mobile-tabs button.active {
+            background: white;
+            color: #667eea;
+            box-shadow: 0 -2px 0 #667eea inset;
+        }
+
+        .editor-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .panel {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .panel-header {
+            background: #f8f9fa;
+            padding: 12px 20px;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .panel-title {
+            font-weight: 600;
+            color: #495057;
+            font-size: 14px;
+        }
+
+        .btn {
+            padding: 10px 18px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover,
+        .btn-primary:active {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+        }
+
+        .btn-success:hover,
+        .btn-success:active {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(17, 153, 142, 0.4);
+        }
+
+        #markdown-input {
+            flex: 1;
+            width: 100%;
+            padding: 20px;
+            border: none;
+            resize: none;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Mono", Monaco, "Courier New", monospace;
+            font-size: 15px;
+            line-height: 1.6;
+            color: #333;
+            background: #fff;
+            -webkit-appearance: none;
+        }
+
+        #markdown-input:focus {
+            outline: none;
+        }
+
+        #markdown-input::placeholder {
+            color: #adb5bd;
+        }
+
+        .preview-panel {
+            background: #f8f9fa;
+            border-left: 1px solid #e9ecef;
+        }
+
+        #preview {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            max-height: calc(100vh - 180px);
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* ========== 公众号文章样式 ========== */
+        #preview {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            font-size: 16px;
+            line-height: 1.8;
+            color: #333;
+            background: linear-gradient(rgba(255, 255, 255, 0.97), rgba(255, 255, 255, 0.97)),
+                repeating-linear-gradient(0deg, transparent, transparent 19px, #f0f0f0 20px),
+                repeating-linear-gradient(90deg, transparent, transparent 19px, #f0f0f0 20px);
+        }
+
+        /* 主标题样式 - 蓝色 */
+        #preview h2 {
+            color: #2d8cf0;
+            font-size: 20px;
+            font-weight: bold;
+            margin-top: 28px;
+            margin-bottom: 16px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #2d8cf0;
+        }
+
+        #preview h2:first-child {
+            margin-top: 0;
+        }
+
+        /* 子标题样式 */
+        #preview h3 {
+            color: #333;
+            font-size: 17px;
+            font-weight: bold;
+            margin-top: 24px;
+            margin-bottom: 12px;
+        }
+
+        /* 段落 */
+        #preview p {
+            margin: 12px 0;
+        }
+
+        /* 强调文字 */
+        #preview strong {
+            color: #333;
+            font-weight: bold;
+        }
+
+        /* 独立的加粗段落作为高亮语句 */
+        #preview p>strong:only-child {
+            display: block;
+            color: #2d8cf0;
+            font-size: 17px;
+            text-align: center;
+            padding: 12px 16px;
+            margin: 16px 0;
+            background: #f8fbff;
+            border-radius: 6px;
+        }
+
+        /* 列表样式 */
+        #preview ul,
+        #preview ol {
+            padding-left: 24px;
+            margin: 12px 0;
+        }
+
+        #preview li {
+            margin: 8px 0;
+        }
+
+        /* 代码块样式 */
+        #preview pre {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 16px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-family: "SF Mono", Monaco, "Courier New", monospace;
+            font-size: 13px;
+            line-height: 1.6;
+            margin: 16px 0;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        #preview code {
+            background: #f6f6f6;
+            color: #c7254e;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: "SF Mono", Monaco, "Courier New", monospace;
+            font-size: 14px;
+        }
+
+        #preview pre code {
+            background: none;
+            color: inherit;
+            padding: 0;
+        }
+
+        /* 表格样式 */
+        #preview table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 14px;
+            display: block;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        #preview th {
+            background: #2d8cf0;
+            color: white;
+            padding: 10px;
+            text-align: left;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+        #preview td {
+            padding: 8px 10px;
+            border-bottom: 1px solid #e8e8e8;
+            white-space: nowrap;
+        }
+
+        #preview tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+
+        /* 引用块样式 */
+        #preview blockquote {
+            background: linear-gradient(135deg, #e8f4fc 0%, #f0f9ff 100%);
+            border-left: 4px solid #2d8cf0;
+            border-radius: 8px;
+            padding: 16px 20px;
+            margin: 20px 0;
+            position: relative;
+        }
+
+        #preview blockquote::before {
+            content: '"';
+            font-size: 48px;
+            color: #2d8cf0;
+            opacity: 0.3;
+            position: absolute;
+            top: 4px;
+            left: 12px;
+            font-family: Georgia, serif;
+        }
+
+        #preview blockquote p {
+            margin: 0;
+            padding-left: 24px;
+        }
+
+        /* 分隔线 */
+        #preview hr {
+            border: none;
+            height: 1px;
+            background: linear-gradient(to right, transparent, #2d8cf0, transparent);
+            margin: 28px 0;
+        }
+
+        /* 链接样式 */
+        #preview a {
+            color: #2d8cf0;
+            text-decoration: none;
+        }
+
+        /* 通知提示 */
+        .toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-200%);
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+            padding: 14px 28px;
+            border-radius: 12px;
+            font-weight: 500;
+            font-size: 15px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+            white-space: nowrap;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* ========== 移动端响应式 ========== */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            header {
+                margin-bottom: 16px;
+                padding: 16px 10px;
+            }
+
+            header h1 {
+                font-size: 22px;
+            }
+
+            header p {
+                font-size: 13px;
+            }
+
+            .mobile-tabs {
+                display: flex;
+            }
+
+            .editor-container {
+                grid-template-columns: 1fr;
+                border-radius: 0 0 16px 16px;
+                min-height: calc(100vh - 180px);
+                min-height: calc(100dvh - 180px);
+            }
+
+            .panel {
+                display: none;
+                height: calc(100vh - 220px);
+                height: calc(100dvh - 220px);
+            }
+
+            .panel.active {
+                display: flex;
+            }
+
+            .panel-header {
+                padding: 10px 16px;
+            }
+
+            .panel-title {
+                display: none;
+            }
+
+            .panel-header .btn {
+                flex: 1;
+                text-align: center;
+            }
+
+            .preview-panel {
+                border-left: none;
+            }
+
+            #markdown-input {
+                padding: 16px;
+                font-size: 16px;
+                min-height: 300px;
+            }
+
+            #preview {
+                padding: 16px;
+                max-height: none;
+                min-height: 300px;
+            }
+
+            .btn {
+                padding: 12px 20px;
+                font-size: 15px;
+            }
+
+            .toast {
+                top: auto;
+                bottom: 30px;
+                padding: 16px 24px;
+                font-size: 16px;
+                border-radius: 50px;
+            }
+
+            .toast.show {
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+
+        /* 非常小的屏幕 */
+        @media (max-width: 380px) {
+            header h1 {
+                font-size: 18px;
+            }
+
+            .mobile-tabs button {
+                padding: 12px 10px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>📝 Markdown → 公众号转换器</h1>
+            <p>粘贴 Markdown 内容，自动转换为公众号富文本格式</p>
+        </header>
+
+        <!-- Mobile Tab Navigation -->
+        <div class="mobile-tabs">
+            <button id="tab-input" class="active" onclick="switchTab('input')">📄 输入</button>
+            <button id="tab-preview" onclick="switchTab('preview')">👁️ 预览</button>
+        </div>
+
+        <div class="editor-container">
+            <!-- 输入面板 -->
+            <div class="panel active" id="panel-input">
+                <div class="panel-header">
+                    <span class="panel-title">📄 Markdown 输入</span>
+                    <button class="btn btn-primary" onclick="clearInput()">清空内容</button>
+                </div>
+                <textarea id="markdown-input" placeholder="在这里粘贴你的 Markdown 内容...
+
+示例：
+## 标题会变成蓝色
+
+### 子标题会加粗
+
+- 列表项1
+- 列表项2
+
+**这是高亮语句，会居中显示**
+
+`代码` 会有背景色
+
+```
+代码块会有深色背景
+```
+
+| 表头1 | 表头2 |
+|-------|-------|
+| 内容1 | 内容2 |
+"></textarea>
+            </div>
+
+            <!-- 预览面板 -->
+            <div class="panel preview-panel" id="panel-preview">
+                <div class="panel-header">
+                    <span class="panel-title">👁️ 公众号预览</span>
+                    <button class="btn btn-success" onclick="copyToClipboard()">📋 复制到公众号</button>
+                </div>
+                <div id="preview">
+                    <p style="color: #adb5bd; text-align: center; margin-top: 100px;">预览区域<br>输入 Markdown
+                        内容后，这里会显示格式化效果</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast">✅ 已复制！粘贴到公众号即可</div>
+
+    <script>
+        const input = document.getElementById('markdown-input');
+        const preview = document.getElementById('preview');
+        const toast = document.getElementById('toast');
+
+        // 配置 marked
+        marked.setOptions({
+            breaks: true,
+            gfm: true
+        });
+
+        // 实时转换
+        input.addEventListener('input', () => {
+            const markdown = input.value;
+            if (markdown.trim()) {
+                preview.innerHTML = marked.parse(markdown);
+                // 处理只包含加粗文本的段落，使其成为高亮语句
+                processHighlightSentences();
+            } else {
+                preview.innerHTML = '<p style="color: #adb5bd; text-align: center; margin-top: 100px;">预览区域<br>在左侧输入 Markdown 内容后，这里会显示格式化后的效果</p>';
+            }
+        });
+
+        // 处理高亮语句
+        function processHighlightSentences() {
+            const paragraphs = preview.querySelectorAll('p');
+            paragraphs.forEach(p => {
+                // 检查段落是否只包含一个 <strong> 子元素
+                if (p.children.length === 1 && p.children[0].tagName === 'STRONG' && p.textContent.trim() === p.children[0].textContent.trim()) {
+                    p.classList.add('highlight-sentence');
+                }
+            });
+        }
+
+        // 清空输入
+        function clearInput() {
+            input.value = '';
+            preview.innerHTML = '<p style="color: #adb5bd; text-align: center; margin-top: 100px;">预览区域<br>在左侧输入 Markdown 内容后，这里会显示格式化后的效果</p>';
+        }
+
+        // 复制到剪贴板
+        async function copyToClipboard() {
+            try {
+                // 创建一个临时容器来复制富文本
+                const tempContainer = document.createElement('div');
+                tempContainer.innerHTML = preview.innerHTML;
+
+                // 添加内联样式以确保格式在粘贴时保持
+                applyInlineStyles(tempContainer);
+
+                // 使用 Clipboard API 复制 HTML
+                const blob = new Blob([tempContainer.innerHTML], { type: 'text/html' });
+                const clipboardItem = new ClipboardItem({
+                    'text/html': blob,
+                    'text/plain': new Blob([preview.innerText], { type: 'text/plain' })
+                });
+
+                await navigator.clipboard.write([clipboardItem]);
+
+                // 显示成功提示
+                showToast();
+            } catch (err) {
+                // 降级方案：使用传统的复制方法
+                const range = document.createRange();
+                range.selectNodeContents(preview);
+                const selection = window.getSelection();
+                selection.removeAllRanges();
+                selection.addRange(range);
+                document.execCommand('copy');
+                selection.removeAllRanges();
+                showToast();
+            }
+        }
+
+        // 添加内联样式
+        function applyInlineStyles(container) {
+            // H2 样式
+            container.querySelectorAll('h2').forEach(el => {
+                el.style.cssText = 'color: #2d8cf0; font-size: 20px; font-weight: bold; margin-top: 28px; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 2px solid #2d8cf0;';
+            });
+
+            // H3 样式
+            container.querySelectorAll('h3').forEach(el => {
+                el.style.cssText = 'color: #333; font-size: 17px; font-weight: bold; margin-top: 24px; margin-bottom: 12px;';
+            });
+
+            // 段落样式
+            container.querySelectorAll('p').forEach(el => {
+                el.style.cssText = 'margin: 12px 0; line-height: 1.8;';
+            });
+
+            // 高亮语句样式
+            container.querySelectorAll('p.highlight-sentence, p > strong:only-child').forEach(el => {
+                if (el.tagName === 'P') {
+                    el.style.cssText = 'text-align: center; margin: 16px 0;';
+                    if (el.firstChild && el.firstChild.tagName === 'STRONG') {
+                        el.firstChild.style.cssText = 'color: #2d8cf0; font-size: 17px; display: block; padding: 12px 16px; background: #f8fbff; border-radius: 6px;';
+                    }
+                }
+            });
+
+            // 列表样式
+            container.querySelectorAll('ul, ol').forEach(el => {
+                el.style.cssText = 'padding-left: 24px; margin: 12px 0;';
+            });
+
+            container.querySelectorAll('li').forEach(el => {
+                el.style.cssText = 'margin: 8px 0; line-height: 1.8;';
+            });
+
+            // 代码块样式
+            container.querySelectorAll('pre').forEach(el => {
+                el.style.cssText = 'background: #1e1e1e; color: #d4d4d4; padding: 16px; border-radius: 8px; overflow-x: auto; font-family: "SF Mono", Monaco, "Courier New", monospace; font-size: 14px; line-height: 1.6; margin: 16px 0;';
+            });
+
+            // 行内代码样式
+            container.querySelectorAll('code').forEach(el => {
+                if (el.parentElement.tagName !== 'PRE') {
+                    el.style.cssText = 'background: #f6f6f6; color: #c7254e; padding: 2px 6px; border-radius: 4px; font-family: "SF Mono", Monaco, "Courier New", monospace; font-size: 14px;';
+                }
+            });
+
+            // 表格样式
+            container.querySelectorAll('table').forEach(el => {
+                el.style.cssText = 'width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 15px;';
+            });
+
+            container.querySelectorAll('th').forEach(el => {
+                el.style.cssText = 'background: #2d8cf0; color: white; padding: 12px; text-align: left; font-weight: bold;';
+            });
+
+            container.querySelectorAll('td').forEach(el => {
+                el.style.cssText = 'padding: 10px 12px; border-bottom: 1px solid #e8e8e8;';
+            });
+
+            container.querySelectorAll('tr:nth-child(even)').forEach(el => {
+                el.style.cssText = 'background: #f9f9f9;';
+            });
+
+            // 引用块样式
+            container.querySelectorAll('blockquote').forEach(el => {
+                el.style.cssText = 'background: linear-gradient(135deg, #e8f4fc 0%, #f0f9ff 100%); border-left: 4px solid #2d8cf0; border-radius: 8px; padding: 16px 20px; margin: 20px 0;';
+            });
+
+            // 分隔线样式
+            container.querySelectorAll('hr').forEach(el => {
+                el.style.cssText = 'border: none; height: 1px; background: linear-gradient(to right, transparent, #2d8cf0, transparent); margin: 28px 0;';
+            });
+
+            // 链接样式
+            container.querySelectorAll('a').forEach(el => {
+                el.style.cssText = 'color: #2d8cf0; text-decoration: none;';
+            });
+        }
+
+        // 显示提示
+        function showToast() {
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2500);
+        }
+
+        // 移动端 Tab 切换
+        function switchTab(tab) {
+            const tabInput = document.getElementById('tab-input');
+            const tabPreview = document.getElementById('tab-preview');
+            const panelInput = document.getElementById('panel-input');
+            const panelPreview = document.getElementById('panel-preview');
+
+            if (tab === 'input') {
+                tabInput.classList.add('active');
+                tabPreview.classList.remove('active');
+                panelInput.classList.add('active');
+                panelPreview.classList.remove('active');
+            } else {
+                tabInput.classList.remove('active');
+                tabPreview.classList.add('active');
+                panelInput.classList.remove('active');
+                panelPreview.classList.add('active');
+            }
+        }
+
+        // 在桌面端显示两个面板
+        function handleResize() {
+            const isMobile = window.innerWidth <= 768;
+            const panelInput = document.getElementById('panel-input');
+            const panelPreview = document.getElementById('panel-preview');
+
+            if (!isMobile) {
+                panelInput.classList.add('active');
+                panelPreview.classList.add('active');
+            }
+        }
+
+        window.addEventListener('resize', handleResize);
+        handleResize();
+    </script>
+</body>
+
+</html>
