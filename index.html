@@ -529,7 +529,7 @@
         @media (max-width: 768px) {
             body {
                 padding: 0;
-                background: #667eea;
+                background: var(--bg-gradient-start);
             }
 
             .container {
@@ -561,9 +561,13 @@
                 display: flex;
                 margin: 0 16px 8px;
                 padding: 3px;
-                background: rgba(255, 255, 255, 0.2);
+                background: rgba(255, 255, 255, 0.15);
                 border-radius: 10px;
                 flex-shrink: 0;
+            }
+
+            body.dark .mobile-tabs {
+                background: rgba(0, 0, 0, 0.3);
             }
 
             .mobile-tabs button {
@@ -580,8 +584,8 @@
             }
 
             .mobile-tabs button.active {
-                background: white;
-                color: #667eea;
+                background: var(--panel-bg);
+                color: var(--tab-active-color);
                 box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
             }
 
@@ -606,8 +610,8 @@
 
             .panel-header {
                 padding: 12px 16px;
-                background: white;
-                border-bottom: 1px solid #f0f0f0;
+                background: var(--panel-header-bg);
+                border-bottom: 1px solid var(--panel-border);
                 position: sticky;
                 top: 0;
                 z-index: 10;
@@ -615,6 +619,12 @@
 
             .panel-title {
                 display: none;
+            }
+
+            .panel-header .btn-group {
+                display: flex;
+                gap: 8px;
+                width: 100%;
             }
 
             .panel-header .btn {
@@ -656,12 +666,12 @@
                 bottom: 0;
                 left: 0;
                 right: 0;
-                border-top: 1px solid #e9ecef;
+                border-top: 1px solid var(--panel-border);
                 border-bottom: none;
                 border-radius: 0;
                 padding: 12px 16px;
                 padding-bottom: calc(12px + env(safe-area-inset-bottom));
-                background: rgba(255, 255, 255, 0.95);
+                background: var(--panel-bg);
                 backdrop-filter: blur(10px);
                 -webkit-backdrop-filter: blur(10px);
                 box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
@@ -688,7 +698,7 @@
                 padding: 12px 20px;
                 font-size: 14px;
                 border-radius: 50px;
-                background: rgba(17, 153, 142, 0.95);
+                background: var(--toast-bg);
                 backdrop-filter: blur(10px);
                 -webkit-backdrop-filter: blur(10px);
             }
