@@ -15,13 +15,40 @@
             box-sizing: border-box;
         }
 
+        :root {
+            --bg-gradient-start: #667eea;
+            --bg-gradient-end: #764ba2;
+            --panel-bg: white;
+            --panel-header-bg: #f8f9fa;
+            --panel-border: #e9ecef;
+            --text-primary: #333;
+            --text-secondary: #495057;
+            --text-muted: #6c757d;
+            --input-bg: white;
+            --preview-bg: white;
+        }
+
+        body.dark {
+            --bg-gradient-start: #1a1a2e;
+            --bg-gradient-end: #16213e;
+            --panel-bg: #1e1e1e;
+            --panel-header-bg: #252525;
+            --panel-border: #333;
+            --text-primary: #e0e0e0;
+            --text-secondary: #b0b0b0;
+            --text-muted: #888;
+            --input-bg: #2a2a2a;
+            --preview-bg: #1e1e1e;
+        }
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
             min-height: 100vh;
             min-height: -webkit-fill-available;
             padding: 20px;
             padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+            transition: background 0.3s ease;
         }
 
         .container {
@@ -46,6 +73,41 @@
         header p {
             opacity: 0.9;
             font-size: 15px;
+        }
+
+        .header-actions {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 16px;
+            margin-top: 12px;
+        }
+
+        .theme-toggle {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            color: white;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .theme-toggle:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .author-link {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 13px;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .author-link:hover {
+            color: white;
         }
 
         /* Mobile Tab Navigation */
@@ -78,10 +140,11 @@
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 0;
-            background: white;
+            background: var(--panel-bg);
             border-radius: 16px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
             overflow: hidden;
+            transition: background 0.3s ease;
         }
 
         .panel {
@@ -90,19 +153,20 @@
         }
 
         .panel-header {
-            background: #f8f9fa;
+            background: var(--panel-header-bg);
             padding: 12px 20px;
-            border-bottom: 1px solid #e9ecef;
+            border-bottom: 1px solid var(--panel-border);
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
             gap: 10px;
+            transition: background 0.3s ease;
         }
 
         .panel-title {
             font-weight: 600;
-            color: #495057;
+            color: var(--text-secondary);
             font-size: 14px;
         }
 
@@ -149,9 +213,11 @@
             font-family: -apple-system, BlinkMacSystemFont, "SF Mono", Monaco, "Courier New", monospace;
             font-size: 15px;
             line-height: 1.6;
-            color: #333;
-            background: #fff;
+            color: var(--text-primary);
+            background: var(--input-bg);
             -webkit-appearance: none;
+            appearance: none;
+            transition: background 0.3s ease, color 0.3s ease;
         }
 
         #markdown-input:focus {
@@ -626,6 +692,10 @@
         <header>
             <h1>📝 Markdown → 公众号转换器</h1>
             <p>粘贴 Markdown 内容，自动转换为公众号富文本格式</p>
+            <div class="header-actions">
+                <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()">🌙 夜间模式</button>
+                <a href="https://x.com/kinpoe_ray" target="_blank" class="author-link">@kinpoe_ray</a>
+            </div>
         </header>
 
         <!-- Mobile Tab Navigation -->
@@ -642,27 +712,46 @@
                     <button class="btn btn-paste" onclick="pasteFromClipboard()">📋 粘贴内容</button>
                     <button class="btn btn-primary" onclick="clearInput()">清空</button>
                 </div>
-                <textarea id="markdown-input" placeholder="在这里粘贴你的 Markdown 内容...
+                <textarea id="markdown-input" placeholder="← 左右滑动切换 Tab
 
-示例：
-## 标题会变成蓝色
+在这里粘贴 Markdown 内容...
 
-### 子标题会加粗
+支持的格式示例：
 
-- 列表项1
-- 列表项2
+## 主标题（蓝色带下划线）
 
-**这是高亮语句，会居中显示**
+### 子标题（黑色加粗）
 
-`代码` 会有背景色
+普通段落文字，支持 **加粗** 和 *斜体* 样式。
 
+**独立加粗句子会居中高亮显示**
+
+- 无序列表项1
+- 无序列表项2
+- 无序列表项3
+
+1. 有序列表项1
+2. 有序列表项2
+3. 有序列表项3
+
+> 引用块会有淡蓝色背景和左侧竖线
+
+`行内代码` 有背景色
+
+```python
+# 代码块有深色背景
+def hello():
+    print('Hello WeChat!')
 ```
-代码块会有深色背景
-```
 
-| 表头1 | 表头2 |
-|-------|-------|
-| 内容1 | 内容2 |
+| 表头A | 表头B | 表头C |
+|--------|--------|--------|
+| 内容A1 | 内容B1 | 内容C1 |
+| 内容A2 | 内容B2 | 内容C2 |
+
+---
+
+[链接文字](https://example.com)
 "></textarea>
             </div>
 
@@ -902,6 +991,67 @@
                 alert('请使用 Cmd+V (Mac) 或 Ctrl+V (Windows) 粘贴内容');
             }
         }
+
+        // 移动端滑动切换 Tab
+        let touchStartX = 0;
+        let touchEndX = 0;
+        const swipeThreshold = 50; // 最小滑动距离
+
+        function handleSwipe() {
+            const diff = touchEndX - touchStartX;
+            const isMobile = window.innerWidth <= 768;
+
+            if (!isMobile) return;
+
+            if (Math.abs(diff) < swipeThreshold) return;
+
+            if (diff > 0) {
+                // 向右滑动 - 切换到输入
+                switchTab('input');
+            } else {
+                // 向左滑动 - 切换到预览
+                switchTab('preview');
+            }
+        }
+
+        const editorContainer = document.querySelector('.editor-container');
+
+        editorContainer.addEventListener('touchstart', (e) => {
+            touchStartX = e.changedTouches[0].screenX;
+        }, { passive: true });
+
+        editorContainer.addEventListener('touchend', (e) => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        }, { passive: true });
+
+        // 主题切换
+        function toggleTheme() {
+            const body = document.body;
+            const themeBtn = document.getElementById('theme-toggle');
+
+            if (body.classList.contains('dark')) {
+                body.classList.remove('dark');
+                themeBtn.innerHTML = '🌙 夜间模式';
+                localStorage.setItem('theme', 'light');
+            } else {
+                body.classList.add('dark');
+                themeBtn.innerHTML = '☀️ 日间模式';
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+
+        // 初始化主题
+        (function initTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const themeBtn = document.getElementById('theme-toggle');
+
+            if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+                document.body.classList.add('dark');
+                themeBtn.innerHTML = '☀️ 日间模式';
+            }
+        })();
     </script>
 </body>
 
