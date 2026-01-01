@@ -368,37 +368,76 @@
         /* ========== 移动端响应式 ========== */
         @media (max-width: 768px) {
             body {
-                padding: 10px;
+                padding: 0;
+                background: #667eea;
+            }
+
+            .container {
+                padding: 0;
+                display: flex;
+                flex-direction: column;
+                height: 100vh;
+                height: 100dvh;
             }
 
             header {
-                margin-bottom: 16px;
-                padding: 16px 10px;
+                margin-bottom: 12px;
+                padding: 12px 16px 8px;
+                flex-shrink: 0;
             }
 
             header h1 {
-                font-size: 22px;
+                font-size: 18px;
+                margin-bottom: 4px;
             }
 
             header p {
-                font-size: 13px;
+                font-size: 12px;
+                opacity: 0.85;
             }
 
+            /* iOS 风格分段控制器 */
             .mobile-tabs {
                 display: flex;
+                margin: 0 16px 8px;
+                padding: 3px;
+                background: rgba(255, 255, 255, 0.2);
+                border-radius: 10px;
+                flex-shrink: 0;
+            }
+
+            .mobile-tabs button {
+                flex: 1;
+                padding: 10px 16px;
+                border: none;
+                background: transparent;
+                font-size: 14px;
+                font-weight: 600;
+                color: rgba(255, 255, 255, 0.8);
+                cursor: pointer;
+                transition: all 0.25s ease;
+                border-radius: 8px;
+            }
+
+            .mobile-tabs button.active {
+                background: white;
+                color: #667eea;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
             }
 
             .editor-container {
                 grid-template-columns: 1fr;
-                border-radius: 0 0 16px 16px;
-                min-height: calc(100vh - 180px);
-                min-height: calc(100dvh - 180px);
+                border-radius: 20px 20px 0 0;
+                flex: 1;
+                min-height: 0;
+                overflow: hidden;
             }
 
             .panel {
                 display: none;
-                height: calc(100vh - 220px);
-                height: calc(100dvh - 220px);
+                flex: 1;
+                min-height: 0;
+                position: relative;
             }
 
             .panel.active {
@@ -406,7 +445,12 @@
             }
 
             .panel-header {
-                padding: 10px 16px;
+                padding: 12px 16px;
+                background: white;
+                border-bottom: 1px solid #f0f0f0;
+                position: sticky;
+                top: 0;
+                z-index: 10;
             }
 
             .panel-title {
@@ -416,51 +460,145 @@
             .panel-header .btn {
                 flex: 1;
                 text-align: center;
+                padding: 14px 20px;
+                font-size: 15px;
+                border-radius: 10px;
             }
 
+            /* 输入区域样式优化 */
+            #markdown-input {
+                padding: 16px;
+                font-size: 16px;
+                line-height: 1.7;
+                flex: 1;
+                min-height: 0;
+            }
+
+            /* 预览区域样式优化 */
             .preview-panel {
                 border-left: none;
             }
 
-            #markdown-input {
-                padding: 16px;
-                font-size: 16px;
-                min-height: 300px;
-            }
-
             #preview {
                 padding: 16px;
+                padding-bottom: 80px;
+                /* 为底部按钮留空间 */
                 max-height: none;
-                min-height: 300px;
+                flex: 1;
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
             }
 
-            .btn {
-                padding: 12px 20px;
-                font-size: 15px;
+            /* 底部固定复制按钮 */
+            .preview-panel .panel-header {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                border-top: 1px solid #e9ecef;
+                border-bottom: none;
+                border-radius: 0;
+                padding: 12px 16px;
+                padding-bottom: calc(12px + env(safe-area-inset-bottom));
+                background: rgba(255, 255, 255, 0.95);
+                backdrop-filter: blur(10px);
+                -webkit-backdrop-filter: blur(10px);
+                box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
             }
 
-            .toast {
-                top: auto;
-                bottom: 30px;
+            .preview-panel .panel-header .btn {
                 padding: 16px 24px;
                 font-size: 16px;
+                font-weight: 600;
+            }
+
+            /* 输入面板的按钮保持顶部 */
+            #panel-input .panel-header {
+                position: sticky;
+                bottom: auto;
+                border-radius: 0;
+                box-shadow: none;
+            }
+
+            /* Toast 提示优化 */
+            .toast {
+                top: auto;
+                bottom: calc(80px + env(safe-area-inset-bottom));
+                padding: 14px 24px;
+                font-size: 15px;
                 border-radius: 50px;
+                background: rgba(17, 153, 142, 0.95);
+                backdrop-filter: blur(10px);
+                -webkit-backdrop-filter: blur(10px);
             }
 
             .toast.show {
                 transform: translateX(-50%) translateY(0);
             }
+
+            /* 按钮触摸反馈 */
+            .btn:active {
+                transform: scale(0.97);
+                opacity: 0.9;
+            }
+
+            .mobile-tabs button:active {
+                opacity: 0.7;
+            }
         }
 
-        /* 非常小的屏幕 */
+        /* 非常小的屏幕 (SE, 小型 Android) */
         @media (max-width: 380px) {
             header h1 {
-                font-size: 18px;
+                font-size: 16px;
+            }
+
+            header p {
+                font-size: 11px;
+            }
+
+            .mobile-tabs {
+                margin: 0 12px 6px;
             }
 
             .mobile-tabs button {
-                padding: 12px 10px;
+                padding: 8px 12px;
+                font-size: 13px;
+            }
+
+            #markdown-input,
+            #preview {
+                padding: 12px;
+                font-size: 15px;
+            }
+
+            .panel-header .btn {
+                padding: 12px 16px;
                 font-size: 14px;
+            }
+        }
+
+        /* 横屏模式优化 */
+        @media (max-width: 768px) and (orientation: landscape) {
+            header {
+                padding: 8px 16px 4px;
+                margin-bottom: 8px;
+            }
+
+            header h1 {
+                font-size: 16px;
+            }
+
+            header p {
+                display: none;
+            }
+
+            .mobile-tabs {
+                margin-bottom: 6px;
+            }
+
+            .mobile-tabs button {
+                padding: 8px 12px;
             }
         }
     </style>
