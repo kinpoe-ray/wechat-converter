@@ -492,6 +492,65 @@
             visibility: visible;
         }
 
+        /* ========== 悬浮按钮 ========== */
+        .fab-container {
+            position: fixed;
+            right: 20px;
+            bottom: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            z-index: 200;
+        }
+
+        .fab {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            opacity: 0;
+            visibility: hidden;
+            transform: scale(0.8);
+        }
+
+        .fab.show {
+            opacity: 1;
+            visibility: visible;
+            transform: scale(1);
+        }
+
+        .fab:active {
+            transform: scale(0.95);
+        }
+
+        .fab-copy {
+            background: var(--btn-primary-bg);
+            color: white;
+        }
+
+        .fab-top {
+            background: var(--card-bg);
+            color: var(--text-secondary);
+            border: 1px solid var(--input-border);
+        }
+
+        .fab-top:hover {
+            background: var(--input-border);
+        }
+
+        @media (min-width: 769px) {
+            .fab-container {
+                display: none;
+            }
+        }
+
         /* ========== 响应式 - 移动端 ========== */
         @media (max-width: 768px) {
             .header {
@@ -596,8 +655,19 @@
             }
 
             .toast {
-                bottom: calc(80px + env(safe-area-inset-bottom));
+                bottom: calc(24px + env(safe-area-inset-bottom));
                 top: auto;
+            }
+
+            .fab-container {
+                right: 16px;
+                bottom: calc(16px + env(safe-area-inset-bottom));
+            }
+
+            .fab {
+                width: 52px;
+                height: 52px;
+                font-size: 22px;
             }
         }
 
@@ -725,6 +795,12 @@
             </div>
         </div>
     </main>
+
+    <!-- 悬浮按钮 -->
+    <div class="fab-container" id="fab-container">
+        <button class="fab fab-top" id="fab-top" onclick="scrollToTop()" title="回到顶部">⬆️</button>
+        <button class="fab fab-copy" id="fab-copy" onclick="copyToClipboard()" title="复制到公众号">📋</button>
+    </div>
 
     <div class="toast" id="toast">✅ 已复制！粘贴到公众号即可</div>
 
@@ -870,53 +946,80 @@
             }
         }
 
-        // 滑动切换 Tab - 改进版（更大阈值 + 动画）
+        // 滑动切换 Tab - 改进版（1:1 跟手 + 动画）
         let touchStartX = 0;
-        let touchEndX = 0;
+        let touchStartY = 0;
         let isSwiping = false;
-        const SWIPE_THRESHOLD = 100; // 需要滑动 100px 才触发
+        let isHorizontalSwipe = null;
+        const SWIPE_THRESHOLD = 80;
+        const editorWidth = window.innerWidth;
 
         const editorEl = document.querySelector('.editor');
         const panelInputEl = document.getElementById('panel-input');
         const panelPreviewEl = document.getElementById('panel-preview');
 
         editorEl.addEventListener('touchstart', (e) => {
-            touchStartX = e.changedTouches[0].screenX;
+            touchStartX = e.changedTouches[0].clientX;
+            touchStartY = e.changedTouches[0].clientY;
             isSwiping = true;
+            isHorizontalSwipe = null;
+            // 禁用过渡以实现流畅跟手
+            panelInputEl.style.transition = 'none';
+            panelPreviewEl.style.transition = 'none';
         }, { passive: true });
 
         editorEl.addEventListener('touchmove', (e) => {
             if (!isSwiping || window.innerWidth > 768) return;
-            const currentX = e.changedTouches[0].screenX;
-            const diff = currentX - touchStartX;
-            // 添加视觉反馈（轻微偏移）
-            const offset = Math.min(Math.abs(diff) * 0.3, 50);
-            if (diff > 0 && panelPreviewEl.classList.contains('active')) {
+
+            const currentX = e.changedTouches[0].clientX;
+            const currentY = e.changedTouches[0].clientY;
+            const diffX = currentX - touchStartX;
+            const diffY = currentY - touchStartY;
+
+            // 判断是水平还是垂直滑动
+            if (isHorizontalSwipe === null) {
+                if (Math.abs(diffX) > 10 || Math.abs(diffY) > 10) {
+                    isHorizontalSwipe = Math.abs(diffX) > Math.abs(diffY);
+                }
+            }
+
+            if (!isHorizontalSwipe) return;
+
+            // 1:1 跟手效果，限制最大偏移
+            const maxOffset = editorWidth * 0.4;
+            const offset = Math.max(-maxOffset, Math.min(maxOffset, diffX * 0.8));
+
+            if (diffX > 0 && panelPreviewEl.classList.contains('active')) {
+                // 在预览页向右滑 -> 显示输入
                 panelPreviewEl.style.transform = `translateX(${offset}px)`;
-                panelPreviewEl.style.opacity = 1 - (offset / 100);
-            } else if (diff < 0 && panelInputEl.classList.contains('active')) {
-                panelInputEl.style.transform = `translateX(-${offset}px)`;
-                panelInputEl.style.opacity = 1 - (offset / 100);
+                panelPreviewEl.style.opacity = 1 - Math.abs(offset) / (maxOffset * 1.5);
+            } else if (diffX < 0 && panelInputEl.classList.contains('active')) {
+                // 在输入页向左滑 -> 显示预览
+                panelInputEl.style.transform = `translateX(${offset}px)`;
+                panelInputEl.style.opacity = 1 - Math.abs(offset) / (maxOffset * 1.5);
             }
         }, { passive: true });
 
         editorEl.addEventListener('touchend', (e) => {
             if (!isSwiping) return;
             isSwiping = false;
-            touchEndX = e.changedTouches[0].screenX;
-            const diff = touchEndX - touchStartX;
 
-            // 恢复样式
+            const endX = e.changedTouches[0].clientX;
+            const diff = endX - touchStartX;
+
+            // 恢复过渡动画
+            panelInputEl.style.transition = '';
+            panelPreviewEl.style.transition = '';
             panelInputEl.style.transform = '';
             panelInputEl.style.opacity = '';
             panelPreviewEl.style.transform = '';
             panelPreviewEl.style.opacity = '';
 
-            // 只有滑动距离超过阈值才切换
-            if (window.innerWidth <= 768 && Math.abs(diff) > SWIPE_THRESHOLD) {
-                if (diff > 0) {
+            // 只有水平滑动且距离超过阈值才切换
+            if (isHorizontalSwipe && window.innerWidth <= 768 && Math.abs(diff) > SWIPE_THRESHOLD) {
+                if (diff > 0 && panelPreviewEl.classList.contains('active')) {
                     switchTab('input');
-                } else {
+                } else if (diff < 0 && panelInputEl.classList.contains('active')) {
                     switchTab('preview');
                 }
             }
@@ -963,14 +1066,12 @@
             deleteClickCount++;
 
             if (deleteClickCount === 1) {
-                // 第一次点击，显示提示
                 toast.innerHTML = '🗑️ 再点一次确认清空';
                 showToast();
                 deleteClickTimer = setTimeout(() => {
                     deleteClickCount = 0;
-                }, 2000); // 2秒内双击有效
+                }, 2000);
             } else if (deleteClickCount >= 2) {
-                // 双击确认删除
                 clearTimeout(deleteClickTimer);
                 deleteClickCount = 0;
                 input.value = '';
@@ -982,6 +1083,66 @@
                 }, 3000);
             }
         }
+
+        // 悬浮按钮控制
+        const fabCopy = document.getElementById('fab-copy');
+        const fabTop = document.getElementById('fab-top');
+        const previewWrapper = document.querySelector('.preview-wrapper');
+        let hasContent = false;
+
+        // 监听内容变化
+        const contentObserver = new MutationObserver(() => {
+            hasContent = input.value.trim().length > 0;
+            updateFabVisibility();
+        });
+        contentObserver.observe(preview, { childList: true, subtree: true });
+
+        // 监听预览区滚动
+        if (previewWrapper) {
+            previewWrapper.addEventListener('scroll', () => {
+                updateFabVisibility();
+            });
+        }
+
+        function updateFabVisibility() {
+            const isMobile = window.innerWidth <= 768;
+            const isPreviewActive = panelPreviewEl.classList.contains('active');
+            const scrollTop = previewWrapper ? previewWrapper.scrollTop : 0;
+
+            // 移动端预览页有内容时显示复制按钮
+            if (isMobile && isPreviewActive && hasContent) {
+                fabCopy.classList.add('show');
+            } else {
+                fabCopy.classList.remove('show');
+            }
+
+            // 滚动超过 200px 时显示回到顶部
+            if (isMobile && isPreviewActive && scrollTop > 200) {
+                fabTop.classList.add('show');
+            } else {
+                fabTop.classList.remove('show');
+            }
+        }
+
+        // 回到顶部
+        function scrollToTop() {
+            if (previewWrapper) {
+                previewWrapper.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+            }
+        }
+
+        // Tab 切换时更新悬浮按钮
+        const originalSwitchTab = switchTab;
+        switchTab = function (tab) {
+            originalSwitchTab(tab);
+            setTimeout(updateFabVisibility, 100);
+        };
+
+        // 监听窗口大小变化
+        window.addEventListener('resize', updateFabVisibility);
     </script>
 </body>
 
