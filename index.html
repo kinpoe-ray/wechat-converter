@@ -1147,20 +1147,44 @@
             return input.value.trim().length > 0;
         }
 
+        // 获取滚动信息（智能检测滚动容器）
+        function getScrollInfo() {
+            // 检查 preview-wrapper 是否可滚动
+            const wrapperScrollable = previewWrapperEl &&
+                previewWrapperEl.scrollHeight > previewWrapperEl.clientHeight + 10;
+
+            if (wrapperScrollable) {
+                return {
+                    scrollTop: previewWrapperEl.scrollTop,
+                    scrollHeight: previewWrapperEl.scrollHeight,
+                    clientHeight: previewWrapperEl.clientHeight,
+                    container: previewWrapperEl
+                };
+            } else {
+                // 使用 window 滚动
+                return {
+                    scrollTop: window.pageYOffset || document.documentElement.scrollTop,
+                    scrollHeight: document.documentElement.scrollHeight,
+                    clientHeight: window.innerHeight,
+                    container: window
+                };
+            }
+        }
+
         // 更新悬浮按钮可见性
         function updateFabVisibility() {
             const isMobile = window.innerWidth <= 768;
             const isPreviewActive = panelPreviewEl.classList.contains('active');
             const hasContent = checkHasContent();
 
-            if (!previewWrapperEl || !fabCopy || !fabTop) return;
+            if (!fabCopy || !fabTop) return;
 
-            const scrollTop = previewWrapperEl.scrollTop;
-            const scrollHeight = previewWrapperEl.scrollHeight;
-            const clientHeight = previewWrapperEl.clientHeight;
+            const scrollInfo = getScrollInfo();
+            const { scrollTop, scrollHeight, clientHeight } = scrollInfo;
 
-            // 检测是否接近底部（距离底部 150px 内）
-            const isNearBottom = scrollHeight > clientHeight && (scrollTop + clientHeight >= scrollHeight - 150);
+            // 检测是否接近底部（距离底部 200px 内）
+            const isNearBottom = scrollHeight > clientHeight &&
+                (scrollTop + clientHeight >= scrollHeight - 200);
 
             // 移动端预览页有内容时显示复制按钮（但接近底部时隐藏）
             if (isMobile && isPreviewActive && hasContent && !isNearBottom) {
@@ -1169,8 +1193,8 @@
                 fabCopy.classList.remove('show');
             }
 
-            // 滚动超过 200px 时显示回到顶部
-            if (isMobile && isPreviewActive && scrollTop > 200) {
+            // 滚动超过 150px 时显示回到顶部
+            if (isMobile && isPreviewActive && scrollTop > 150) {
                 fabTop.classList.add('show');
             } else {
                 fabTop.classList.remove('show');
@@ -1182,19 +1206,21 @@
             previewWrapperEl.addEventListener('scroll', updateFabVisibility, { passive: true });
         }
 
+        // 监听 window 滚动（移动端可能整页滚动）
+        window.addEventListener('scroll', updateFabVisibility, { passive: true });
+
         // 监听输入变化
         input.addEventListener('input', () => {
-            // 延迟更新，等待预览渲染完成
             setTimeout(updateFabVisibility, 100);
         });
 
         // 回到顶部
         function scrollToTop() {
-            if (previewWrapperEl) {
-                previewWrapperEl.scrollTo({
-                    top: 0,
-                    behavior: 'smooth'
-                });
+            const scrollInfo = getScrollInfo();
+            if (scrollInfo.container === window) {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            } else if (previewWrapperEl) {
+                previewWrapperEl.scrollTo({ top: 0, behavior: 'smooth' });
             }
         }
 
@@ -1202,14 +1228,13 @@
         const originalSwitchTab = switchTab;
         switchTab = function (tab) {
             originalSwitchTab(tab);
-            // 延迟更新，确保面板切换完成
             setTimeout(updateFabVisibility, 150);
         };
 
         // 监听窗口大小变化
         window.addEventListener('resize', updateFabVisibility);
 
-        // 初始化时调用一次
+        // 初始化
         setTimeout(updateFabVisibility, 500);
     </script>
 </body>
