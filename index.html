@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" id="theme-color-meta" content="#dbeafe">
     <title>Markdown → 公众号格式转换器</title>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
@@ -216,6 +217,7 @@
             display: flex;
             flex-direction: column;
             min-height: 0;
+            transition: transform 0.2s ease, opacity 0.2s ease;
         }
 
         .panel-input {
@@ -836,7 +838,7 @@
         window.addEventListener('resize', handleResize);
         handleResize();
 
-        // 粘贴功能
+        // 粘贴功能 - iOS 优化
         async function pasteFromClipboard() {
             try {
                 const text = await navigator.clipboard.readText();
@@ -849,26 +851,69 @@
                         toast.innerHTML = '✅ 已复制！粘贴到公众号即可';
                     }, 3000);
                 } else {
-                    alert('剪贴板为空');
+                    // 剪贴板为空，直接聚焦让用户手动粘贴
+                    input.focus();
+                    toast.innerHTML = '📋 请长按粘贴内容';
+                    showToast();
+                    setTimeout(() => {
+                        toast.innerHTML = '✅ 已复制！粘贴到公众号即可';
+                    }, 3000);
                 }
             } catch (error) {
+                // iOS 权限限制，直接聚焦输入框让用户手动粘贴，不弹窗
                 input.focus();
-                alert('请使用 Cmd+V (Mac) 或 Ctrl+V (Windows) 粘贴');
+                toast.innerHTML = '📋 请长按粘贴内容';
+                showToast();
+                setTimeout(() => {
+                    toast.innerHTML = '✅ 已复制！粘贴到公众号即可';
+                }, 3000);
             }
         }
 
-        // 滑动切换 Tab
+        // 滑动切换 Tab - 改进版（更大阈值 + 动画）
         let touchStartX = 0;
         let touchEndX = 0;
+        let isSwiping = false;
+        const SWIPE_THRESHOLD = 100; // 需要滑动 100px 才触发
 
-        document.querySelector('.editor').addEventListener('touchstart', (e) => {
+        const editorEl = document.querySelector('.editor');
+        const panelInputEl = document.getElementById('panel-input');
+        const panelPreviewEl = document.getElementById('panel-preview');
+
+        editorEl.addEventListener('touchstart', (e) => {
             touchStartX = e.changedTouches[0].screenX;
+            isSwiping = true;
         }, { passive: true });
 
-        document.querySelector('.editor').addEventListener('touchend', (e) => {
+        editorEl.addEventListener('touchmove', (e) => {
+            if (!isSwiping || window.innerWidth > 768) return;
+            const currentX = e.changedTouches[0].screenX;
+            const diff = currentX - touchStartX;
+            // 添加视觉反馈（轻微偏移）
+            const offset = Math.min(Math.abs(diff) * 0.3, 50);
+            if (diff > 0 && panelPreviewEl.classList.contains('active')) {
+                panelPreviewEl.style.transform = `translateX(${offset}px)`;
+                panelPreviewEl.style.opacity = 1 - (offset / 100);
+            } else if (diff < 0 && panelInputEl.classList.contains('active')) {
+                panelInputEl.style.transform = `translateX(-${offset}px)`;
+                panelInputEl.style.opacity = 1 - (offset / 100);
+            }
+        }, { passive: true });
+
+        editorEl.addEventListener('touchend', (e) => {
+            if (!isSwiping) return;
+            isSwiping = false;
             touchEndX = e.changedTouches[0].screenX;
             const diff = touchEndX - touchStartX;
-            if (window.innerWidth <= 768 && Math.abs(diff) > 50) {
+
+            // 恢复样式
+            panelInputEl.style.transform = '';
+            panelInputEl.style.opacity = '';
+            panelPreviewEl.style.transform = '';
+            panelPreviewEl.style.opacity = '';
+
+            // 只有滑动距离超过阈值才切换
+            if (window.innerWidth <= 768 && Math.abs(diff) > SWIPE_THRESHOLD) {
                 if (diff > 0) {
                     switchTab('input');
                 } else {
@@ -877,18 +922,21 @@
             }
         }, { passive: true });
 
-        // 主题切换
+        // 主题切换 - 同步更新 theme-color
         function toggleTheme() {
             const body = document.body;
             const themeBtn = document.getElementById('theme-toggle');
+            const themeColorMeta = document.getElementById('theme-color-meta');
 
             if (body.classList.contains('dark')) {
                 body.classList.remove('dark');
                 themeBtn.innerHTML = '☀️';
+                themeColorMeta.content = '#dbeafe';
                 localStorage.setItem('theme', 'light');
             } else {
                 body.classList.add('dark');
                 themeBtn.innerHTML = '🌙';
+                themeColorMeta.content = '#0f172a';
                 localStorage.setItem('theme', 'dark');
             }
         }
@@ -898,12 +946,42 @@
             const savedTheme = localStorage.getItem('theme');
             const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
             const themeBtn = document.getElementById('theme-toggle');
+            const themeColorMeta = document.getElementById('theme-color-meta');
 
             if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
                 document.body.classList.add('dark');
                 themeBtn.innerHTML = '🌙';
+                themeColorMeta.content = '#0f172a';
             }
         })();
+
+        // 双击删除功能
+        let deleteClickCount = 0;
+        let deleteClickTimer = null;
+
+        function clearInput() {
+            deleteClickCount++;
+
+            if (deleteClickCount === 1) {
+                // 第一次点击，显示提示
+                toast.innerHTML = '🗑️ 再点一次确认清空';
+                showToast();
+                deleteClickTimer = setTimeout(() => {
+                    deleteClickCount = 0;
+                }, 2000); // 2秒内双击有效
+            } else if (deleteClickCount >= 2) {
+                // 双击确认删除
+                clearTimeout(deleteClickTimer);
+                deleteClickCount = 0;
+                input.value = '';
+                input.dispatchEvent(new Event('input'));
+                toast.innerHTML = '✅ 内容已清空';
+                showToast();
+                setTimeout(() => {
+                    toast.innerHTML = '✅ 已复制！粘贴到公众号即可';
+                }, 3000);
+            }
+        }
     </script>
 </body>
 
