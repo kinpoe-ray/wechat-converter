@@ -689,13 +689,20 @@
 
             .fab-container {
                 right: 16px;
-                bottom: calc(16px + env(safe-area-inset-bottom));
+                bottom: calc(90px + env(safe-area-inset-bottom));
             }
 
             .fab {
-                width: 52px;
-                height: 52px;
-                font-size: 22px;
+                width: auto;
+                height: auto;
+                min-width: 48px;
+                min-height: 48px;
+            }
+
+            .fab-top {
+                width: 48px;
+                height: 48px;
+                font-size: 20px;
             }
         }
 
@@ -1122,36 +1129,28 @@
         const fabCopy = document.getElementById('fab-copy');
         const fabTop = document.getElementById('fab-top');
         const previewWrapperEl = document.getElementById('preview-wrapper');
-        let hasContent = false;
 
-        // 监听内容变化
-        const contentObserver = new MutationObserver(() => {
-            hasContent = input.value.trim().length > 0;
-            updateFabVisibility();
-        });
-        contentObserver.observe(preview, { childList: true, subtree: true });
-
-        // 监听预览区滚动
-        if (previewWrapperEl) {
-            previewWrapperEl.addEventListener('scroll', () => {
-                updateFabVisibility();
-            });
+        // 检测是否有内容
+        function checkHasContent() {
+            return input.value.trim().length > 0;
         }
 
+        // 更新悬浮按钮可见性
         function updateFabVisibility() {
             const isMobile = window.innerWidth <= 768;
             const isPreviewActive = panelPreviewEl.classList.contains('active');
+            const hasContent = checkHasContent();
 
-            if (!previewWrapperEl) return;
+            if (!previewWrapperEl || !fabCopy || !fabTop) return;
 
             const scrollTop = previewWrapperEl.scrollTop;
             const scrollHeight = previewWrapperEl.scrollHeight;
             const clientHeight = previewWrapperEl.clientHeight;
 
             // 检测是否接近底部（距离底部 150px 内）
-            const isNearBottom = scrollTop + clientHeight >= scrollHeight - 150;
+            const isNearBottom = scrollHeight > clientHeight && (scrollTop + clientHeight >= scrollHeight - 150);
 
-            // 移动端预览页有内容时显示复制按钮（但接近底部时隐藏，因为有固定的复制按钮）
+            // 移动端预览页有内容时显示复制按钮（但接近底部时隐藏）
             if (isMobile && isPreviewActive && hasContent && !isNearBottom) {
                 fabCopy.classList.add('show');
             } else {
@@ -1165,6 +1164,17 @@
                 fabTop.classList.remove('show');
             }
         }
+
+        // 监听预览区滚动
+        if (previewWrapperEl) {
+            previewWrapperEl.addEventListener('scroll', updateFabVisibility, { passive: true });
+        }
+
+        // 监听输入变化
+        input.addEventListener('input', () => {
+            // 延迟更新，等待预览渲染完成
+            setTimeout(updateFabVisibility, 100);
+        });
 
         // 回到顶部
         function scrollToTop() {
@@ -1180,11 +1190,15 @@
         const originalSwitchTab = switchTab;
         switchTab = function (tab) {
             originalSwitchTab(tab);
-            setTimeout(updateFabVisibility, 100);
+            // 延迟更新，确保面板切换完成
+            setTimeout(updateFabVisibility, 150);
         };
 
         // 监听窗口大小变化
         window.addEventListener('resize', updateFabVisibility);
+
+        // 初始化时调用一次
+        setTimeout(updateFabVisibility, 500);
     </script>
 </body>
 
