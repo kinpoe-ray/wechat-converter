@@ -16,259 +16,290 @@
         }
 
         :root {
-            /* Twitter-like Palette (Light) */
-            --bg-body: #F5F8FA;
-            --bg-surface: #FFFFFF;
-            --bg-hover: #E8F5FD;
-
-            --primary: #1DA1F2;
-            --primary-hover: #1A91DA;
-
-            --text-primary: #0F1419;
-            --text-secondary: #536471;
-            --text-tertiary: #CFD9DE;
-
-            --border-color: #CFD9DE;
-            --border-hover: #1DA1F2;
-
-            /* Component Specific Map */
-            --panel-bg: var(--bg-surface);
-            --panel-header-bg: var(--bg-surface);
-            --panel-border: var(--border-color);
-
-            --input-bg: var(--bg-surface);
-            --preview-bg: var(--bg-surface);
-
-            --btn-primary-bg: var(--primary);
-            --btn-primary-text: #ffffff;
-
-            --btn-secondary-bg: #EFF3F4;
-            --btn-secondary-text: #0F1419;
-            --btn-secondary-hover: #D7DBDC;
-
-            --tab-bg: transparent;
-            --tab-active-border: var(--primary);
-            --tab-text: var(--text-secondary);
-            --tab-active-text: var(--text-primary);
-
-            /* Toast & Accents */
-            --toast-bg: var(--primary);
-            --code-bg: #F7F9F9;
-            --code-color: #D63384;
-            --highlight-bg: #E8F5FD;
-
-            /* Shadows */
-            --shadow-sm: 0 2px 5px rgba(0, 0, 0, 0.05);
-            --shadow-md: 0 5px 15px rgba(0, 0, 0, 0.1);
+            /* 参考 twitter-thread.com 的配色 */
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --bg-gradient: linear-gradient(180deg, #dbeafe 0%, #bfdbfe 50%, #93c5fd 100%);
+            --page-bg: #eff6ff;
+            --card-bg: rgba(255, 255, 255, 0.95);
+            --card-border: rgba(59, 130, 246, 0.2);
+            --card-shadow: 0 4px 24px rgba(59, 130, 246, 0.15);
+            --text-primary: #1e293b;
+            --text-secondary: #475569;
+            --text-muted: #94a3b8;
+            --input-bg: #ffffff;
+            --input-border: #e2e8f0;
+            --input-focus-border: #3b82f6;
+            --btn-primary-bg: #3b82f6;
+            --btn-secondary-bg: transparent;
+            --btn-secondary-border: #3b82f6;
+            --toast-bg: #22c55e;
+            --code-bg: #f1f5f9;
+            --code-color: #be185d;
         }
 
         body.dark {
-            --panel-bg: #1e1e1e;
-            --panel-header-bg: #252525;
-            --panel-border: #3a3a3a;
-            --text-primary: #e0e0e0;
-            --text-secondary: #b0b0b0;
-            --text-muted: #888;
-            --input-bg: #2a2a2a;
-            --preview-bg: #1e1e1e;
-            --tab-bg: #2a2a2a;
-            --tab-active-bg: #1e1e1e;
-            --tab-active-color: #a8b4ff;
-            --btn-primary-bg: linear-gradient(135deg, #5a6fd6 0%, #6a44a0 100%);
-            --btn-success-bg: linear-gradient(135deg, #0d7d74 0%, #2bc968 100%);
-            --btn-paste-bg: linear-gradient(135deg, #3d5a58 0%, #5a4a50 100%);
-            --btn-paste-color: #e0e0e0;
-            --toast-bg: linear-gradient(135deg, #0d7d74 0%, #2bc968 100%);
-            --code-bg: #2d2d2d;
-            --code-color: #ff79c6;
-            --blockquote-bg: linear-gradient(135deg, #1a2a3a 0%, #1a2530 100%);
-            --table-header-bg: #2a2a2a;
-            --table-border: #444;
-            --placeholder-color: #666;
+            --bg-gradient: linear-gradient(180deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+            --page-bg: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.95);
+            --card-border: rgba(59, 130, 246, 0.3);
+            --card-shadow: 0 4px 32px rgba(59, 130, 246, 0.2);
+            --text-primary: #f1f5f9;
+            --text-secondary: #cbd5e1;
+            --text-muted: #64748b;
+            --input-bg: #1e293b;
+            --input-border: #334155;
+            --input-focus-border: #3b82f6;
+            --btn-primary-bg: #3b82f6;
+            --btn-secondary-bg: transparent;
+            --btn-secondary-border: #3b82f6;
+            --toast-bg: #22c55e;
+            --code-bg: #1e293b;
+            --code-color: #f472b6;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background: var(--bg-body);
-            color: var(--text-primary);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter", sans-serif;
+            background: var(--bg-gradient);
             min-height: 100vh;
-            padding: 0;
-            margin: 0;
-            transition: background 0.3s ease, color 0.3s ease;
-        }
-
-        .container {
-            max-width: 1600px;
-            margin: 0 auto;
-            height: calc(100vh - 40px);
+            min-height: 100dvh;
+            transition: background 0.3s ease;
             display: flex;
             flex-direction: column;
-            padding: 0 20px;
         }
 
-        header {
-            text-align: center;
+        /* ========== Header 区域 ========== */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 24px;
+            position: relative;
+            z-index: 100;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 700;
+            font-size: 18px;
             color: var(--text-primary);
-            margin: 0;
-            padding: 24px 20px;
-            background: var(--bg-surface);
-            border-bottom: 1px solid var(--border-color);
         }
 
-        header h1 {
+        .logo-icon {
             font-size: 24px;
-            margin-bottom: 8px;
-            font-weight: 800;
-        }
-
-        header p {
-            color: var(--text-secondary);
-            font-size: 15px;
         }
 
         .header-actions {
             display: flex;
-            justify-content: center;
             align-items: center;
             gap: 16px;
-            margin-top: 16px;
-        }
-
-        .author-link {
-            color: var(--primary);
-            font-weight: 600;
-        }
-
-        .author-link:hover {
-            color: var(--primary-hover);
         }
 
         .theme-toggle {
-            background: var(--btn-secondary-bg);
-            color: var(--btn-secondary-text);
-            padding: 8px 16px;
-            border-radius: 9999px;
-            /* Pill shape */
-            font-weight: 600;
-            font-size: 14px;
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 8px;
+            transition: background 0.2s;
+            color: var(--text-secondary);
         }
 
         .theme-toggle:hover {
-            background: var(--btn-secondary-hover);
+            background: var(--card-bg);
         }
 
-        /* Mobile Tab Navigation */
-        .mobile-tabs {
-            display: none;
-            background: var(--panel-bg);
-            border-radius: 12px 12px 0 0;
+        .author-link {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.2s;
+        }
+
+        .author-link:hover {
+            color: var(--primary);
+        }
+
+        /* ========== 主内容区 ========== */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 0 24px 40px;
+            overflow-y: auto;
+        }
+
+        .hero-section {
+            text-align: center;
+            margin-bottom: 32px;
+            max-width: 600px;
+        }
+
+        .hero-title {
+            font-size: 36px;
+            font-weight: 800;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+            line-height: 1.2;
+        }
+
+        .hero-subtitle {
+            font-size: 16px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        /* ========== 卡片容器 ========== */
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            box-shadow: var(--card-shadow);
+            width: 100%;
+            max-width: 1200px;
             overflow: hidden;
-            transition: background 0.3s ease;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 400px;
         }
 
-        .mobile-tabs button {
+        /* ========== 移动端 Tab 导航 ========== */
+        .tabs {
+            display: none;
+            border-bottom: 1px solid var(--input-border);
+        }
+
+        .tab-btn {
             flex: 1;
             padding: 14px 20px;
             border: none;
-            background: var(--tab-bg);
+            background: transparent;
             font-size: 15px;
             font-weight: 600;
             color: var(--text-muted);
             cursor: pointer;
             transition: all 0.2s;
+            position: relative;
         }
 
-        .mobile-tabs button.active {
-            background: var(--tab-active-bg);
-            color: var(--tab-active-color);
-            box-shadow: 0 -2px 0 var(--tab-active-color) inset;
+        .tab-btn.active {
+            color: var(--primary);
         }
 
-        .editor-container {
+        .tab-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--primary);
+        }
+
+        /* ========== 编辑器区域 ========== */
+        .editor {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 24px;
-            /* Separation between panels */
-            background: transparent;
-            box-shadow: none;
-            overflow: visible;
             flex: 1;
-            padding: 24px 0;
-            max-width: 1200px;
-            margin: 0 auto;
-            width: 100%;
+            min-height: 0;
         }
 
         .panel {
             display: flex;
             flex-direction: column;
-            background: var(--panel-bg);
-            border: 1px solid var(--panel-border);
-            border-radius: 16px;
-            overflow: hidden;
-            box-shadow: var(--shadow-sm);
+            min-height: 0;
+        }
+
+        .panel-input {
+            border-right: 1px solid var(--input-border);
         }
 
         .panel-header {
-            background: var(--panel-header-bg);
-            padding: 12px 16px;
-            border-bottom: 1px solid var(--panel-border);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            position: sticky;
-            top: 0;
-            z-index: 10;
+            padding: 14px 20px;
+            border-bottom: 1px solid var(--input-border);
+            background: var(--card-bg);
+            flex-shrink: 0;
         }
 
         .panel-title {
-            font-weight: 700;
-            color: var(--text-primary);
-            font-size: 16px;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
+        .btn-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        /* ========== 按钮样式 ========== */
         .btn {
-            padding: 8px 16px;
-            border: none;
-            border-radius: 9999px;
-            /* Pill buttons */
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 10px 18px;
+            border-radius: 10px;
             font-size: 14px;
-            font-weight: 700;
+            font-weight: 600;
             cursor: pointer;
-            transition: background 0.2s;
+            transition: all 0.2s;
+            border: none;
+            -webkit-tap-highlight-color: transparent;
         }
 
         .btn-primary {
             background: var(--btn-primary-bg);
-            color: var(--btn-primary-text);
+            color: white;
         }
 
         .btn-primary:hover {
             background: var(--primary-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
         }
 
-        .btn-paste,
         .btn-secondary {
             background: var(--btn-secondary-bg);
-            color: var(--btn-secondary-text);
+            color: var(--primary);
+            border: 1.5px solid var(--btn-secondary-border);
         }
 
-        .btn-paste:hover {
-            background: var(--btn-secondary-hover);
-            transform: none;
-            box-shadow: none;
+        .btn-secondary:hover {
+            background: rgba(59, 130, 246, 0.1);
         }
 
-        .btn-success {
-            background: var(--primary);
-            /* Use Primary Blue for main action */
-            color: white;
+        .btn-icon {
+            padding: 8px 12px;
+            background: transparent;
+            color: var(--text-muted);
         }
 
-        .btn-success:hover {
-            background: var(--primary-hover);
-            transform: none;
-            box-shadow: none;
+        .btn-icon:hover {
+            background: var(--input-border);
+            color: var(--text-primary);
+        }
+
+        /* ========== 输入框 ========== */
+        .input-wrapper {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
         }
 
         #markdown-input {
@@ -277,96 +308,79 @@
             padding: 20px;
             border: none;
             resize: none;
-            font-family: -apple-system, BlinkMacSystemFont, "SF Mono", Monaco, "Courier New", monospace;
-            font-size: 15px;
-            line-height: 1.6;
+            font-family: "SF Mono", Monaco, "Cascadia Code", monospace;
+            font-size: 14px;
+            line-height: 1.7;
             color: var(--text-primary);
             background: var(--input-bg);
-            -webkit-appearance: none;
-            appearance: none;
-            transition: background 0.3s ease, color 0.3s ease;
-        }
-
-        #markdown-input:focus {
             outline: none;
+            transition: background 0.3s;
         }
 
         #markdown-input::placeholder {
-            color: var(--placeholder-color);
+            color: var(--text-muted);
         }
 
-        .preview-panel {
-            background: var(--panel-header-bg);
-            border-left: 1px solid var(--panel-border);
-            transition: background 0.3s ease;
-        }
-
-        #preview {
+        /* ========== 预览区域 ========== */
+        .preview-wrapper {
             flex: 1;
-            padding: 24px;
             overflow-y: auto;
-            min-height: 0;
             -webkit-overflow-scrolling: touch;
+            min-height: 0;
         }
 
-        /* ========== 公众号文章样式 ========== */
         #preview {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            padding: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             font-size: 16px;
             line-height: 1.8;
             color: var(--text-primary);
-            background: var(--preview-bg);
-            transition: background 0.3s ease, color 0.3s ease;
+            min-height: 100%;
         }
 
-        /* 主标题样式 - 蓝色 */
+        /* ========== 公众号样式 ========== */
         #preview h2 {
-            color: #2d8cf0;
+            color: #3b82f6;
             font-size: 20px;
             font-weight: bold;
             margin-top: 28px;
             margin-bottom: 16px;
             padding-bottom: 8px;
-            border-bottom: 2px solid #2d8cf0;
+            border-bottom: 2px solid #3b82f6;
         }
 
         #preview h2:first-child {
             margin-top: 0;
         }
 
-        /* 子标题样式 */
         #preview h3 {
-            color: #333;
+            color: var(--text-primary);
             font-size: 17px;
             font-weight: bold;
             margin-top: 24px;
             margin-bottom: 12px;
         }
 
-        /* 段落 */
         #preview p {
             margin: 12px 0;
         }
 
-        /* 强调文字 */
         #preview strong {
-            color: #333;
+            color: var(--text-primary);
             font-weight: bold;
         }
 
-        /* 独立的加粗段落作为高亮语句 */
         #preview p>strong:only-child {
             display: block;
-            color: #2d8cf0;
+            color: #3b82f6;
             font-size: 17px;
             text-align: center;
             padding: 12px 16px;
             margin: 16px 0;
-            background: #f8fbff;
-            border-radius: 6px;
+            background: rgba(59, 130, 246, 0.1);
+            border-radius: 8px;
         }
 
-        /* 列表样式 */
         #preview ul,
         #preview ol {
             padding-left: 24px;
@@ -377,18 +391,16 @@
             margin: 8px 0;
         }
 
-        /* 代码块样式 */
         #preview pre {
-            background: #1e1e1e;
-            color: #d4d4d4;
+            background: #1e293b;
+            color: #e2e8f0;
             padding: 16px;
-            border-radius: 8px;
+            border-radius: 10px;
             overflow-x: auto;
-            font-family: "SF Mono", Monaco, "Courier New", monospace;
+            font-family: "SF Mono", Monaco, monospace;
             font-size: 13px;
             line-height: 1.6;
             margin: 16px 0;
-            -webkit-overflow-scrolling: touch;
         }
 
         #preview code {
@@ -396,9 +408,8 @@
             color: var(--code-color);
             padding: 2px 6px;
             border-radius: 4px;
-            font-family: "SF Mono", Monaco, "Courier New", monospace;
+            font-family: "SF Mono", Monaco, monospace;
             font-size: 14px;
-            transition: background 0.3s ease, color 0.3s ease;
         }
 
         #preview pre code {
@@ -407,94 +418,71 @@
             padding: 0;
         }
 
-        /* 表格样式 */
         #preview table {
             width: 100%;
             border-collapse: collapse;
             margin: 20px 0;
             font-size: 14px;
-            display: block;
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
         }
 
         #preview th {
-            background: #2d8cf0;
+            background: #3b82f6;
             color: white;
             padding: 10px;
             text-align: left;
             font-weight: bold;
-            white-space: nowrap;
         }
 
         #preview td {
             padding: 8px 10px;
-            border-bottom: 1px solid #e8e8e8;
-            white-space: nowrap;
+            border-bottom: 1px solid var(--input-border);
         }
 
         #preview tr:nth-child(even) {
-            background: #f9f9f9;
+            background: rgba(59, 130, 246, 0.05);
         }
 
-        /* 引用块样式 */
         #preview blockquote {
-            background: linear-gradient(135deg, #e8f4fc 0%, #f0f9ff 100%);
-            border-left: 4px solid #2d8cf0;
-            border-radius: 8px;
+            background: rgba(59, 130, 246, 0.1);
+            border-left: 4px solid #3b82f6;
+            border-radius: 0 8px 8px 0;
             padding: 16px 20px;
             margin: 20px 0;
-            position: relative;
-        }
-
-        #preview blockquote::before {
-            content: '"';
-            font-size: 48px;
-            color: #2d8cf0;
-            opacity: 0.3;
-            position: absolute;
-            top: 4px;
-            left: 12px;
-            font-family: Georgia, serif;
         }
 
         #preview blockquote p {
             margin: 0;
-            padding-left: 24px;
         }
 
-        /* 分隔线 */
         #preview hr {
             border: none;
             height: 1px;
-            background: linear-gradient(to right, transparent, #2d8cf0, transparent);
+            background: linear-gradient(to right, transparent, #3b82f6, transparent);
             margin: 28px 0;
         }
 
-        /* 链接样式 */
         #preview a {
-            color: #2d8cf0;
+            color: #3b82f6;
             text-decoration: none;
         }
 
-        /* 通知提示 */
+        /* ========== Toast 提示 ========== */
         .toast {
             position: fixed;
-            top: 20px;
+            top: 24px;
             left: 50%;
             transform: translateX(-50%);
             background: var(--toast-bg);
             color: white;
-            padding: 14px 28px;
-            border-radius: 12px;
-            font-weight: 500;
-            font-size: 15px;
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
-            transition: opacity 0.3s ease, visibility 0.3s ease;
+            padding: 12px 24px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 14px;
+            box-shadow: 0 4px 20px rgba(34, 197, 94, 0.3);
             z-index: 1000;
-            white-space: nowrap;
             opacity: 0;
             visibility: hidden;
+            transition: all 0.3s ease;
         }
 
         .toast.show {
@@ -502,420 +490,239 @@
             visibility: visible;
         }
 
-        /* ========== 大屏幕优化 ========== */
-        @media (min-width: 1400px) {
-            .container {
-                max-width: 1800px;
+        /* ========== 响应式 - 移动端 ========== */
+        @media (max-width: 768px) {
+            .header {
+                padding: 12px 16px;
             }
 
-            .panel-header {
-                padding: 16px 24px;
-            }
-
-            .panel-title {
+            .logo {
                 font-size: 16px;
             }
 
-            .btn {
-                padding: 12px 22px;
-                font-size: 15px;
+            .author-link {
+                display: none;
             }
 
-            #markdown-input {
-                padding: 24px;
-                font-size: 16px;
+            .main-content {
+                padding: 0 16px 16px;
             }
 
-            #preview {
-                padding: 28px;
-            }
-        }
-
-        /* ========== 中等屏幕优化 ========== */
-        @media (min-width: 769px) and (max-width: 1200px) {
-            .container {
-                padding: 0 16px;
+            .hero-section {
+                margin-bottom: 20px;
             }
 
-            .editor-container {
-                grid-template-columns: 1fr 1fr;
+            .hero-title {
+                font-size: 24px;
             }
 
-            .btn {
-                padding: 8px 14px;
-                font-size: 13px;
-            }
-
-            .panel-title {
+            .hero-subtitle {
                 font-size: 14px;
             }
-        }
 
-        /* ========== 移动端响应式 ========== */
-        @media (max-width: 768px) {
-            body {
-                padding: 0;
-                background: var(--bg-body);
-            }
-
-            .container {
-                padding: 0;
-                display: flex;
-                flex-direction: column;
-                height: 100vh;
-                height: 100dvh;
-            }
-
-            header {
-                margin-bottom: 12px;
-                padding: 12px 16px 8px;
-                flex-shrink: 0;
-            }
-
-            header h1 {
-                font-size: 18px;
-                margin-bottom: 4px;
-            }
-
-            header p {
-                font-size: 12px;
-                opacity: 0.85;
-            }
-
-            /* iOS Style Segmented Control / Twitter Tabs */
-            .mobile-tabs {
-                display: flex;
-                margin: 0 0 16px;
-                padding: 0;
-                background: var(--bg-surface);
-                border-bottom: 1px solid var(--border-color);
-                border-radius: 0;
-            }
-
-            body.dark .mobile-tabs {
-                background: var(--bg-surface);
-            }
-
-            .mobile-tabs button {
+            .card {
+                border-radius: 16px 16px 0 0;
                 flex: 1;
-                padding: 12px 16px;
-                border: none;
-                background: transparent;
-                font-size: 15px;
-                font-weight: 700;
-                color: var(--text-secondary);
-                cursor: pointer;
-                transition: color 0.2s ease;
-                border-radius: 0;
-                position: relative;
             }
 
-            .mobile-tabs button.active {
-                background: transparent;
-                color: var(--text-primary);
-                box-shadow: none;
+            .tabs {
+                display: flex;
             }
 
-            .mobile-tabs button.active::after {
-                content: '';
-                position: absolute;
-                bottom: 0;
-                left: 50%;
-                transform: translateX(-50%);
-                width: 56px;
-                /* Twitter style indicator width */
-                height: 4px;
-                background: var(--primary);
-                border-radius: 99px;
-            }
-
-            .editor-container {
-                display: block;
-                /* Switch from grid to block for tabs */
-                border-radius: 0;
-                background: transparent;
-                padding: 0;
-                box-shadow: none;
+            .editor {
+                grid-template-columns: 1fr;
             }
 
             .panel {
                 display: none;
-                border: none;
-                border-radius: 0;
-                box-shadow: none;
-                background: transparent;
             }
 
             .panel.active {
                 display: flex;
             }
 
+            .panel-input {
+                border-right: none;
+            }
+
             .panel-header {
                 padding: 12px 16px;
-                background: var(--panel-header-bg);
-                border-bottom: 1px solid var(--panel-border);
-                position: sticky;
-                top: 0;
-                z-index: 10;
             }
 
             .panel-title {
-                display: none;
+                font-size: 13px;
             }
 
-            .panel-header .btn-group {
-                display: flex;
-                gap: 8px;
-                width: 100%;
+            .btn {
+                padding: 10px 14px;
+                font-size: 13px;
             }
 
-            .panel-header .btn {
-                flex: 1;
-                text-align: center;
-                padding: 12px 16px;
-                font-size: 14px;
-                border-radius: 10px;
-            }
-
-            /* 输入区域样式优化 */
             #markdown-input {
                 padding: 16px;
                 font-size: 16px;
-                line-height: 1.7;
-                flex: 1;
-                min-height: 0;
-            }
-
-            /* 预览区域样式优化 */
-            .preview-panel {
-                border-left: none;
             }
 
             #preview {
                 padding: 16px;
                 padding-bottom: 80px;
-                /* 为底部按钮留空间 */
-                max-height: none;
-                flex: 1;
-                overflow-y: auto;
-                -webkit-overflow-scrolling: touch;
             }
 
             /* 底部固定复制按钮 */
-            .preview-panel .panel-header {
+            .panel-preview .panel-header {
                 position: fixed;
-                top: auto;
                 bottom: 0;
                 left: 0;
                 right: 0;
-                border-top: 1px solid var(--panel-border);
+                border-top: 1px solid var(--input-border);
                 border-bottom: none;
                 border-radius: 0;
-                padding: 12px 16px;
                 padding-bottom: calc(12px + env(safe-area-inset-bottom));
-                background: var(--panel-bg);
-                backdrop-filter: blur(10px);
-                -webkit-backdrop-filter: blur(10px);
-                box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+                z-index: 100;
             }
 
-            .preview-panel .panel-header .btn {
-                padding: 14px 20px;
-                font-size: 15px;
-                font-weight: 600;
+            .panel-preview .panel-header .btn-group {
+                width: 100%;
             }
 
-            /* 输入面板的按钮保持顶部 */
-            #panel-input .panel-header {
-                position: sticky;
-                bottom: auto;
-                border-radius: 0;
-                box-shadow: none;
+            .panel-preview .panel-header .btn {
+                flex: 1;
             }
 
-            /* Toast 提示优化 */
+            .panel-preview .panel-title {
+                display: none;
+            }
+
             .toast {
-                top: auto;
                 bottom: calc(80px + env(safe-area-inset-bottom));
-                padding: 12px 20px;
-                font-size: 14px;
-                border-radius: 50px;
-                background: var(--toast-bg);
-                backdrop-filter: blur(10px);
-                -webkit-backdrop-filter: blur(10px);
-            }
-
-            .toast.show {
-                opacity: 1;
-                visibility: visible;
-            }
-
-            /* 按钮触摸反馈 */
-            .btn:active {
-                transform: scale(0.97);
-                opacity: 0.9;
-            }
-
-            .mobile-tabs button:active {
-                opacity: 0.7;
+                top: auto;
             }
         }
 
-        /* 非常小的屏幕 (SE, 小型 Android) */
-        @media (max-width: 380px) {
-            header h1 {
-                font-size: 16px;
+        /* ========== 响应式 - 大屏 ========== */
+        @media (min-width: 1400px) {
+            .hero-title {
+                font-size: 42px;
             }
 
-            header p {
-                font-size: 11px;
+            .card {
+                max-width: 1400px;
             }
 
-            .mobile-tabs {
-                margin: 0 12px 6px;
-            }
-
-            .mobile-tabs button {
-                padding: 8px 12px;
-                font-size: 13px;
+            .panel-header {
+                padding: 16px 24px;
             }
 
             #markdown-input,
             #preview {
-                padding: 12px;
-                font-size: 15px;
-            }
-
-            .panel-header .btn {
-                padding: 12px 16px;
-                font-size: 14px;
+                padding: 24px;
             }
         }
 
-        /* 横屏模式优化 */
-        @media (max-width: 768px) and (orientation: landscape) {
-            header {
-                padding: 8px 16px 4px;
-                margin-bottom: 8px;
-            }
-
-            header h1 {
-                font-size: 16px;
-            }
-
-            header p {
-                display: none;
-            }
-
-            .mobile-tabs {
-                margin-bottom: 6px;
-            }
-
-            .mobile-tabs button {
-                padding: 8px 12px;
-            }
+        /* 空状态提示 */
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: var(--text-muted);
+            text-align: center;
+            padding: 40px;
         }
 
-        /* 粘贴按钮样式 */
-        .btn-paste {
-            background: var(--btn-paste-bg);
-            color: var(--btn-paste-color);
-            transition: background 0.3s ease, color 0.3s ease;
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            opacity: 0.5;
         }
 
-        .btn-paste:hover,
-        .btn-paste:active {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(168, 237, 234, 0.4);
+        .empty-state-text {
+            font-size: 15px;
+            line-height: 1.6;
         }
     </style>
 </head>
 
 <body>
-    <div class="container">
-        <header>
-            <h1>📝 Markdown → 公众号转换器</h1>
-            <p>粘贴 Markdown 内容，自动转换为公众号富文本格式</p>
-            <div class="header-actions">
-                <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()">🌙 夜间模式</button>
-                <a href="https://x.com/kinpoe_ray" target="_blank" class="author-link">@kinpoe_ray</a>
-            </div>
-        </header>
-
-        <!-- Mobile Tab Navigation -->
-        <div class="mobile-tabs">
-            <button id="tab-input" class="active" onclick="switchTab('input')">📄 输入</button>
-            <button id="tab-preview" onclick="switchTab('preview')">👁️ 预览</button>
+    <!-- Header -->
+    <header class="header">
+        <div class="logo">
+            <span class="logo-icon">📝</span>
+            <span>公众号转换器</span>
         </div>
+        <div class="header-actions">
+            <a href="https://x.com/kinpoe_ray" target="_blank" class="author-link">@kinpoe_ray</a>
+            <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" title="切换主题">☀️</button>
+        </div>
+    </header>
 
-        <div class="editor-container">
-            <!-- 输入面板 -->
-            <div class="panel active" id="panel-input">
-                <div class="panel-header">
-                    <span class="panel-title">📄 Markdown 输入</span>
-                    <div class="btn-group">
-                        <button class="btn btn-paste" onclick="pasteFromClipboard()">📋 粘贴内容</button>
-                        <button class="btn btn-primary" onclick="clearInput()">🗑️ 清空</button>
-                    </div>
-                </div>
-                <textarea id="markdown-input" placeholder="← 左右滑动切换 Tab
+    <!-- Main Content -->
+    <main class="main-content">
+        <section class="hero-section">
+            <h1 class="hero-title">Markdown → 公众号转换器</h1>
+            <p class="hero-subtitle">粘贴 Markdown 内容，一键转换为公众号富文本格式，直接复制粘贴到公众号编辑器</p>
+        </section>
 
-在这里粘贴 Markdown 内容...
-
-支持的格式示例：
-
-## 主标题（蓝色带下划线）
-
-### 子标题（黑色加粗）
-
-普通段落文字，支持 **加粗** 和 *斜体* 样式。
-
-**独立加粗句子会居中高亮显示**
-
-- 无序列表项1
-- 无序列表项2
-- 无序列表项3
-
-1. 有序列表项1
-2. 有序列表项2
-3. 有序列表项3
-
-> 引用块会有淡蓝色背景和左侧竖线
-
-`行内代码` 有背景色
-
-```python
-# 代码块有深色背景
-def hello():
-    print('Hello WeChat!')
-```
-
-| 表头A | 表头B | 表头C |
-|--------|--------|--------|
-| 内容A1 | 内容B1 | 内容C1 |
-| 内容A2 | 内容B2 | 内容C2 |
-
----
-
-[链接文字](https://example.com)
-"></textarea>
+        <div class="card">
+            <!-- Mobile Tabs -->
+            <div class="tabs">
+                <button class="tab-btn active" id="tab-input" onclick="switchTab('input')">📝 输入</button>
+                <button class="tab-btn" id="tab-preview" onclick="switchTab('preview')">👁️ 预览</button>
             </div>
 
-            <!-- 预览面板 -->
-            <div class="panel preview-panel" id="panel-preview">
-                <div class="panel-header">
-                    <span class="panel-title">👁️ 公众号预览</span>
-                    <div class="btn-group">
-                        <button class="btn btn-success" onclick="copyToClipboard()">📋 复制到公众号</button>
+            <!-- Editor Area -->
+            <div class="editor">
+                <!-- Input Panel -->
+                <div class="panel panel-input active" id="panel-input">
+                    <div class="panel-header">
+                        <span class="panel-title">
+                            <span>📄</span> Markdown 输入
+                        </span>
+                        <div class="btn-group">
+                            <button class="btn btn-secondary" onclick="pasteFromClipboard()">📋 粘贴</button>
+                            <button class="btn btn-icon" onclick="clearInput()" title="清空">🗑️</button>
+                        </div>
+                    </div>
+                    <div class="input-wrapper">
+                        <textarea id="markdown-input" placeholder="在这里粘贴 Markdown 内容...
+
+支持的格式:
+## 主标题 → 蓝色带下划线
+### 子标题 → 加粗
+**独立加粗句** → 居中高亮
+- 列表项
+> 引用块
+`行内代码`
+```代码块```
+| 表格 |
+
+← 移动端左右滑动切换"></textarea>
                     </div>
                 </div>
-                <div id="preview">
-                    <p style="color: #adb5bd; text-align: center; margin-top: 100px;">预览区域<br>输入 Markdown
-                        内容后，这里会显示格式化效果</p>
+
+                <!-- Preview Panel -->
+                <div class="panel panel-preview" id="panel-preview">
+                    <div class="panel-header">
+                        <span class="panel-title">
+                            <span>👁️</span> 预览效果
+                        </span>
+                        <div class="btn-group">
+                            <button class="btn btn-primary" onclick="copyToClipboard()">📋 复制到公众号</button>
+                        </div>
+                    </div>
+                    <div class="preview-wrapper">
+                        <div id="preview">
+                            <div class="empty-state">
+                                <div class="empty-state-icon">✨</div>
+                                <div class="empty-state-text">在左侧输入 Markdown 内容<br>这里会实时显示转换效果</div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
+    </main>
 
     <div class="toast" id="toast">✅ 已复制！粘贴到公众号即可</div>
 
@@ -935,10 +742,14 @@ def hello():
             const markdown = input.value;
             if (markdown.trim()) {
                 preview.innerHTML = marked.parse(markdown);
-                // 处理只包含加粗文本的段落，使其成为高亮语句
                 processHighlightSentences();
             } else {
-                preview.innerHTML = '<p style="color: #adb5bd; text-align: center; margin-top: 100px;">预览区域<br>在左侧输入 Markdown 内容后，这里会显示格式化后的效果</p>';
+                preview.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">✨</div>
+                        <div class="empty-state-text">在左侧输入 Markdown 内容<br>这里会实时显示转换效果</div>
+                    </div>
+                `;
             }
         });
 
@@ -946,8 +757,8 @@ def hello():
         function processHighlightSentences() {
             const paragraphs = preview.querySelectorAll('p');
             paragraphs.forEach(p => {
-                // 检查段落是否只包含一个 <strong> 子元素
-                if (p.children.length === 1 && p.children[0].tagName === 'STRONG' && p.textContent.trim() === p.children[0].textContent.trim()) {
+                if (p.children.length === 1 && p.children[0].tagName === 'STRONG' &&
+                    p.textContent.trim() === p.children[0].textContent.trim()) {
                     p.classList.add('highlight-sentence');
                 }
             });
@@ -956,32 +767,21 @@ def hello():
         // 清空输入
         function clearInput() {
             input.value = '';
-            preview.innerHTML = '<p style="color: #adb5bd; text-align: center; margin-top: 100px;">预览区域<br>在左侧输入 Markdown 内容后，这里会显示格式化后的效果</p>';
+            input.dispatchEvent(new Event('input'));
         }
 
         // 复制到剪贴板
         async function copyToClipboard() {
+            if (!input.value.trim()) {
+                alert('请先输入 Markdown 内容');
+                return;
+            }
             try {
-                // 创建一个临时容器来复制富文本
-                const tempContainer = document.createElement('div');
-                tempContainer.innerHTML = preview.innerHTML;
-
-                // 添加内联样式以确保格式在粘贴时保持
-                applyInlineStyles(tempContainer);
-
-                // 使用 Clipboard API 复制 HTML
-                const blob = new Blob([tempContainer.innerHTML], { type: 'text/html' });
-                const clipboardItem = new ClipboardItem({
-                    'text/html': blob,
-                    'text/plain': new Blob([preview.innerText], { type: 'text/plain' })
-                });
-
+                const blob = new Blob([preview.innerHTML], { type: 'text/html' });
+                const clipboardItem = new ClipboardItem({ 'text/html': blob });
                 await navigator.clipboard.write([clipboardItem]);
-
-                // 显示成功提示
                 showToast();
             } catch (err) {
-                // 降级方案：使用传统的复制方法
                 const range = document.createRange();
                 range.selectNodeContents(preview);
                 const selection = window.getSelection();
@@ -993,87 +793,6 @@ def hello():
             }
         }
 
-        // 添加内联样式
-        function applyInlineStyles(container) {
-            // H2 样式
-            container.querySelectorAll('h2').forEach(el => {
-                el.style.cssText = 'color: #2d8cf0; font-size: 20px; font-weight: bold; margin-top: 28px; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 2px solid #2d8cf0;';
-            });
-
-            // H3 样式
-            container.querySelectorAll('h3').forEach(el => {
-                el.style.cssText = 'color: #333; font-size: 17px; font-weight: bold; margin-top: 24px; margin-bottom: 12px;';
-            });
-
-            // 段落样式
-            container.querySelectorAll('p').forEach(el => {
-                el.style.cssText = 'margin: 12px 0; line-height: 1.8;';
-            });
-
-            // 高亮语句样式
-            container.querySelectorAll('p.highlight-sentence, p > strong:only-child').forEach(el => {
-                if (el.tagName === 'P') {
-                    el.style.cssText = 'text-align: center; margin: 16px 0;';
-                    if (el.firstChild && el.firstChild.tagName === 'STRONG') {
-                        el.firstChild.style.cssText = 'color: #2d8cf0; font-size: 17px; display: block; padding: 12px 16px; background: #f8fbff; border-radius: 6px;';
-                    }
-                }
-            });
-
-            // 列表样式
-            container.querySelectorAll('ul, ol').forEach(el => {
-                el.style.cssText = 'padding-left: 24px; margin: 12px 0;';
-            });
-
-            container.querySelectorAll('li').forEach(el => {
-                el.style.cssText = 'margin: 8px 0; line-height: 1.8;';
-            });
-
-            // 代码块样式
-            container.querySelectorAll('pre').forEach(el => {
-                el.style.cssText = 'background: #1e1e1e; color: #d4d4d4; padding: 16px; border-radius: 8px; overflow-x: auto; font-family: "SF Mono", Monaco, "Courier New", monospace; font-size: 14px; line-height: 1.6; margin: 16px 0;';
-            });
-
-            // 行内代码样式
-            container.querySelectorAll('code').forEach(el => {
-                if (el.parentElement.tagName !== 'PRE') {
-                    el.style.cssText = 'background: #f6f6f6; color: #c7254e; padding: 2px 6px; border-radius: 4px; font-family: "SF Mono", Monaco, "Courier New", monospace; font-size: 14px;';
-                }
-            });
-
-            // 表格样式
-            container.querySelectorAll('table').forEach(el => {
-                el.style.cssText = 'width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 15px;';
-            });
-
-            container.querySelectorAll('th').forEach(el => {
-                el.style.cssText = 'background: #2d8cf0; color: white; padding: 12px; text-align: left; font-weight: bold;';
-            });
-
-            container.querySelectorAll('td').forEach(el => {
-                el.style.cssText = 'padding: 10px 12px; border-bottom: 1px solid #e8e8e8;';
-            });
-
-            container.querySelectorAll('tr:nth-child(even)').forEach(el => {
-                el.style.cssText = 'background: #f9f9f9;';
-            });
-
-            // 引用块样式
-            container.querySelectorAll('blockquote').forEach(el => {
-                el.style.cssText = 'background: linear-gradient(135deg, #e8f4fc 0%, #f0f9ff 100%); border-left: 4px solid #2d8cf0; border-radius: 8px; padding: 16px 20px; margin: 20px 0;';
-            });
-
-            // 分隔线样式
-            container.querySelectorAll('hr').forEach(el => {
-                el.style.cssText = 'border: none; height: 1px; background: linear-gradient(to right, transparent, #2d8cf0, transparent); margin: 28px 0;';
-            });
-
-            // 链接样式
-            container.querySelectorAll('a').forEach(el => {
-                el.style.cssText = 'color: #2d8cf0; text-decoration: none;';
-            });
-        }
-
         // 显示提示
         function showToast() {
             toast.classList.add('show');
@@ -1082,7 +801,7 @@ def hello():
             }, 2500);
         }
 
-        // 移动端 Tab 切换
+        // Tab 切换
         function switchTab(tab) {
             const tabInput = document.getElementById('tab-input');
             const tabPreview = document.getElementById('tab-preview');
@@ -1102,7 +821,7 @@ def hello():
             }
         }
 
-        // 在桌面端显示两个面板
+        // 处理窗口大小变化
         function handleResize() {
             const isMobile = window.innerWidth <= 768;
             const panelInput = document.getElementById('panel-input');
@@ -1117,60 +836,45 @@ def hello():
         window.addEventListener('resize', handleResize);
         handleResize();
 
-        // 粘贴内容功能
+        // 粘贴功能
         async function pasteFromClipboard() {
             try {
                 const text = await navigator.clipboard.readText();
                 if (text) {
                     input.value = text;
                     input.dispatchEvent(new Event('input'));
-                    // Show success toast
                     toast.innerHTML = '✅ 内容已粘贴！';
                     showToast();
                     setTimeout(() => {
                         toast.innerHTML = '✅ 已复制！粘贴到公众号即可';
                     }, 3000);
                 } else {
-                    alert('剪贴板为空，请先复制内容');
+                    alert('剪贴板为空');
                 }
             } catch (error) {
-                // Fallback: focus textarea for manual paste
                 input.focus();
-                alert('请使用 Cmd+V (Mac) 或 Ctrl+V (Windows) 粘贴内容');
+                alert('请使用 Cmd+V (Mac) 或 Ctrl+V (Windows) 粘贴');
             }
         }
 
-        // 移动端滑动切换 Tab
+        // 滑动切换 Tab
         let touchStartX = 0;
         let touchEndX = 0;
-        const swipeThreshold = 50; // 最小滑动距离
 
-        function handleSwipe() {
-            const diff = touchEndX - touchStartX;
-            const isMobile = window.innerWidth <= 768;
-
-            if (!isMobile) return;
-
-            if (Math.abs(diff) < swipeThreshold) return;
-
-            if (diff > 0) {
-                // 向右滑动 - 切换到输入
-                switchTab('input');
-            } else {
-                // 向左滑动 - 切换到预览
-                switchTab('preview');
-            }
-        }
-
-        const editorContainer = document.querySelector('.editor-container');
-
-        editorContainer.addEventListener('touchstart', (e) => {
+        document.querySelector('.editor').addEventListener('touchstart', (e) => {
             touchStartX = e.changedTouches[0].screenX;
         }, { passive: true });
 
-        editorContainer.addEventListener('touchend', (e) => {
+        document.querySelector('.editor').addEventListener('touchend', (e) => {
             touchEndX = e.changedTouches[0].screenX;
-            handleSwipe();
+            const diff = touchEndX - touchStartX;
+            if (window.innerWidth <= 768 && Math.abs(diff) > 50) {
+                if (diff > 0) {
+                    switchTab('input');
+                } else {
+                    switchTab('preview');
+                }
+            }
         }, { passive: true });
 
         // 主题切换
@@ -1180,11 +884,11 @@ def hello():
 
             if (body.classList.contains('dark')) {
                 body.classList.remove('dark');
-                themeBtn.innerHTML = '🌙 夜间模式';
+                themeBtn.innerHTML = '☀️';
                 localStorage.setItem('theme', 'light');
             } else {
                 body.classList.add('dark');
-                themeBtn.innerHTML = '☀️ 日间模式';
+                themeBtn.innerHTML = '🌙';
                 localStorage.setItem('theme', 'dark');
             }
         }
@@ -1197,7 +901,7 @@ def hello():
 
             if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
                 document.body.classList.add('dark');
-                themeBtn.innerHTML = '☀️ 日间模式';
+                themeBtn.innerHTML = '🌙';
             }
         })();
     </script>
