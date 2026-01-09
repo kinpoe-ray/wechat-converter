@@ -654,7 +654,19 @@
 
             #preview {
                 padding: 16px;
-                padding-bottom: 80px;
+                padding-bottom: 100px;
+            }
+
+            /* 确保预览区域可滚动 */
+            .panel-preview {
+                overflow: hidden;
+            }
+
+            .panel-preview .preview-wrapper {
+                flex: 1;
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+                height: 100%;
             }
 
             /* 底部固定复制按钮 */
