@@ -411,27 +411,27 @@
             background: #DBEAFE;
             border-left-color: #3B82F6;
         }
-        
+
         #preview section[data-emoji="💰"] {
             background: #D1FAE5;
             border-left-color: #10B981;
         }
-        
+
         #preview section[data-emoji="🎯"] {
             background: #FEF3C7;
             border-left-color: #F59E0B;
         }
-        
+
         #preview section[data-emoji="🧠"] {
             background: #EDE9FE;
             border-left-color: #8B5CF6;
         }
-        
+
         #preview section[data-emoji="⚠️"] {
             background: #FEE2E2;
             border-left-color: #EF4444;
         }
-        
+
         #preview section[data-emoji="🎲"] {
             background: #F3F4F6;
             border-left-color: #6B7280;
@@ -776,48 +776,49 @@
 
             .panel-header {
 
-        /* 字数统计面板 */
-        .stats-panel {
-            display: flex;
-            gap: 16px;
-            padding: 12px 20px;
-            border-top: 1px solid var(--input-border);
-            background: var(--card-bg);
-            flex-shrink: 0;
-        }
+                /* 字数统计面板 */
+                .stats-panel {
+                    display: flex;
+                    gap: 16px;
+                    padding: 12px 20px;
+                    border-top: 1px solid var(--input-border);
+                    background: var(--card-bg);
+                    flex-shrink: 0;
+                }
 
-        .stat-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 4px;
-        }
+                .stat-item {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    gap: 4px;
+                }
 
-        .stat-label {
-            font-size: 12px;
-            color: var(--text-muted);
-        }
+                .stat-label {
+                    font-size: 12px;
+                    color: var(--text-muted);
+                }
 
-        .stat-value {
-            font-size: 16px;
-            font-weight: 600;
-            color: var(--primary);
-        }
+                .stat-value {
+                    font-size: 16px;
+                    font-weight: 600;
+                    color: var(--primary);
+                }
 
-        @media (max-width: 768px) {
-            .stats-panel {
-                padding: 10px 16px;
-                gap: 12px;
-            }
+                @media (max-width: 768px) {
+                    .stats-panel {
+                        padding: 10px 16px;
+                        gap: 12px;
+                    }
 
-            .stat-label {
-                font-size: 11px;
-            }
+                    .stat-label {
+                        font-size: 11px;
+                    }
 
-            .stat-value {
-                font-size: 14px;
-            }
-        }
+                    .stat-value {
+                        font-size: 14px;
+                    }
+                }
+
                 padding: 16px 24px;
             }
 
@@ -971,10 +972,10 @@
         const CONFIG = {
             // 高亮卡片
             HIGHLIGHT_MAX_LENGTH: 30,
-            
+
             // 阅读速度（字/分钟）
             READ_SPEED: 400,
-            
+
             // 交互阈值
             SWIPE_THRESHOLD: 80,
             SCROLL_SHOW_FAB: 150,
@@ -1027,12 +1028,12 @@
         const DEFAULT_CALLOUT = CALLOUT_THEMES['💡'];
 
         // ===== 样式标签映射 =====
-        const STYLE_TAGS = ['h1', 'h2', 'h3', 'h4', 'p', 'strong', 'em', 'del', 
-                            'ul', 'ol', 'li', 'blockquote', 'pre', 'code', 
-                            'table', 'th', 'td', 'hr'];
+        const STYLE_TAGS = ['h1', 'h2', 'h3', 'h4', 'p', 'strong', 'em', 'del',
+            'ul', 'ol', 'li', 'blockquote', 'pre', 'code',
+            'table', 'th', 'td', 'hr'];
 
         // ===== 工具函数 =====
-        
+
         // 样式注入器
         function injectStyle(html, tag, style) {
             const regex = new RegExp(`<${tag}([ >])`, 'g');
@@ -1042,8 +1043,8 @@
         // 高亮卡片候选判断
         function isHighlightCandidate(text) {
             return text.length <= CONFIG.HIGHLIGHT_MAX_LENGTH &&
-                   !text.includes('：') &&
-                   !text.includes(':');
+                !text.includes('：') &&
+                !text.includes(':');
         }
 
         // 获取 Callout 主题
@@ -1165,14 +1166,14 @@
 
             // 7. 处理提示框 (> TIP: 或 > 💡)
             html = html.replace(
-                /<blockquote style="[^"]*">\s*<p style="[^"]*">(💡|TIP:|提示[:：])\s*/gi,
-                `<section style="background: #fef3c7; border-left: 4px solid #f59e0b; border-radius: 0 8px 8px 0; padding: 16px 20px; margin: 20px 0;"><p style="${STYLES.p}">💡 `
+                /<blockquote style="[^"]*">\s*<p style="[^"]*">(💡|TIP:|提示[:：])\s*([\s\S]*?)<\/p>\s*<\/blockquote>/gi,
+                `<section style="background: #fef3c7; border-left: 4px solid #f59e0b; border-radius: 0 8px 8px 0; padding: 16px 20px; margin: 20px 0;"><p style="${STYLES.p}; margin: 0;">💡 $2</p></section>`
             );
 
             // 8. 处理警告框 (> WARNING: 或 > ⚠️)
             html = html.replace(
-                /<blockquote style="[^"]*">\s*<p style="[^"]*">(⚠️|WARNING:|警告[:：])\s*/gi,
-                `<section style="background: #fee2e2; border-left: 4px solid #ef4444; border-radius: 0 8px 8px 0; padding: 16px 20px; margin: 20px 0;"><p style="${STYLES.p}">⚠️ `
+                /<blockquote style="[^"]*">\s*<p style="[^"]*">(⚠️|WARNING:|警告[:：])\s*([\s\S]*?)<\/p>\s*<\/blockquote>/gi,
+                `<section style="background: #fee2e2; border-left: 4px solid #ef4444; border-radius: 0 8px 8px 0; padding: 16px 20px; margin: 20px 0;"><p style="${STYLES.p}; margin: 0;">⚠️ $2</p></section>`
             );
 
             return html;
