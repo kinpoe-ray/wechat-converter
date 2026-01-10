@@ -901,18 +901,118 @@
             input.dispatchEvent(new Event('input'));
         }
 
-        // 复制到剪贴板
+        // 生成公众号优化的带内联样式 HTML
+        function getWeChatStyledHtml() {
+            const markdown = input.value;
+            let html = marked.parse(markdown);
+
+            // 定义内联样式
+            const styles = {
+                h1: 'color: #3b82f6; font-size: 26px; font-weight: bold; text-align: center; margin: 32px 0 24px 0; line-height: 1.4;',
+                h2: 'color: #3b82f6; font-size: 20px; font-weight: bold; margin: 28px 0 16px 0; padding-bottom: 8px; border-bottom: 2px solid #3b82f6; line-height: 1.4;',
+                h3: 'color: #333; font-size: 17px; font-weight: bold; margin: 24px 0 12px 0; padding-left: 12px; border-left: 4px solid #3b82f6; line-height: 1.4;',
+                h4: 'color: #333; font-size: 16px; font-weight: bold; margin: 20px 0 10px 0; line-height: 1.4;',
+                p: 'margin: 16px 0; line-height: 1.8; color: #333; font-size: 16px; letter-spacing: 0.5px;',
+                strong: 'color: #333; font-weight: bold;',
+                em: 'font-style: italic; color: #555;',
+                del: 'text-decoration: line-through; color: #999;',
+                a: 'color: #3b82f6; text-decoration: none;',
+                ul: 'padding-left: 24px; margin: 16px 0;',
+                ol: 'padding-left: 24px; margin: 16px 0;',
+                li: 'margin: 10px 0; line-height: 1.8; color: #333;',
+                blockquote: 'background: #f0f9ff; border-left: 4px solid #3b82f6; border-radius: 0 8px 8px 0; padding: 16px 20px; margin: 20px 0; color: #333;',
+                pre: 'background: #1e293b; color: #e2e8f0; padding: 16px; border-radius: 10px; overflow-x: auto; font-family: Consolas, Monaco, monospace; font-size: 13px; line-height: 1.6; margin: 20px 0;',
+                code: 'background: #f1f5f9; color: #be185d; padding: 2px 6px; border-radius: 4px; font-family: Consolas, Monaco, monospace; font-size: 14px;',
+                codeInPre: 'background: none; color: inherit; padding: 0; font-family: inherit; font-size: inherit;',
+                table: 'width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 14px;',
+                th: 'background: #3b82f6; color: white; padding: 12px 10px; text-align: left; font-weight: bold; border: 1px solid #3b82f6;',
+                td: 'padding: 10px; border: 1px solid #e2e8f0; color: #333;',
+                tdEven: 'padding: 10px; border: 1px solid #e2e8f0; color: #333; background: #f8fafc;',
+                hr: 'border: none; height: 1px; background: linear-gradient(to right, transparent, #3b82f6, transparent); margin: 32px 0;',
+                img: 'max-width: 100%; height: auto; display: block; margin: 20px auto; border-radius: 8px;',
+                highlightCard: 'display: block; text-align: center; padding: 16px 20px; margin: 20px 0; background: #f0f9ff; border-radius: 8px; color: #3b82f6; font-size: 17px; font-weight: bold; line-height: 1.6;'
+            };
+
+            // 替换标签添加内联样式
+            html = html
+                // 标题
+                .replace(/<h1>/g, `<h1 style="${styles.h1}">`)
+                .replace(/<h2>/g, `<h2 style="${styles.h2}">`)
+                .replace(/<h3>/g, `<h3 style="${styles.h3}">`)
+                .replace(/<h4>/g, `<h4 style="${styles.h4}">`)
+                // 文本
+                .replace(/<p>/g, `<p style="${styles.p}">`)
+                .replace(/<strong>/g, `<strong style="${styles.strong}">`)
+                .replace(/<em>/g, `<em style="${styles.em}">`)
+                .replace(/<del>/g, `<del style="${styles.del}">`)
+                .replace(/<a /g, `<a style="${styles.a}" `)
+                // 列表
+                .replace(/<ul>/g, `<ul style="${styles.ul}">`)
+                .replace(/<ol>/g, `<ol style="${styles.ol}">`)
+                .replace(/<li>/g, `<li style="${styles.li}">`)
+                // 引用
+                .replace(/<blockquote>/g, `<blockquote style="${styles.blockquote}">`)
+                // 代码
+                .replace(/<pre>/g, `<pre style="${styles.pre}">`)
+                .replace(/<code>/g, `<code style="${styles.code}">`)
+                // 表格
+                .replace(/<table>/g, `<table style="${styles.table}">`)
+                .replace(/<th>/g, `<th style="${styles.th}">`)
+                .replace(/<td>/g, `<td style="${styles.td}">`)
+                // 分割线
+                .replace(/<hr>/g, `<hr style="${styles.hr}">`)
+                // 图片
+                .replace(/<img /g, `<img style="${styles.img}" `);
+
+            // 处理 pre > code 嵌套（移除 code 的背景色）
+            html = html.replace(
+                /<pre style="([^"]+)">\s*<code style="[^"]+">/g,
+                `<pre style="$1"><code style="${styles.codeInPre}">`
+            );
+
+            // 处理高亮卡片（独立加粗段落）
+            html = html.replace(
+                /<p style="[^"]*"><strong style="[^"]*">([^<]+)<\/strong><\/p>/g,
+                `<p style="${styles.highlightCard}">$1</p>`
+            );
+
+            // 处理表格斑马纹（偶数行）
+            let rowIndex = 0;
+            html = html.replace(/<tr>/g, () => {
+                rowIndex++;
+                return '<tr>';
+            });
+            // 简化处理：为所有 td 添加统一样式，斑马纹通过 CSS 控制
+
+            // 处理提示框 (> TIP: 或 > 💡)
+            html = html.replace(
+                /<blockquote style="[^"]*">\s*<p style="[^"]*">(💡|TIP:|提示[:：])\s*/gi,
+                `<section style="background: #fef3c7; border-left: 4px solid #f59e0b; border-radius: 0 8px 8px 0; padding: 16px 20px; margin: 20px 0;"><p style="${styles.p}">💡 `
+            );
+
+            // 处理警告框 (> WARNING: 或 > ⚠️)
+            html = html.replace(
+                /<blockquote style="[^"]*">\s*<p style="[^"]*">(⚠️|WARNING:|警告[:：])\s*/gi,
+                `<section style="background: #fee2e2; border-left: 4px solid #ef4444; border-radius: 0 8px 8px 0; padding: 16px 20px; margin: 20px 0;"><p style="${styles.p}">⚠️ `
+            );
+
+            return html;
+        }
+
+        // 复制到剪贴板（使用带内联样式的 HTML）
         async function copyToClipboard() {
             if (!input.value.trim()) {
                 alert('请先输入 Markdown 内容');
                 return;
             }
             try {
-                const blob = new Blob([preview.innerHTML], { type: 'text/html' });
+                const styledHtml = getWeChatStyledHtml();
+                const blob = new Blob([styledHtml], { type: 'text/html' });
                 const clipboardItem = new ClipboardItem({ 'text/html': blob });
                 await navigator.clipboard.write([clipboardItem]);
                 showToast();
             } catch (err) {
+                // 降级方案：选中预览内容复制
                 const range = document.createRange();
                 range.selectNodeContents(preview);
                 const selection = window.getSelection();
