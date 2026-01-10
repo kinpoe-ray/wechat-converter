@@ -964,16 +964,46 @@
                 // 图片
                 .replace(/<img /g, `<img style="${styles.img}" `);
 
+            // 处理 Notion 的 aside/callout 元素
+            const tipAsideStyle = 'background: #fef3c7; border-left: 4px solid #f59e0b; border-radius: 0 8px 8px 0; padding: 16px 20px; margin: 20px 0;';
+            const warnAsideStyle = 'background: #fee2e2; border-left: 4px solid #ef4444; border-radius: 0 8px 8px 0; padding: 16px 20px; margin: 20px 0;';
+            const infoAsideStyle = 'background: #f0f9ff; border-left: 4px solid #3b82f6; border-radius: 0 8px 8px 0; padding: 16px 20px; margin: 20px 0;';
+
+            html = html.replace(/<aside>([\s\S]*?)<\/aside>/gi, (match, content) => {
+                let style = infoAsideStyle;
+                // 根据内容中的emoji/关键词选择样式
+                if (content.includes('💡') || content.includes('提示') || content.includes('TIP')) {
+                    style = tipAsideStyle;
+                } else if (content.includes('⚠️') || content.includes('警告') || content.includes('WARNING') ||
+                    content.includes('惨痛') || content.includes('注意') || content.includes('CAUTION')) {
+                    style = warnAsideStyle;
+                }
+                // 清理内容：移除开头emoji的多余换行，保持内容整洁
+                let cleanContent = content
+                    .replace(/^\s*(💡|⚠️|ℹ️)\s*/g, '$1 ')
+                    .replace(/\n{2,}/g, '<br><br>')
+                    .replace(/\n/g, ' ')
+                    .replace(/\*\*([^*]+)\*\*/g, '<strong style="' + styles.strong + '">$1</strong>')
+                    .trim();
+                return `<section style="${style}"><p style="${styles.p}">${cleanContent}</p></section>`;
+            });
+
             // 处理 pre > code 嵌套（移除 code 的背景色）
             html = html.replace(
                 /<pre style="([^"]+)">\s*<code style="[^"]+">/g,
                 `<pre style="$1"><code style="${styles.codeInPre}">`
             );
 
-            // 处理高亮卡片（独立加粗段落）
+            // 处理高亮卡片（仅限独立加粗行 - 内容短、无冒号）
             html = html.replace(
                 /<p style="[^"]*"><strong style="[^"]*">([^<]+)<\/strong><\/p>/g,
-                `<p style="${styles.highlightCard}">$1</p>`
+                (match, content) => {
+                    // 排除：含有冒号（定义项）、内容过长（超过30字）
+                    if (content.includes('：') || content.includes(':') || content.length > 30) {
+                        return match; // 保持原样
+                    }
+                    return `<p style="${styles.highlightCard}">${content}</p>`;
+                }
             );
 
             // 处理表格斑马纹（偶数行）
