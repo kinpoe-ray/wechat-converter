@@ -914,18 +914,6 @@
                             <span class="stat-value" id="word-count">0</span>
                         </div>
                         <div class="stat-item">
-
-        // 字数统计功能
-        function updateStats() {
-            const text = input.value;
-            const wordCount = text.replace(/\s+/g, '').length; // 中文字符数
-            const readTime = Math.ceil(wordCount / 400); // 假设每分钟阅读400字
-            const paragraphCount = text.split(/\n\s*\n/).filter(p => p.trim()).length;
-
-            document.getElementById('word-count').textContent = wordCount;
-            document.getElementById('read-time').textContent = `${readTime}分钟`;
-            document.getElementById('paragraph-count').textContent = paragraphCount;
-        }
                             <span class="stat-label">阅读</span>
                             <span class="stat-value" id="read-time">0分钟</span>
                         </div>
@@ -1020,6 +1008,18 @@
         function clearInput() {
             input.value = '';
             input.dispatchEvent(new Event('input'));
+        }
+
+        // 字数统计功能
+        function updateStats() {
+            const text = input.value;
+            const wordCount = text.replace(/\s+/g, '').length; // 中文字符数
+            const readTime = Math.ceil(wordCount / 400); // 假设每分钟阅读400字
+            const paragraphCount = text.split(/\n\s*\n/).filter(p => p.trim()).length;
+
+            document.getElementById('word-count').textContent = wordCount;
+            document.getElementById('read-time').textContent = `${readTime}分钟`;
+            document.getElementById('paragraph-count').textContent = paragraphCount;
         }
 
         // 生成公众号优化的带内联样式 HTML
