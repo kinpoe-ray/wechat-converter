@@ -406,6 +406,37 @@
             line-height: 1.6;
         }
 
+        /* 预览区 Emoji 高亮框样式 */
+        #preview section[data-emoji="💡"] {
+            background: #DBEAFE;
+            border-left-color: #3B82F6;
+        }
+        
+        #preview section[data-emoji="💰"] {
+            background: #D1FAE5;
+            border-left-color: #10B981;
+        }
+        
+        #preview section[data-emoji="🎯"] {
+            background: #FEF3C7;
+            border-left-color: #F59E0B;
+        }
+        
+        #preview section[data-emoji="🧠"] {
+            background: #EDE9FE;
+            border-left-color: #8B5CF6;
+        }
+        
+        #preview section[data-emoji="⚠️"] {
+            background: #FEE2E2;
+            border-left-color: #EF4444;
+        }
+        
+        #preview section[data-emoji="🎲"] {
+            background: #F3F4F6;
+            border-left-color: #6B7280;
+        }
+
         #preview ul,
         #preview ol {
             padding-left: 24px;
@@ -744,6 +775,49 @@
             }
 
             .panel-header {
+
+        /* 字数统计面板 */
+        .stats-panel {
+            display: flex;
+            gap: 16px;
+            padding: 12px 20px;
+            border-top: 1px solid var(--input-border);
+            background: var(--card-bg);
+            flex-shrink: 0;
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .stat-value {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        @media (max-width: 768px) {
+            .stats-panel {
+                padding: 10px 16px;
+                gap: 12px;
+            }
+
+            .stat-label {
+                font-size: 11px;
+            }
+
+            .stat-value {
+                font-size: 14px;
+            }
+        }
                 padding: 16px 24px;
             }
 
@@ -833,6 +907,33 @@
 
 ← 移动端左右滑动切换"></textarea>
                     </div>
+                    <!-- 字数统计面板 -->
+                    <div class="stats-panel" id="stats-panel">
+                        <div class="stat-item">
+                            <span class="stat-label">字数</span>
+                            <span class="stat-value" id="word-count">0</span>
+                        </div>
+                        <div class="stat-item">
+
+        // 字数统计功能
+        function updateStats() {
+            const text = input.value;
+            const wordCount = text.replace(/\s+/g, '').length; // 中文字符数
+            const readTime = Math.ceil(wordCount / 400); // 假设每分钟阅读400字
+            const paragraphCount = text.split(/\n\s*\n/).filter(p => p.trim()).length;
+
+            document.getElementById('word-count').textContent = wordCount;
+            document.getElementById('read-time').textContent = `${readTime}分钟`;
+            document.getElementById('paragraph-count').textContent = paragraphCount;
+        }
+                            <span class="stat-label">阅读</span>
+                            <span class="stat-value" id="read-time">0分钟</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">段落</span>
+                            <span class="stat-value" id="paragraph-count">0</span>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Preview Panel -->
@@ -889,6 +990,7 @@
             if (markdown.trim()) {
                 preview.innerHTML = marked.parse(markdown);
                 processHighlightSentences();
+                updateStats();
             } else {
                 preview.innerHTML = `
                     <div class="empty-state">
@@ -984,22 +1086,27 @@
                 .replace(/<img /g, `<img style="${styles.img}" `);
 
             // 处理 Notion 的 aside/callout 元素
-            const tipAsideStyle = 'background: #fef3c7; border-left: 4px solid #f59e0b; border-radius: 4px; padding: 12px 16px; margin: 28px 0;';
-            const warnAsideStyle = 'background: #fee2e2; border-left: 4px solid #ef4444; border-radius: 4px; padding: 12px 16px; margin: 28px 0;';
-            const infoAsideStyle = 'background: #f0f9ff; border-left: 4px solid #3b82f6; border-radius: 4px; padding: 12px 16px; margin: 28px 0;';
+            // Emoji 颜色映射 - 根据 emoji 自动选择高亮框颜色
+            const emojiColorMap = {
+                '💡': { bg: '#DBEAFE', border: '#3B82F6' },      // 蓝色 - 提示/信息
+                '💰': { bg: '#D1FAE5', border: '#10B981' },      // 绿色 - 成本/收益
+                '🎯': { bg: '#FEF3C7', border: '#F59E0B' },      // 橙色 - 重点/目标
+                '🧠': { bg: '#EDE9FE', border: '#8B5CF6' },      // 紫色 - 理念/思维
+                '⚠️': { bg: '#FEE2E2', border: '#EF4444' },      // 红色 - 警告/注意
+                '🎲': { bg: '#F3F4F6', border: '#6B7280' }       // 灰色 - 其他
+            };
 
+            // 处理 Notion 的 aside/callout 元素
             html = html.replace(/<aside>([\s\S]*?)<\/aside>/gi, (match, content) => {
-                let style = infoAsideStyle;
-                if (content.includes('💡') || content.includes('提示') || content.includes('TIP')) {
-                    style = tipAsideStyle;
-                } else if (content.includes('⚠️') || content.includes('警告') || content.includes('WARNING') ||
-                    content.includes('惨痛') || content.includes('注意') || content.includes('CAUTION')) {
-                    style = warnAsideStyle;
-                }
+                // 检测首个 emoji 并选择对应颜色
+                const firstChar = content.trim()[0];
+                const colorScheme = emojiColorMap[firstChar] || emojiColorMap['💡']; // 默认蓝色
+
+                const asideStyle = `background: ${colorScheme.bg}; border-left: 4px solid ${colorScheme.border}; border-radius: 4px; padding: 12px 16px; margin: 28px 0;`;
 
                 // 清理内容中的换行，让布局更紧凑
                 let cleanContent = content
-                    .replace(/^\s*(💡|⚠️|ℹ️)\s*/g, '$1 ')
+                    .replace(/^\s*(💡|💰|🎯|🧠|⚠️|🎲|ℹ️)\s*/g, '$1 ')
                     .replace(/\n{2,}/g, '<br>')
                     .replace(/\n/g, ' ')
                     // 确保 strong 后面的冒号紧跟
@@ -1007,8 +1114,7 @@
                     .replace(/\*\*([^*]+)\*\*/g, '<strong style="' + styles.strong + '">$1</strong>')
                     .trim();
 
-                // 如果开头是 emoji，确保它和后面的文本在同一行 p 
-                return `<section style="${style}"><p style="${styles.p}; margin: 0;">${cleanContent}</p></section>`;
+                return `<section style="${asideStyle}"><p style="${styles.p}; margin: 0;">${cleanContent}</p></section>`;
             });
 
             // 全局修复：确保所有 strong 标签后的冒号紧跟，防止换行
