@@ -376,7 +376,8 @@
             font-weight: bold;
         }
 
-        #preview p>strong:only-child {
+        /* 高亮卡片 - 通过 JS 添加 class 控制，不再自动应用 */
+        #preview .highlight-card {
             display: block;
             color: #3b82f6;
             font-size: 17px;
@@ -884,13 +885,17 @@
             }
         });
 
-        // 处理高亮语句
+        // 处理高亮语句（仅限短内容、无冒号的独立加粗）
         function processHighlightSentences() {
             const paragraphs = preview.querySelectorAll('p');
             paragraphs.forEach(p => {
                 if (p.children.length === 1 && p.children[0].tagName === 'STRONG' &&
                     p.textContent.trim() === p.children[0].textContent.trim()) {
-                    p.classList.add('highlight-sentence');
+                    const text = p.textContent.trim();
+                    // 只有短内容（≤30字）且不含冒号时才变成卡片
+                    if (text.length <= 30 && !text.includes('：') && !text.includes(':')) {
+                        p.classList.add('highlight-card');
+                    }
                 }
             });
         }
