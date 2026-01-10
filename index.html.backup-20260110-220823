@@ -406,37 +406,6 @@
             line-height: 1.6;
         }
 
-        /* 预览区 Emoji 高亮框样式 */
-        #preview section[data-emoji="💡"] {
-            background: #DBEAFE;
-            border-left-color: #3B82F6;
-        }
-        
-        #preview section[data-emoji="💰"] {
-            background: #D1FAE5;
-            border-left-color: #10B981;
-        }
-        
-        #preview section[data-emoji="🎯"] {
-            background: #FEF3C7;
-            border-left-color: #F59E0B;
-        }
-        
-        #preview section[data-emoji="🧠"] {
-            background: #EDE9FE;
-            border-left-color: #8B5CF6;
-        }
-        
-        #preview section[data-emoji="⚠️"] {
-            background: #FEE2E2;
-            border-left-color: #EF4444;
-        }
-        
-        #preview section[data-emoji="🎲"] {
-            background: #F3F4F6;
-            border-left-color: #6B7280;
-        }
-
         #preview ul,
         #preview ol {
             padding-left: 24px;
@@ -775,49 +744,6 @@
             }
 
             .panel-header {
-
-        /* 字数统计面板 */
-        .stats-panel {
-            display: flex;
-            gap: 16px;
-            padding: 12px 20px;
-            border-top: 1px solid var(--input-border);
-            background: var(--card-bg);
-            flex-shrink: 0;
-        }
-
-        .stat-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .stat-label {
-            font-size: 12px;
-            color: var(--text-muted);
-        }
-
-        .stat-value {
-            font-size: 16px;
-            font-weight: 600;
-            color: var(--primary);
-        }
-
-        @media (max-width: 768px) {
-            .stats-panel {
-                padding: 10px 16px;
-                gap: 12px;
-            }
-
-            .stat-label {
-                font-size: 11px;
-            }
-
-            .stat-value {
-                font-size: 14px;
-            }
-        }
                 padding: 16px 24px;
             }
 
@@ -907,21 +833,6 @@
 
 ← 移动端左右滑动切换"></textarea>
                     </div>
-                    <!-- 字数统计面板 -->
-                    <div class="stats-panel" id="stats-panel">
-                        <div class="stat-item">
-                            <span class="stat-label">字数</span>
-                            <span class="stat-value" id="word-count">0</span>
-                        </div>
-                        <div class="stat-item">
-                            <span class="stat-label">阅读</span>
-                            <span class="stat-value" id="read-time">0分钟</span>
-                        </div>
-                        <div class="stat-item">
-                            <span class="stat-label">段落</span>
-                            <span class="stat-value" id="paragraph-count">0</span>
-                        </div>
-                    </div>
                 </div>
 
                 <!-- Preview Panel -->
@@ -966,97 +877,6 @@
         const preview = document.getElementById('preview');
         const toast = document.getElementById('toast');
 
-
-        // ===== 配置常量 =====
-        const CONFIG = {
-            // 高亮卡片
-            HIGHLIGHT_MAX_LENGTH: 30,
-            
-            // 阅读速度（字/分钟）
-            READ_SPEED: 400,
-            
-            // 交互阈值
-            SWIPE_THRESHOLD: 80,
-            SCROLL_SHOW_FAB: 150,
-            SCROLL_HIDE_FAB_OFFSET: 200,
-            DELETE_CONFIRM_TIMEOUT: 2000,
-            TOAST_DURATION: 2500,
-        };
-
-        // ===== 样式系统 =====
-        const STYLES = {
-            // 标题
-            h1: 'color: #3b82f6; font-size: 26px; font-weight: bold; text-align: center; margin: 40px 0 24px 0; line-height: 1.4;',
-            h2: 'color: #3b82f6; font-size: 20px; font-weight: bold; margin: 36px 0 20px 0; padding-bottom: 8px; border-bottom: 2px solid #3b82f6; line-height: 1.4;',
-            h3: 'color: #333; font-size: 17px; font-weight: bold; margin: 32px 0 16px 0; padding-left: 12px; border-left: 4px solid #3b82f6; line-height: 1.4;',
-            h4: 'color: #333; font-size: 16px; font-weight: bold; margin: 24px 0 12px 0; line-height: 1.4;',
-            // 文本
-            p: 'margin: 24px 0; line-height: 1.85; color: #333; font-size: 16px; letter-spacing: 0.5px; text-align: justify;',
-            strong: 'color: #333; font-weight: bold;',
-            em: 'font-style: italic; color: #555;',
-            del: 'text-decoration: line-through; color: #999;',
-            a: 'color: #3b82f6; text-decoration: none;',
-            // 列表
-            ul: 'padding-left: 24px; margin: 24px 0;',
-            ol: 'padding-left: 24px; margin: 24px 0;',
-            li: 'margin: 12px 0; line-height: 1.8; color: #333;',
-            // 引用和代码
-            blockquote: 'background: #f8fafc; border-left: 4px solid #cbd5e1; border-radius: 0 8px 8px 0; padding: 16px 20px; margin: 28px 2px; color: #57606a; font-size: 15px;',
-            pre: 'background: #1e293b; color: #e2e8f0; padding: 16px; border-radius: 10px; overflow-x: auto; font-family: Consolas, Monaco, monospace; font-size: 13px; line-height: 1.6; margin: 24px 0;',
-            code: 'background: #f1f5f9; color: #be185d; padding: 2px 6px; border-radius: 4px; font-family: Consolas, Monaco, monospace; font-size: 14px;',
-            codeInPre: 'background: none; color: inherit; padding: 0; font-family: inherit; font-size: inherit;',
-            // 表格
-            table: 'width: 100%; border-collapse: collapse; margin: 24px 0; font-size: 14px;',
-            th: 'background: #f8fafc; color: #333; padding: 12px 10px; text-align: left; font-weight: bold; border: 1px solid #e2e8f0;',
-            td: 'padding: 10px; border: 1px solid #e2e8f0; color: #333;',
-            // 其他
-            hr: 'border: none; height: 1px; background: #e2e8f0; margin: 40px 0;',
-            img: 'max-width: 100%; height: auto; display: block; margin: 24px auto; border-radius: 8px;',
-            highlightCard: 'display: block; text-align: center; padding: 16px 20px; margin: 28px 0; background: #f0f9ff; border-radius: 8px; color: #3b82f6; font-size: 17px; font-weight: bold; line-height: 1.6;',
-        };
-
-        // ===== Emoji 配色系统 =====
-        const CALLOUT_THEMES = {
-            '💡': { bg: '#DBEAFE', border: '#3B82F6' },
-            '💰': { bg: '#D1FAE5', border: '#10B981' },
-            '🎯': { bg: '#FEF3C7', border: '#F59E0B' },
-            '🧠': { bg: '#EDE9FE', border: '#8B5CF6' },
-            '⚠️': { bg: '#FEE2E2', border: '#EF4444' },
-            '🎲': { bg: '#F3F4F6', border: '#6B7280' },
-        };
-        const DEFAULT_CALLOUT = CALLOUT_THEMES['💡'];
-
-        // ===== 样式标签映射 =====
-        const STYLE_TAGS = ['h1', 'h2', 'h3', 'h4', 'p', 'strong', 'em', 'del', 
-                            'ul', 'ol', 'li', 'blockquote', 'pre', 'code', 
-                            'table', 'th', 'td', 'hr'];
-
-        // ===== 工具函数 =====
-        
-        // 样式注入器
-        function injectStyle(html, tag, style) {
-            const regex = new RegExp(`<${tag}([ >])`, 'g');
-            return html.replace(regex, `<${tag} style="${style}"$1`);
-        }
-
-        // 高亮卡片候选判断
-        function isHighlightCandidate(text) {
-            return text.length <= CONFIG.HIGHLIGHT_MAX_LENGTH &&
-                   !text.includes('：') &&
-                   !text.includes(':');
-        }
-
-        // 获取 Callout 主题
-        function getCalloutTheme(emoji) {
-            return CALLOUT_THEMES[emoji] || DEFAULT_CALLOUT;
-        }
-
-        // 批量应用内联样式
-        function applyInlineStyles(html) {
-            return STYLE_TAGS.reduce((result, tag) => {
-                return STYLES[tag] ? injectStyle(result, tag, STYLES[tag]) : result;
-            }, html);
-        }
         // 配置 marked
         marked.setOptions({
             breaks: true,
@@ -1069,7 +889,6 @@
             if (markdown.trim()) {
                 preview.innerHTML = marked.parse(markdown);
                 processHighlightSentences();
-                updateStats();
             } else {
                 preview.innerHTML = `
                     <div class="empty-state">
@@ -1101,78 +920,136 @@
             input.dispatchEvent(new Event('input'));
         }
 
-        // 字数统计功能
-        function updateStats() {
-            const text = input.value;
-            const wordCount = text.replace(/\s+/g, '').length; // 中文字符数
-            const readTime = Math.ceil(wordCount / CONFIG.READ_SPEED);
-            const paragraphCount = text.split(/\n\s*\n/).filter(p => p.trim()).length;
-
-            document.getElementById('word-count').textContent = wordCount;
-            document.getElementById('read-time').textContent = `${readTime}分钟`;
-            document.getElementById('paragraph-count').textContent = paragraphCount;
-        }
-
         // 生成公众号优化的带内联样式 HTML
         function getWeChatStyledHtml() {
             const markdown = input.value;
             let html = marked.parse(markdown);
 
-            // 1. 批量注入内联样式（使用工具函数）
-            html = applyInlineStyles(html);
+            // 定义内联样式
+            const styles = {
+                h1: 'color: #3b82f6; font-size: 26px; font-weight: bold; text-align: center; margin: 40px 0 24px 0; line-height: 1.4;',
+                h2: 'color: #3b82f6; font-size: 20px; font-weight: bold; margin: 36px 0 20px 0; padding-bottom: 8px; border-bottom: 2px solid #3b82f6; line-height: 1.4;',
+                h3: 'color: #333; font-size: 17px; font-weight: bold; margin: 32px 0 16px 0; padding-left: 12px; border-left: 4px solid #3b82f6; line-height: 1.4;',
+                h4: 'color: #333; font-size: 16px; font-weight: bold; margin: 24px 0 12px 0; line-height: 1.4;',
+                p: 'margin: 24px 0; line-height: 1.85; color: #333; font-size: 16px; letter-spacing: 0.5px; text-align: justify;',
+                strong: 'color: #333; font-weight: bold;',
+                em: 'font-style: italic; color: #555;',
+                del: 'text-decoration: line-through; color: #999;',
+                a: 'color: #3b82f6; text-decoration: none;',
+                ul: 'padding-left: 24px; margin: 24px 0;',
+                ol: 'padding-left: 24px; margin: 24px 0;',
+                li: 'margin: 12px 0; line-height: 1.8; color: #333;',
+                blockquote: 'background: #f8fafc; border-left: 4px solid #cbd5e1; border-radius: 0 8px 8px 0; padding: 16px 20px; margin: 28px 2px; color: #57606a; font-size: 15px;',
+                pre: 'background: #1e293b; color: #e2e8f0; padding: 16px; border-radius: 10px; overflow-x: auto; font-family: Consolas, Monaco, monospace; font-size: 13px; line-height: 1.6; margin: 24px 0;',
+                code: 'background: #f1f5f9; color: #be185d; padding: 2px 6px; border-radius: 4px; font-family: Consolas, Monaco, monospace; font-size: 14px;',
+                codeInPre: 'background: none; color: inherit; padding: 0; font-family: inherit; font-size: inherit;',
+                table: 'width: 100%; border-collapse: collapse; margin: 24px 0; font-size: 14px;',
+                th: 'background: #f8fafc; color: #333; padding: 12px 10px; text-align: left; font-weight: bold; border: 1px solid #e2e8f0;',
+                td: 'padding: 10px; border: 1px solid #e2e8f0; color: #333;',
+                tdEven: 'padding: 10px; border: 1px solid #e2e8f0; color: #333; background: #f8fafc;',
+                hr: 'border: none; height: 1px; background: #e2e8f0; margin: 40px 0;',
+                img: 'max-width: 100%; height: auto; display: block; margin: 24px auto; border-radius: 8px;',
+                highlightCard: 'display: block; text-align: center; padding: 16px 20px; margin: 28px 0; background: #f0f9ff; border-radius: 8px; color: #3b82f6; font-size: 17px; font-weight: bold; line-height: 1.6;'
+            };
 
-            // 2. 处理特殊标签（带属性的标签）
+            // 替换标签添加内联样式
             html = html
-                .replace(/<a /g, `<a style="${STYLES.a}" `)
-                .replace(/<img /g, `<img style="${STYLES.img}" `);
+                // 标题
+                .replace(/<h1>/g, `<h1 style="${styles.h1}">`)
+                .replace(/<h2>/g, `<h2 style="${styles.h2}">`)
+                .replace(/<h3>/g, `<h3 style="${styles.h3}">`)
+                .replace(/<h4>/g, `<h4 style="${styles.h4}">`)
+                // 文本
+                .replace(/<p>/g, `<p style="${styles.p}">`)
+                .replace(/<strong>/g, `<strong style="${styles.strong}">`)
+                .replace(/<em>/g, `<em style="${styles.em}">`)
+                .replace(/<del>/g, `<del style="${styles.del}">`)
+                .replace(/<a /g, `<a style="${styles.a}" `)
+                // 列表
+                .replace(/<ul>/g, `<ul style="${styles.ul}">`)
+                .replace(/<ol>/g, `<ol style="${styles.ol}">`)
+                .replace(/<li>/g, `<li style="${styles.li}">`)
+                // 引用
+                .replace(/<blockquote>/g, `<blockquote style="${styles.blockquote}">`)
+                // 代码
+                .replace(/<pre>/g, `<pre style="${styles.pre}">`)
+                .replace(/<code>/g, `<code style="${styles.code}">`)
+                // 表格
+                .replace(/<table>/g, `<table style="${styles.table}">`)
+                .replace(/<th>/g, `<th style="${styles.th}">`)
+                .replace(/<td>/g, `<td style="${styles.td}">`)
+                // 分割线
+                .replace(/<hr>/g, `<hr style="${styles.hr}">`)
+                // 图片
+                .replace(/<img /g, `<img style="${styles.img}" `);
 
-            // 3. 处理 Notion Callout（使用 CALLOUT_THEMES）
+            // 处理 Notion 的 aside/callout 元素
+            const tipAsideStyle = 'background: #fef3c7; border-left: 4px solid #f59e0b; border-radius: 4px; padding: 12px 16px; margin: 28px 0;';
+            const warnAsideStyle = 'background: #fee2e2; border-left: 4px solid #ef4444; border-radius: 4px; padding: 12px 16px; margin: 28px 0;';
+            const infoAsideStyle = 'background: #f0f9ff; border-left: 4px solid #3b82f6; border-radius: 4px; padding: 12px 16px; margin: 28px 0;';
+
             html = html.replace(/<aside>([\s\S]*?)<\/aside>/gi, (match, content) => {
-                const firstChar = content.trim()[0];
-                const theme = getCalloutTheme(firstChar);
-                const asideStyle = `background: ${theme.bg}; border-left: 4px solid ${theme.border}; border-radius: 4px; padding: 12px 16px; margin: 28px 0;`;
+                let style = infoAsideStyle;
+                if (content.includes('💡') || content.includes('提示') || content.includes('TIP')) {
+                    style = tipAsideStyle;
+                } else if (content.includes('⚠️') || content.includes('警告') || content.includes('WARNING') ||
+                    content.includes('惨痛') || content.includes('注意') || content.includes('CAUTION')) {
+                    style = warnAsideStyle;
+                }
 
+                // 清理内容中的换行，让布局更紧凑
                 let cleanContent = content
-                    .replace(/^\s*(💡|💰|🎯|🧠|⚠️|🎲|ℹ️)\s*/g, '$1 ')
+                    .replace(/^\s*(💡|⚠️|ℹ️)\s*/g, '$1 ')
                     .replace(/\n{2,}/g, '<br>')
                     .replace(/\n/g, ' ')
-                    .replace(/\*\*([^*]+)\*\*\s*[:：]/g, `<strong style="${STYLES.strong}">$1</strong>：`)
-                    .replace(/\*\*([^*]+)\*\*/g, `<strong style="${STYLES.strong}">$1</strong>`)
+                    // 确保 strong 后面的冒号紧跟
+                    .replace(/\*\*([^*]+)\*\*\s*[:：]/g, '<strong style="' + styles.strong + '">$1</strong>：')
+                    .replace(/\*\*([^*]+)\*\*/g, '<strong style="' + styles.strong + '">$1</strong>')
                     .trim();
 
-                return `<section style="${asideStyle}"><p style="${STYLES.p}; margin: 0;">${cleanContent}</p></section>`;
+                // 如果开头是 emoji，确保它和后面的文本在同一行 p 
+                return `<section style="${style}"><p style="${styles.p}; margin: 0;">${cleanContent}</p></section>`;
             });
 
-            // 4. 修复 pre > code 嵌套
+            // 全局修复：确保所有 strong 标签后的冒号紧跟，防止换行
+            html = html.replace(/<\/strong>\s*([:：])/g, '</strong>$1');
+
+            // 处理 pre > code 嵌套（移除 code 的背景色）
             html = html.replace(
                 /<pre style="([^"]+)">\s*<code style="[^"]+">/g,
-                `<pre style="$1"><code style="${STYLES.codeInPre}">`
+                `<pre style="$1"><code style="${styles.codeInPre}">`
             );
 
-            // 5. 处理高亮卡片（使用工具函数）
+            // 处理高亮卡片（仅限独立加粗行 - 内容短、无冒号）
             html = html.replace(
                 /<p style="[^"]*"><strong style="[^"]*">([^<]+)<\/strong><\/p>/g,
                 (match, content) => {
-                    if (isHighlightCandidate(content)) {
-                        return `<p style="${STYLES.highlightCard}">${content}</p>`;
+                    // 排除：含有冒号（定义项）、内容过长（超过30字）
+                    if (content.includes('：') || content.includes(':') || content.length > 30) {
+                        return match; // 保持原样
                     }
-                    return match;
+                    return `<p style="${styles.highlightCard}">${content}</p>`;
                 }
             );
 
-            // 6. 修复冒号换行
-            html = html.replace(/<\/strong>\s*([:：])/g, '</strong>$1');
+            // 处理表格斑马纹（偶数行）
+            let rowIndex = 0;
+            html = html.replace(/<tr>/g, () => {
+                rowIndex++;
+                return '<tr>';
+            });
+            // 简化处理：为所有 td 添加统一样式，斑马纹通过 CSS 控制
 
-            // 7. 处理提示框 (> TIP: 或 > 💡)
+            // 处理提示框 (> TIP: 或 > 💡)
             html = html.replace(
                 /<blockquote style="[^"]*">\s*<p style="[^"]*">(💡|TIP:|提示[:：])\s*/gi,
-                `<section style="background: #fef3c7; border-left: 4px solid #f59e0b; border-radius: 0 8px 8px 0; padding: 16px 20px; margin: 20px 0;"><p style="${STYLES.p}">💡 `
+                `<section style="background: #fef3c7; border-left: 4px solid #f59e0b; border-radius: 0 8px 8px 0; padding: 16px 20px; margin: 20px 0;"><p style="${styles.p}">💡 `
             );
 
-            // 8. 处理警告框 (> WARNING: 或 > ⚠️)
+            // 处理警告框 (> WARNING: 或 > ⚠️)
             html = html.replace(
                 /<blockquote style="[^"]*">\s*<p style="[^"]*">(⚠️|WARNING:|警告[:：])\s*/gi,
-                `<section style="background: #fee2e2; border-left: 4px solid #ef4444; border-radius: 0 8px 8px 0; padding: 16px 20px; margin: 20px 0;"><p style="${STYLES.p}">⚠️ `
+                `<section style="background: #fee2e2; border-left: 4px solid #ef4444; border-radius: 0 8px 8px 0; padding: 16px 20px; margin: 20px 0;"><p style="${styles.p}">⚠️ `
             );
 
             return html;
@@ -1208,7 +1085,7 @@
             toast.classList.add('show');
             setTimeout(() => {
                 toast.classList.remove('show');
-            }, CONFIG.TOAST_DURATION);
+            }, 2500);
         }
 
         // Tab 切换
@@ -1283,6 +1160,7 @@
         let touchStartY = 0;
         let isSwiping = false;
         let isHorizontalSwipe = null;
+        const SWIPE_THRESHOLD = 80;
         const editorWidth = window.innerWidth;
 
         const editorEl = document.querySelector('.editor');
@@ -1347,7 +1225,7 @@
             panelPreviewEl.style.opacity = '';
 
             // 只有水平滑动且距离超过阈值才切换
-            if (isHorizontalSwipe && window.innerWidth <= 768 && Math.abs(diff) > CONFIG.SWIPE_THRESHOLD) {
+            if (isHorizontalSwipe && window.innerWidth <= 768 && Math.abs(diff) > SWIPE_THRESHOLD) {
                 if (diff > 0 && panelPreviewEl.classList.contains('active')) {
                     switchTab('input');
                 } else if (diff < 0 && panelInputEl.classList.contains('active')) {
@@ -1401,7 +1279,7 @@
                 showToast();
                 deleteClickTimer = setTimeout(() => {
                     deleteClickCount = 0;
-                }, CONFIG.DELETE_CONFIRM_TIMEOUT);
+                }, 2000);
             } else if (deleteClickCount >= 2) {
                 clearTimeout(deleteClickTimer);
                 deleteClickCount = 0;
