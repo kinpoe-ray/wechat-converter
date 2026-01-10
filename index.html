@@ -344,13 +344,13 @@
             min-height: 100%;
         }
 
-        /* ========== 公众号样式 ========== */
+        /* ========== 公众号样式 - 与复制逻辑同步 ========== */
         #preview h2 {
             color: #3b82f6;
             font-size: 20px;
             font-weight: bold;
-            margin-top: 28px;
-            margin-bottom: 16px;
+            margin-top: 36px;
+            margin-bottom: 20px;
             padding-bottom: 8px;
             border-bottom: 2px solid #3b82f6;
         }
@@ -363,12 +363,17 @@
             color: var(--text-primary);
             font-size: 17px;
             font-weight: bold;
-            margin-top: 24px;
-            margin-bottom: 12px;
+            margin-top: 32px;
+            margin-bottom: 16px;
+            padding-left: 12px;
+            border-left: 4px solid #3b82f6;
         }
 
         #preview p {
-            margin: 12px 0;
+            margin: 24px 0;
+            line-height: 1.85;
+            text-align: justify;
+            letter-spacing: 0.5px;
         }
 
         #preview strong {
@@ -404,7 +409,7 @@
         #preview ul,
         #preview ol {
             padding-left: 24px;
-            margin: 20px 0;
+            margin: 24px 0;
         }
 
         #preview li {
@@ -926,13 +931,13 @@
                 h2: 'color: #3b82f6; font-size: 20px; font-weight: bold; margin: 36px 0 20px 0; padding-bottom: 8px; border-bottom: 2px solid #3b82f6; line-height: 1.4;',
                 h3: 'color: #333; font-size: 17px; font-weight: bold; margin: 32px 0 16px 0; padding-left: 12px; border-left: 4px solid #3b82f6; line-height: 1.4;',
                 h4: 'color: #333; font-size: 16px; font-weight: bold; margin: 24px 0 12px 0; line-height: 1.4;',
-                p: 'margin: 20px 0; line-height: 1.85; color: #333; font-size: 16px; letter-spacing: 0.5px; text-align: justify;',
+                p: 'margin: 24px 0; line-height: 1.85; color: #333; font-size: 16px; letter-spacing: 0.5px; text-align: justify;',
                 strong: 'color: #333; font-weight: bold;',
                 em: 'font-style: italic; color: #555;',
                 del: 'text-decoration: line-through; color: #999;',
                 a: 'color: #3b82f6; text-decoration: none;',
-                ul: 'padding-left: 24px; margin: 20px 0;',
-                ol: 'padding-left: 24px; margin: 20px 0;',
+                ul: 'padding-left: 24px; margin: 24px 0;',
+                ol: 'padding-left: 24px; margin: 24px 0;',
                 li: 'margin: 12px 0; line-height: 1.8; color: #333;',
                 blockquote: 'background: #f8fafc; border-left: 4px solid #cbd5e1; border-radius: 0 8px 8px 0; padding: 16px 20px; margin: 28px 2px; color: #57606a; font-size: 15px;',
                 pre: 'background: #1e293b; color: #e2e8f0; padding: 16px; border-radius: 10px; overflow-x: auto; font-family: Consolas, Monaco, monospace; font-size: 13px; line-height: 1.6; margin: 24px 0;',
