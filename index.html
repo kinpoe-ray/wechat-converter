@@ -13,6 +13,7 @@
     <meta name="color-scheme" content="light dark">
     <title>Markdown → 公众号格式转换器</title>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -1064,11 +1065,113 @@
             gfm: true
         });
 
-        // 实时转换
-        input.addEventListener('input', () => {
+        // 配置 mermaid
+        mermaid.initialize({
+            startOnLoad: false,
+            theme: 'default',
+            securityLevel: 'strict'
+        });
+
+        let renderCounter = 0;
+
+        async function renderMermaidBlocks(markdown) {
+            const blocks = [];
+            const processed = markdown.replace(/```mermaid\s*([\s\S]*?)```/g, (match, code) => {
+                const token = `{{MERMAID_${blocks.length}}}`;
+                blocks.push({ token, code: code.trim() });
+                return token;
+            });
+
+            if (blocks.length === 0) {
+                return { markdown: processed, images: [] };
+            }
+
+            const images = [];
+            for (const block of blocks) {
+                try {
+                    const svg = await renderMermaidSvg(block.code);
+                    const dataUrl = await svgToPngDataUrl(svg);
+                    images.push({ token: block.token, dataUrl });
+                } catch (error) {
+                    images.push({ token: block.token, error: true });
+                }
+            }
+            return { markdown: processed, images };
+        }
+
+        async function renderMermaidSvg(code) {
+            const id = `mermaid-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+            if (mermaid.render) {
+                const { svg } = await mermaid.render(id, code);
+                return svg;
+            }
+            return new Promise((resolve, reject) => {
+                try {
+                    mermaid.mermaidAPI.render(id, code, (svg) => resolve(svg));
+                } catch (err) {
+                    reject(err);
+                }
+            });
+        }
+
+        async function svgToPngDataUrl(svgText) {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(svgText, 'image/svg+xml');
+            const svgEl = doc.documentElement;
+            const viewBox = svgEl.getAttribute('viewBox');
+            let width = parseInt(svgEl.getAttribute('width') || '800', 10);
+            let height = parseInt(svgEl.getAttribute('height') || '450', 10);
+            if (viewBox) {
+                const parts = viewBox.split(' ').map(Number);
+                if (parts.length === 4) {
+                    width = parts[2];
+                    height = parts[3];
+                }
+            }
+
+            const svgBlob = new Blob([svgText], { type: 'image/svg+xml' });
+            const url = URL.createObjectURL(svgBlob);
+            const img = new Image();
+            await new Promise((resolve, reject) => {
+                img.onload = () => resolve();
+                img.onerror = reject;
+                img.src = url;
+            });
+
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, width, height);
+            ctx.drawImage(img, 0, 0, width, height);
+            URL.revokeObjectURL(url);
+            return canvas.toDataURL('image/png');
+        }
+
+        function replaceMermaidTokens(html, images) {
+            let result = html;
+            images.forEach((item) => {
+                const replacement = item.error
+                    ? '⚠️ Mermaid 渲染失败，请手动插入截图'
+                    : `<img src="${item.dataUrl}" alt="Mermaid Diagram" />`;
+                result = result
+                    .replace(new RegExp(`<p>\\s*${item.token}\\s*<\\/p>`, 'g'), replacement)
+                    .replace(new RegExp(item.token, 'g'), replacement);
+            });
+            return result;
+        }
+
+        // 实时转换（支持 Mermaid 渲染）
+        input.addEventListener('input', async () => {
             const markdown = input.value;
+            const current = ++renderCounter;
             if (markdown.trim()) {
-                preview.innerHTML = marked.parse(markdown);
+                const { markdown: processed, images } = await renderMermaidBlocks(markdown);
+                if (current !== renderCounter) return;
+                let html = marked.parse(processed);
+                html = replaceMermaidTokens(html, images);
+                preview.innerHTML = html;
                 processHighlightSentences();
                 updateStats();
             } else {
@@ -1115,9 +1218,11 @@
         }
 
         // 生成公众号优化的带内联样式 HTML
-        function getWeChatStyledHtml() {
+        async function getWeChatStyledHtml() {
             const markdown = input.value;
-            let html = marked.parse(markdown);
+            const { markdown: processed, images } = await renderMermaidBlocks(markdown);
+            let html = marked.parse(processed);
+            html = replaceMermaidTokens(html, images);
 
             // 1. 批量注入内联样式（使用工具函数）
             html = applyInlineStyles(html);
@@ -1186,7 +1291,7 @@
                 return;
             }
             try {
-                const styledHtml = getWeChatStyledHtml();
+                const styledHtml = await getWeChatStyledHtml();
                 const blob = new Blob([styledHtml], { type: 'text/html' });
                 const clipboardItem = new ClipboardItem({ 'text/html': blob });
                 await navigator.clipboard.write([clipboardItem]);
