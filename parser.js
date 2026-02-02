@@ -60,7 +60,7 @@ export async function renderMermaidBlocks(markdown) {
   const blocks = [];
   const processed = markdown.replace(/```mermaid\s*([\s\S]*?)```/g, (match, code) => {
     const token = `{{MERMAID_${blocks.length}}}`;
-    blocks.push({ token, code: code.trim() });
+    blocks.push({ token, code: sanitizeMermaid(code.trim()) });
     return token;
   });
 
@@ -79,6 +79,38 @@ export async function renderMermaidBlocks(markdown) {
     }
   }
   return { markdown: processed, images };
+}
+
+function sanitizeMermaid(code) {
+  if (!code.includes('stateDiagram')) return code;
+
+  const lines = code.split('\n');
+  const header = lines[0] || 'stateDiagram-v2';
+  const descMap = new Map();
+  const kept = [];
+
+  for (let i = 1; i < lines.length; i += 1) {
+    const line = lines[i];
+    const trimmed = line.trim();
+    if (!trimmed) continue;
+    const match = trimmed.match(/^([A-Za-z0-9_]+)\s*:\s*(.+)$/);
+    if (match) {
+      const name = match[1];
+      const text = match[2].replace(/^•\s*/g, '');
+      if (!descMap.has(name)) descMap.set(name, []);
+      descMap.get(name).push(text);
+    } else {
+      kept.push(line);
+    }
+  }
+
+  const stateLines = [];
+  descMap.forEach((items, name) => {
+    const body = [name, ...items].join('\\n');
+    stateLines.push(`state "${body}" as ${name}`);
+  });
+
+  return [header, ...stateLines, ...kept].join('\n');
 }
 
 export function replaceMermaidTokens(html, images) {
