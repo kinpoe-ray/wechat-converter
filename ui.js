@@ -209,6 +209,10 @@ function initTheme() {
     document.body.classList.add('light');
     themeBtn.innerHTML = '☀️';
     themeColorMeta.content = '#ffffff';
+  } else {
+    document.body.classList.remove('light');
+    themeBtn.innerHTML = '🌙';
+    themeColorMeta.content = '#15202b';
   }
 }
 
