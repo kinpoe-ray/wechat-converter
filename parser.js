@@ -29,12 +29,16 @@ export const STYLES = {
 };
 
 export const CALLOUT_THEMES = {
-  '💡': { bg: '#DBEAFE', border: '#3B82F6' },
-  '💰': { bg: '#D1FAE5', border: '#10B981' },
-  '🎯': { bg: '#FEF3C7', border: '#F59E0B' },
-  '🧠': { bg: '#EDE9FE', border: '#8B5CF6' },
-  '⚠️': { bg: '#FEE2E2', border: '#EF4444' },
-  '🎲': { bg: '#F3F4F6', border: '#6B7280' },
+  '💡': { bg: '#DBEAFE', border: '#3B82F6', label: '提示' },
+  '💰': { bg: '#D1FAE5', border: '#10B981', label: '成本' },
+  '🎯': { bg: '#FEF3C7', border: '#F59E0B', label: '目标' },
+  '🧠': { bg: '#EDE9FE', border: '#8B5CF6', label: '思考' },
+  '⚠️': { bg: '#FEE2E2', border: '#EF4444', label: '注意' },
+  '🎲': { bg: '#F3F4F6', border: '#6B7280', label: '随机' },
+  '✅': { bg: '#DCFCE7', border: '#22C55E', label: '结论' },
+  '❗': { bg: '#FFE4E6', border: '#F43F5E', label: '重要' },
+  'ℹ️': { bg: '#E0F2FE', border: '#0284C7', label: '信息' },
+  '📝': { bg: '#F8FAFC', border: '#64748B', label: '笔记' },
 };
 
 const STYLE_TAGS = ['h1', 'h2', 'h3', 'h4', 'p', 'strong', 'em', 'del',
@@ -156,17 +160,18 @@ export function processNotionAside(html) {
   return html.replace(/<aside>([\s\S]*?)<\/aside>/gi, (match, content) => {
     const firstChar = content.trim()[0];
     const theme = CALLOUT_THEMES[firstChar] || CALLOUT_THEMES['💡'];
-    const asideStyle = `background: ${theme.bg}; border-left: 4px solid ${theme.border}; border-radius: 4px; padding: 12px 16px; margin: 28px 0;`;
+    const asideStyle = `background: ${theme.bg}; border-left: 4px solid ${theme.border}; border-radius: 6px; padding: 12px 16px; margin: 28px 0;`;
+    const badgeStyle = `display:inline-block; font-size:12px; font-weight:bold; color:${theme.border}; border:1px solid ${theme.border}; border-radius:999px; padding:2px 8px; margin-right:8px;`;
 
     let cleanContent = content
-      .replace(/^\s*(💡|💰|🎯|🧠|⚠️|🎲|ℹ️)\s*/g, '$1 ')
+      .replace(/^\s*(💡|💰|🎯|🧠|⚠️|🎲|ℹ️|✅|❗|📝)\s*/g, '$1 ')
       .replace(/\n{2,}/g, '<br>')
       .replace(/\n/g, ' ')
       .replace(/\*\*([^*]+)\*\*\s*[:：]/g, `<strong style="${STYLES.strong}">$1</strong>：`)
       .replace(/\*\*([^*]+)\*\*/g, `<strong style="${STYLES.strong}">$1</strong>`)
       .trim();
 
-    return `<section style="${asideStyle}"><p style="${STYLES.p}; margin: 0;">${cleanContent}</p></section>`;
+    return `<section style="${asideStyle}"><p style="${STYLES.p}; margin: 0;"><span style="${badgeStyle}">${theme.label}</span>${cleanContent}</p></section>`;
   });
 }
 

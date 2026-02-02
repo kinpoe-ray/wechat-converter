@@ -290,6 +290,19 @@
             background: rgba(59, 130, 246, 0.1);
         }
 
+        .sync-warning {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 14px;
+            margin: 12px 20px;
+            border-radius: 10px;
+            background: #fff7ed;
+            color: #b45309;
+            font-size: 13px;
+            border: 1px solid #f59e0b;
+        }
+
         .btn-icon {
             padding: 8px 12px;
             background: transparent;
@@ -928,11 +941,13 @@
 
                 <!-- Preview Panel -->
                 <div class="panel panel-preview" id="panel-preview">
+                    <div class="sync-warning" id="sync-warning">⚠️ 预览样式与复制样式可能不一致</div>
                     <div class="panel-header">
                         <span class="panel-title">
                             <span>👁️</span> 预览效果
                         </span>
                         <div class="btn-group">
+                            <button class="btn btn-secondary" onclick="toggleMermaidTheme()">🌓 Mermaid 主题</button>
                             <button class="btn btn-primary" id="copy-btn-header" onclick="copyToClipboard()">📋
                                 复制到公众号</button>
                             <button class="btn btn-secondary" onclick="copyPlainText()">🧾 复制纯文本</button>

@@ -13,6 +13,7 @@ const toast = document.getElementById('toast');
 const wordCountEl = document.getElementById('word-count');
 const readTimeEl = document.getElementById('read-time');
 const paragraphCountEl = document.getElementById('paragraph-count');
+const syncWarning = document.getElementById('sync-warning');
 
 const UI_CONFIG = {
   SWIPE_THRESHOLD: 80,
@@ -31,7 +32,7 @@ marked.setOptions({
 if (window.mermaid) {
   mermaid.initialize({
     startOnLoad: false,
-    theme: 'default',
+    theme: localStorage.getItem('mermaid-theme') || 'default',
     securityLevel: 'strict'
   });
 }
@@ -53,6 +54,7 @@ async function renderPreview() {
     preview.innerHTML = html;
     processHighlightSentences();
     updateStats();
+    checkStyleSync();
   } else {
     preview.innerHTML = `
       <div class="empty-state">
@@ -83,6 +85,16 @@ function updateStats() {
   paragraphCountEl.textContent = stats.paragraphCount;
 }
 
+function checkStyleSync() {
+  const sample = preview.querySelector('p');
+  if (!sample) {
+    syncWarning.style.display = 'none';
+    return;
+  }
+  const hasInline = sample.getAttribute('style');
+  syncWarning.style.display = hasInline ? 'flex' : 'none';
+}
+
 window.copyToClipboard = async function copyToClipboard() {
   if (!input.value.trim()) {
     alert('请先输入 Markdown 内容');
@@ -98,6 +110,20 @@ window.copyPlainText = async function copyPlainText() {
     return;
   }
   await copyPlainToClipboard(input.value, toast, UI_CONFIG.TOAST_DURATION);
+};
+
+window.toggleMermaidTheme = function toggleMermaidTheme() {
+  const currentTheme = localStorage.getItem('mermaid-theme') || 'default';
+  const nextTheme = currentTheme === 'default' ? 'dark' : 'default';
+  localStorage.setItem('mermaid-theme', nextTheme);
+  if (window.mermaid) {
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: nextTheme,
+      securityLevel: 'strict'
+    });
+  }
+  renderPreview();
 };
 
 window.clearInput = function clearInput() {
