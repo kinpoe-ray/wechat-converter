@@ -29,14 +29,6 @@ marked.setOptions({
   gfm: true,
 });
 
-if (window.mermaid) {
-  mermaid.initialize({
-    startOnLoad: false,
-    theme: localStorage.getItem('mermaid-theme') || 'default',
-    securityLevel: 'strict'
-  });
-}
-
 let renderCounter = 0;
 let renderTimer = null;
 
@@ -112,19 +104,6 @@ window.copyPlainText = async function copyPlainText() {
   await copyPlainToClipboard(input.value, toast, UI_CONFIG.TOAST_DURATION);
 };
 
-window.toggleMermaidTheme = function toggleMermaidTheme() {
-  const currentTheme = localStorage.getItem('mermaid-theme') || 'default';
-  const nextTheme = currentTheme === 'default' ? 'dark' : 'default';
-  localStorage.setItem('mermaid-theme', nextTheme);
-  if (window.mermaid) {
-    mermaid.initialize({
-      startOnLoad: false,
-      theme: nextTheme,
-      securityLevel: 'strict'
-    });
-  }
-  renderPreview();
-};
 
 window.clearInput = function clearInput() {
   if (!window.__deleteClickCount) window.__deleteClickCount = 0;

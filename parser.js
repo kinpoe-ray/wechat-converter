@@ -56,148 +56,10 @@ export function normalizeNotionMarkdown(markdown) {
   return text;
 }
 
-export async function renderMermaidBlocks(markdown) {
-  const blocks = [];
-  const processed = markdown.replace(/```mermaid\s*([\s\S]*?)```/g, (match, code) => {
-    const token = `{{MERMAID_${blocks.length}}}`;
-    blocks.push({ token, code: sanitizeMermaid(code.trim()) });
-    return token;
+export function replaceMermaidBlocks(markdown) {
+  return markdown.replace(/```mermaid[\s\S]*?```/g, () => {
+    return '⚠️ Mermaid 图表无法在公众号渲染，请在此处插入截图/图片。';
   });
-
-  if (blocks.length === 0) {
-    return { markdown: processed, images: [] };
-  }
-
-  const images = [];
-  for (const block of blocks) {
-    try {
-      const svg = await renderMermaidSvg(block.code);
-      const dataUrl = await svgToPngDataUrl(svg);
-      images.push({ token: block.token, dataUrl });
-    } catch (error) {
-      images.push({ token: block.token, error: true });
-    }
-  }
-  return { markdown: processed, images };
-}
-
-function sanitizeMermaid(code) {
-  const lines = code.split('\n');
-  const header = (lines[0] || '').trim();
-  if (!header) return code;
-
-  if (header.includes('stateDiagram')) {
-    const descMap = new Map();
-    const kept = [];
-
-    for (let i = 1; i < lines.length; i += 1) {
-      const line = lines[i];
-      const trimmed = line.trim();
-      if (!trimmed) continue;
-      const match = trimmed.match(/^([A-Za-z0-9_]+)\s*:\s*(.+)$/);
-      if (match) {
-        const name = match[1];
-        const text = match[2].replace(/^•\s*/g, '');
-        if (!descMap.has(name)) descMap.set(name, []);
-        descMap.get(name).push(text);
-      } else {
-        kept.push(line);
-      }
-    }
-
-    const stateLines = [];
-    descMap.forEach((items, name) => {
-      const body = [name, ...items].join('\\n');
-      stateLines.push(`state "${body}" as ${name}`);
-    });
-
-    return [header, ...stateLines, ...kept].join('\n');
-  }
-
-  if (header.startsWith('graph ') || header.startsWith('flowchart ')) {
-    const kept = [header];
-    for (let i = 1; i < lines.length; i += 1) {
-      const line = lines[i];
-      const trimmed = line.trim();
-      if (!trimmed) {
-        kept.push(line);
-        continue;
-      }
-      const match = trimmed.match(/^([A-Za-z0-9_]+)\s*:\s*(.+)$/);
-      if (match) {
-        const id = match[1];
-        const text = match[2].replace(/^•\s*/g, '');
-        kept.push(`${id}[\"${text}\"]`);
-      } else {
-        kept.push(line);
-      }
-    }
-    return kept.join('\n');
-  }
-
-  return code;
-}
-
-export function replaceMermaidTokens(html, images) {
-  let result = html;
-  images.forEach((item) => {
-    const replacement = item.error
-      ? '⚠️ Mermaid 渲染失败，请手动插入截图'
-      : `<img src="${item.dataUrl}" alt="Mermaid Diagram" />`;
-    result = result
-      .replace(new RegExp(`<p>\\s*${item.token}\\s*<\\/p>`, 'g'), replacement)
-      .replace(new RegExp(item.token, 'g'), replacement);
-  });
-  return result;
-}
-
-function renderMermaidSvg(code) {
-  const id = `mermaid-${Date.now()}-${Math.random().toString(36).slice(2)}`;
-  if (window.mermaid && window.mermaid.render) {
-    return window.mermaid.render(id, code).then((res) => res.svg);
-  }
-  return new Promise((resolve, reject) => {
-    try {
-      window.mermaid.mermaidAPI.render(id, code, (svg) => resolve(svg));
-    } catch (err) {
-      reject(err);
-    }
-  });
-}
-
-async function svgToPngDataUrl(svgText) {
-  const parser = new DOMParser();
-  const doc = parser.parseFromString(svgText, 'image/svg+xml');
-  const svgEl = doc.documentElement;
-  const viewBox = svgEl.getAttribute('viewBox');
-  let width = parseInt(svgEl.getAttribute('width') || '800', 10);
-  let height = parseInt(svgEl.getAttribute('height') || '450', 10);
-  if (viewBox) {
-    const parts = viewBox.split(' ').map(Number);
-    if (parts.length === 4) {
-      width = parts[2];
-      height = parts[3];
-    }
-  }
-
-  const svgBlob = new Blob([svgText], { type: 'image/svg+xml' });
-  const url = URL.createObjectURL(svgBlob);
-  const img = new Image();
-  await new Promise((resolve, reject) => {
-    img.onload = () => resolve();
-    img.onerror = reject;
-    img.src = url;
-  });
-
-  const canvas = document.createElement('canvas');
-  canvas.width = width;
-  canvas.height = height;
-  const ctx = canvas.getContext('2d');
-  ctx.fillStyle = '#ffffff';
-  ctx.fillRect(0, 0, width, height);
-  ctx.drawImage(img, 0, 0, width, height);
-  URL.revokeObjectURL(url);
-  return canvas.toDataURL('image/png');
 }
 
 export function applyInlineStyles(html) {
@@ -268,17 +130,15 @@ export function getStats(markdown) {
 
 export async function getPreviewHtml(markdown, marked) {
   const normalized = normalizeNotionMarkdown(markdown);
-  const { markdown: processed, images } = await renderMermaidBlocks(normalized);
+  const processed = replaceMermaidBlocks(normalized);
   let html = marked.parse(processed);
-  html = replaceMermaidTokens(html, images);
   return html;
 }
 
 export async function getWeChatStyledHtml(markdown, marked) {
   const normalized = normalizeNotionMarkdown(markdown);
-  const { markdown: processed, images } = await renderMermaidBlocks(normalized);
+  const processed = replaceMermaidBlocks(normalized);
   let html = marked.parse(processed);
-  html = replaceMermaidTokens(html, images);
   html = applyInlineStyles(html);
   html = processNotionAside(html);
   html = fixPreCode(html);
