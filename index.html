@@ -410,20 +410,6 @@
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            padding: 6px 10px;
-            border-radius: 8px;
-            border: 1px solid var(--input-border);
-            background: var(--input-bg);
-            color: var(--text-secondary);
-            font-size: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .style-panel-toggle:hover {
-            border-color: var(--input-focus-border);
-            color: var(--text-primary);
         }
 
         .style-panel-toggle .toggle-icon {
@@ -1046,10 +1032,6 @@
                 font-size: 12px;
             }
 
-            .style-panel-toggle {
-                font-size: 11px;
-                padding: 6px 8px;
-            }
 
             .style-select {
                 font-size: 12px;
@@ -1299,10 +1281,6 @@
             <div class="style-panel" id="style-panel">
                 <span class="style-panel-title">样式设置</span>
                 <div class="style-panel-controls">
-                    <button class="style-panel-toggle" id="style-panel-toggle" type="button" aria-expanded="true">
-                        样式设置
-                        <span class="toggle-icon">▾</span>
-                    </button>
                     <div class="style-panel-body" id="style-panel-body">
                     <label class="style-label" for="style-select">样式</label>
                     <select id="style-select" class="style-select" title="选择样式"></select>
@@ -1399,6 +1377,11 @@
                             <span>📄</span> Markdown 输入
                         </span>
                         <div class="btn-group">
+                            <button class="btn btn-secondary style-panel-toggle" id="style-panel-toggle" type="button" aria-expanded="true" title="展开/收起样式设置">
+                                🎛️ 样式
+                                <span class="toggle-icon">▾</span>
+                            </button>
+                            <button class="btn btn-secondary" onclick="resetStyleSettings()" title="重置样式设置">↺ 重置</button>
                             <button class="btn btn-secondary" onclick="pasteFromClipboard()">📋 粘贴</button>
                             <button class="btn btn-icon" onclick="clearInput()" title="清空">🗑️</button>
                         </div>

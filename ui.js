@@ -261,6 +261,22 @@ function initStylePanelToggle() {
   });
 }
 
+window.resetStyleSettings = function resetStyleSettings() {
+  customColors = { ...DEFAULT_CUSTOM_COLORS };
+  saveCustomColors(customColors);
+  updateCustomInputs();
+
+  applyStyle(DEFAULT_STYLE_ID);
+  applySpacingScale(1);
+  applyFontScale({ base: 1, heading: 1, code: 1 });
+  applyContentPaddingX(0);
+
+  localStorage.removeItem('wechat-style');
+  localStorage.removeItem('wechat-space-scale');
+  localStorage.removeItem('wechat-font-scale');
+  localStorage.removeItem('wechat-content-padding-x');
+};
+
 async function renderPreview() {
   const markdown = input.value;
   const current = ++renderCounter;
