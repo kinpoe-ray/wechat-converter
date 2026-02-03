@@ -25,6 +25,12 @@ const customTextInput = document.getElementById('custom-text');
 const customBackgroundInput = document.getElementById('custom-background');
 const spacingRange = document.getElementById('spacing-range');
 const spacingValue = document.getElementById('spacing-value');
+const fontBaseRange = document.getElementById('font-base-range');
+const fontHeadingRange = document.getElementById('font-heading-range');
+const fontCodeRange = document.getElementById('font-code-range');
+const fontBaseValue = document.getElementById('font-base-value');
+const fontHeadingValue = document.getElementById('font-heading-value');
+const fontCodeValue = document.getElementById('font-code-value');
 
 const UI_CONFIG = {
   SWIPE_THRESHOLD: 80,
@@ -44,6 +50,7 @@ const DEFAULT_CUSTOM_COLORS = {
 let customColors = { ...DEFAULT_CUSTOM_COLORS };
 let customPreviewVarKeys = [];
 let spacingScale = 1;
+let fontScale = { base: 1, heading: 1, code: 1 };
 
 marked.setOptions({
   breaks: true,
@@ -146,6 +153,28 @@ function applySpacingScale(scale) {
   scheduleRender();
 }
 
+function applyFontScale(nextScale) {
+  const safeScale = {
+    base: Math.min(1.4, Math.max(0.7, nextScale.base ?? 1)),
+    heading: Math.min(1.4, Math.max(0.7, nextScale.heading ?? 1)),
+    code: Math.min(1.4, Math.max(0.7, nextScale.code ?? 1)),
+  };
+  fontScale = safeScale;
+  document.documentElement.style.setProperty('--font-base-scale', String(safeScale.base));
+  document.documentElement.style.setProperty('--font-heading-scale', String(safeScale.heading));
+  document.documentElement.style.setProperty('--font-code-scale', String(safeScale.code));
+
+  if (fontBaseRange) fontBaseRange.value = String(safeScale.base);
+  if (fontHeadingRange) fontHeadingRange.value = String(safeScale.heading);
+  if (fontCodeRange) fontCodeRange.value = String(safeScale.code);
+  if (fontBaseValue) fontBaseValue.textContent = `${Math.round(safeScale.base * 100)}%`;
+  if (fontHeadingValue) fontHeadingValue.textContent = `${Math.round(safeScale.heading * 100)}%`;
+  if (fontCodeValue) fontCodeValue.textContent = `${Math.round(safeScale.code * 100)}%`;
+
+  localStorage.setItem('wechat-font-scale', JSON.stringify(safeScale));
+  scheduleRender();
+}
+
 function initSpacingControl() {
   if (!spacingRange || !spacingValue) return;
   const savedScaleRaw = localStorage.getItem('wechat-space-scale');
@@ -156,6 +185,35 @@ function initSpacingControl() {
     const value = Number.parseFloat(event.target.value);
     applySpacingScale(Number.isNaN(value) ? 1 : value);
   });
+}
+
+function initFontControl() {
+  if (!fontBaseRange || !fontHeadingRange || !fontCodeRange) return;
+  let savedScale = null;
+  try {
+    const raw = localStorage.getItem('wechat-font-scale');
+    if (raw) savedScale = JSON.parse(raw);
+  } catch (error) {
+    savedScale = null;
+  }
+
+  applyFontScale({
+    base: savedScale?.base ?? 1,
+    heading: savedScale?.heading ?? 1,
+    code: savedScale?.code ?? 1,
+  });
+
+  const handleFontChange = () => {
+    applyFontScale({
+      base: Number.parseFloat(fontBaseRange.value),
+      heading: Number.parseFloat(fontHeadingRange.value),
+      code: Number.parseFloat(fontCodeRange.value),
+    });
+  };
+
+  fontBaseRange.addEventListener('input', handleFontChange);
+  fontHeadingRange.addEventListener('input', handleFontChange);
+  fontCodeRange.addEventListener('input', handleFontChange);
 }
 
 async function renderPreview() {
@@ -219,7 +277,8 @@ window.copyToClipboard = async function copyToClipboard() {
     marked,
     styleId,
     styleId === CUSTOM_STYLE_ID ? customColors : undefined,
-    spacingScale
+    spacingScale,
+    fontScale
   );
   await copyHtmlToClipboard(styledHtml, preview, toast, UI_CONFIG.TOAST_DURATION);
 };
@@ -491,4 +550,5 @@ initTheme();
 initStylePicker();
 initCustomColors();
 initSpacingControl();
+initFontControl();
 renderPreview();

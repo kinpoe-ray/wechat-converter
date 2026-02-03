@@ -401,10 +401,11 @@ export async function getWeChatStyledHtml(
   marked,
   styleId = DEFAULT_STYLE_ID,
   customColors,
-  spacingScale = 1
+  spacingScale = 1,
+  fontScale = { base: 1, heading: 1, code: 1 }
 ) {
   const { styles } = getStylePreset(styleId, customColors);
-  const scaledStyles = applySpacingScale(styles, spacingScale);
+  const scaledStyles = applyFontScale(applySpacingScale(styles, spacingScale), fontScale);
   const normalized = normalizeNotionMarkdown(markdown);
   const processed = replaceMermaidBlocks(normalized);
   let html = marked.parse(processed);
@@ -414,4 +415,59 @@ export async function getWeChatStyledHtml(
   html = processHighlightCards(html, scaledStyles);
   html = fixColonSpacing(html);
   return html;
+}
+
+function applyFontScale(styles, fontScale) {
+  if (!fontScale) return styles;
+  const safeScale = {
+    base: Number.isFinite(fontScale.base) ? fontScale.base : 1,
+    heading: Number.isFinite(fontScale.heading) ? fontScale.heading : 1,
+    code: Number.isFinite(fontScale.code) ? fontScale.code : 1,
+  };
+
+  const tagScaleMap = {
+    h1: safeScale.heading,
+    h2: safeScale.heading,
+    h3: safeScale.heading,
+    h4: safeScale.heading,
+    p: safeScale.base,
+    li: safeScale.base,
+    blockquote: safeScale.base,
+    table: safeScale.base,
+    th: safeScale.base,
+    td: safeScale.base,
+    highlightCard: safeScale.base,
+    pre: safeScale.code,
+    code: safeScale.code,
+  };
+
+  return Object.fromEntries(
+    Object.entries(styles).map(([key, value]) => {
+      const scale = tagScaleMap[key] ?? 1;
+      if (scale === 1) return [key, value];
+      return [key, scaleFontSize(value, scale)];
+    })
+  );
+}
+
+function scaleFontSize(style, scale) {
+  if (scale === 1) return style;
+  const declarations = style.split(';').map((item) => item.trim()).filter(Boolean);
+  const scaled = declarations.map((decl) => {
+    const [prop, ...rest] = decl.split(':');
+    if (!prop || rest.length === 0) return decl;
+    const property = prop.trim();
+    const value = rest.join(':').trim();
+    if (property !== 'font-size') {
+      return `${property}: ${value}`;
+    }
+    const nextValue = value.replace(/(-?\d+(\.\d+)?)px/g, (match, num) => {
+      const amount = Number.parseFloat(num);
+      if (Number.isNaN(amount)) return match;
+      const scaledAmount = Math.round(amount * scale * 100) / 100;
+      return `${scaledAmount}px`;
+    });
+    return `${property}: ${nextValue}`;
+  });
+  return `${scaled.join('; ')};`;
 }

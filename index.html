@@ -42,6 +42,9 @@
             --code-bg: #f1f5f9;
             --code-color: #be185d;
             --space-scale: 1;
+            --font-base-scale: 1;
+            --font-heading-scale: 1;
+            --font-code-scale: 1;
         }
 
         body.dark {
@@ -464,6 +467,32 @@
             text-align: right;
         }
 
+        .font-control {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding-left: 8px;
+            border-left: 1px dashed var(--input-border);
+        }
+
+        .font-group {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .font-range {
+            width: 110px;
+            cursor: pointer;
+        }
+
+        .font-value {
+            font-size: 12px;
+            color: var(--text-muted);
+            min-width: 40px;
+            text-align: right;
+        }
+
         /* ========== 按钮样式 ========== */
         .btn {
             display: inline-flex;
@@ -563,7 +592,7 @@
         #preview {
             padding: calc(var(--space-scale) * 20px);
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            font-size: 16px;
+            font-size: calc(16px * var(--font-base-scale));
             line-height: 1.8;
             color: var(--preview-text-color);
             min-height: 100%;
@@ -572,7 +601,7 @@
         /* ========== 公众号样式 - 与复制逻辑同步 ========== */
         #preview h1 {
             color: var(--preview-h1-color);
-            font-size: 26px;
+            font-size: calc(26px * var(--font-heading-scale));
             font-weight: bold;
             text-align: center;
             margin: calc(var(--space-scale) * 40px) 0 calc(var(--space-scale) * 24px) 0;
@@ -581,7 +610,7 @@
 
         #preview h2 {
             color: var(--preview-h2-color);
-            font-size: 20px;
+            font-size: calc(20px * var(--font-heading-scale));
             font-weight: bold;
             margin-top: calc(var(--space-scale) * 36px);
             margin-bottom: calc(var(--space-scale) * 20px);
@@ -596,7 +625,7 @@
 
         #preview h3 {
             color: var(--preview-h3-color);
-            font-size: 17px;
+            font-size: calc(17px * var(--font-heading-scale));
             font-weight: bold;
             margin-top: calc(var(--space-scale) * 32px);
             margin-bottom: calc(var(--space-scale) * 16px);
@@ -607,7 +636,7 @@
 
         #preview h4 {
             color: var(--preview-h4-color);
-            font-size: 16px;
+            font-size: calc(16px * var(--font-heading-scale));
             font-weight: bold;
             margin-top: calc(var(--space-scale) * 24px);
             margin-bottom: calc(var(--space-scale) * 12px);
@@ -630,7 +659,7 @@
         #preview .highlight-card {
             display: block;
             color: var(--preview-highlight-color);
-            font-size: 17px;
+            font-size: calc(17px * var(--font-base-scale));
             text-align: center;
             padding: calc(var(--space-scale) * 16px) calc(var(--space-scale) * 20px);
             margin: calc(var(--space-scale) * 28px) 0;
@@ -699,7 +728,7 @@
             border-radius: 10px;
             overflow-x: auto;
             font-family: "SF Mono", Monaco, monospace;
-            font-size: 13px;
+            font-size: calc(13px * var(--font-code-scale));
             line-height: 1.6;
             margin: calc(var(--space-scale) * 24px) 0;
         }
@@ -708,7 +737,7 @@
             width: 100%;
             border-collapse: collapse;
             margin: calc(var(--space-scale) * 24px) 0;
-            font-size: 14px;
+            font-size: calc(14px * var(--font-base-scale));
         }
 
         #preview th {
@@ -749,7 +778,7 @@
             padding: calc(var(--space-scale) * 2px) calc(var(--space-scale) * 6px);
             border-radius: 4px;
             font-family: inherit;
-            font-size: 0.9em;
+            font-size: calc(0.9em * var(--font-code-scale));
         }
 
         #preview hr {
@@ -951,6 +980,15 @@
 
             .spacing-range {
                 width: 100px;
+            }
+
+            .font-control {
+                border-left: none;
+                padding-left: 0;
+            }
+
+            .font-range {
+                width: 90px;
             }
 
             .panel-input {
@@ -1175,6 +1213,50 @@
                             title="调整间距"
                         >
                         <span class="spacing-value" id="spacing-value">100%</span>
+                    </div>
+                    <div class="font-control">
+                        <div class="font-group">
+                            <label class="style-label" for="font-base-range">正文</label>
+                            <input
+                                type="range"
+                                id="font-base-range"
+                                class="font-range"
+                                min="0.8"
+                                max="1.3"
+                                step="0.05"
+                                value="1"
+                                title="正文大小"
+                            >
+                            <span class="font-value" id="font-base-value">100%</span>
+                        </div>
+                        <div class="font-group">
+                            <label class="style-label" for="font-heading-range">标题</label>
+                            <input
+                                type="range"
+                                id="font-heading-range"
+                                class="font-range"
+                                min="0.8"
+                                max="1.3"
+                                step="0.05"
+                                value="1"
+                                title="标题大小"
+                            >
+                            <span class="font-value" id="font-heading-value">100%</span>
+                        </div>
+                        <div class="font-group">
+                            <label class="style-label" for="font-code-range">代码</label>
+                            <input
+                                type="range"
+                                id="font-code-range"
+                                class="font-range"
+                                min="0.8"
+                                max="1.3"
+                                step="0.05"
+                                value="1"
+                                title="代码大小"
+                            >
+                            <span class="font-value" id="font-code-value">100%</span>
+                        </div>
                     </div>
                     <div class="style-custom hidden" id="style-custom-panel">
                         <label class="style-label" for="custom-primary">主色</label>
