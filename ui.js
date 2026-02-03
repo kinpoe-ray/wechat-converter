@@ -31,6 +31,8 @@ const fontCodeRange = document.getElementById('font-code-range');
 const fontBaseValue = document.getElementById('font-base-value');
 const fontHeadingValue = document.getElementById('font-heading-value');
 const fontCodeValue = document.getElementById('font-code-value');
+const contentPaddingRange = document.getElementById('content-padding-range');
+const contentPaddingValue = document.getElementById('content-padding-value');
 
 const UI_CONFIG = {
   SWIPE_THRESHOLD: 80,
@@ -51,6 +53,7 @@ let customColors = { ...DEFAULT_CUSTOM_COLORS };
 let customPreviewVarKeys = [];
 let spacingScale = 1;
 let fontScale = { base: 1, heading: 1, code: 1 };
+let contentPaddingX = 0;
 
 marked.setOptions({
   breaks: true,
@@ -216,6 +219,28 @@ function initFontControl() {
   fontCodeRange.addEventListener('input', handleFontChange);
 }
 
+function applyContentPaddingX(nextPadding) {
+  const safePadding = Math.min(32, Math.max(0, nextPadding));
+  contentPaddingX = safePadding;
+  document.documentElement.style.setProperty('--content-x', `${safePadding}px`);
+  if (contentPaddingRange) contentPaddingRange.value = String(safePadding);
+  if (contentPaddingValue) contentPaddingValue.textContent = `${safePadding}px`;
+  localStorage.setItem('wechat-content-padding-x', String(safePadding));
+  scheduleRender();
+}
+
+function initContentPaddingControl() {
+  if (!contentPaddingRange || !contentPaddingValue) return;
+  const savedRaw = localStorage.getItem('wechat-content-padding-x');
+  const saved = savedRaw ? Number.parseFloat(savedRaw) : 0;
+  applyContentPaddingX(Number.isNaN(saved) ? 0 : saved);
+
+  contentPaddingRange.addEventListener('input', (event) => {
+    const value = Number.parseFloat(event.target.value);
+    applyContentPaddingX(Number.isNaN(value) ? 0 : value);
+  });
+}
+
 async function renderPreview() {
   const markdown = input.value;
   const current = ++renderCounter;
@@ -278,7 +303,8 @@ window.copyToClipboard = async function copyToClipboard() {
     styleId,
     styleId === CUSTOM_STYLE_ID ? customColors : undefined,
     spacingScale,
-    fontScale
+    fontScale,
+    contentPaddingX
   );
   await copyHtmlToClipboard(styledHtml, preview, toast, UI_CONFIG.TOAST_DURATION);
 };
@@ -468,13 +494,29 @@ function setupSwipe() {
 function setupFab() {
   const fabContainer = document.getElementById('fab-container');
   const fabTop = document.getElementById('fab-top');
+  const mainContent = document.querySelector('.main-content');
+  const previewWrapper = document.getElementById('preview-wrapper');
 
-  window.scrollToTop = function scrollToTop() {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+  const getScrollTarget = () => {
+    if (previewWrapper && previewWrapper.scrollHeight > previewWrapper.clientHeight) {
+      return previewWrapper;
+    }
+    if (mainContent && mainContent.scrollHeight > mainContent.clientHeight) {
+      return mainContent;
+    }
+    return window;
   };
 
-  window.addEventListener('scroll', () => {
-    const scrollTop = window.scrollY;
+  window.scrollToTop = function scrollToTop() {
+    const scrollTarget = getScrollTarget();
+    if (scrollTarget === window) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+    scrollTarget.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const updateFab = (scrollTop) => {
     if (scrollTop > UI_CONFIG.SCROLL_SHOW_FAB) {
       fabContainer.classList.add('show');
     } else if (scrollTop < UI_CONFIG.SCROLL_HIDE_FAB_OFFSET) {
@@ -486,7 +528,25 @@ function setupFab() {
     } else {
       fabTop.style.opacity = '0';
     }
-  });
+  };
+
+  const handleScroll = (event) => {
+    const target = event?.target;
+    if (!target || target === document) {
+      updateFab(window.scrollY);
+      return;
+    }
+    updateFab(target.scrollTop || 0);
+  };
+
+  if (previewWrapper) {
+    previewWrapper.addEventListener('scroll', handleScroll);
+  }
+  if (mainContent) {
+    mainContent.addEventListener('scroll', handleScroll);
+  }
+  window.addEventListener('scroll', handleScroll);
+  updateFab(getScrollTarget() === window ? window.scrollY : getScrollTarget().scrollTop || 0);
 }
 
 function initStylePicker() {
@@ -551,4 +611,5 @@ initStylePicker();
 initCustomColors();
 initSpacingControl();
 initFontControl();
+initContentPaddingControl();
 renderPreview();

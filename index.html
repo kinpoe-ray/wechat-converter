@@ -45,6 +45,7 @@
             --font-base-scale: 1;
             --font-heading-scale: 1;
             --font-code-scale: 1;
+            --content-x: 0px;
         }
 
         body.dark {
@@ -493,6 +494,26 @@
             text-align: right;
         }
 
+        .content-padding-control {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding-left: 8px;
+            border-left: 1px dashed var(--input-border);
+        }
+
+        .content-padding-range {
+            width: 110px;
+            cursor: pointer;
+        }
+
+        .content-padding-value {
+            font-size: 12px;
+            color: var(--text-muted);
+            min-width: 40px;
+            text-align: right;
+        }
+
         /* ========== 按钮样式 ========== */
         .btn {
             display: inline-flex;
@@ -605,6 +626,8 @@
             font-weight: bold;
             text-align: center;
             margin: calc(var(--space-scale) * 40px) 0 calc(var(--space-scale) * 24px) 0;
+            padding-left: var(--content-x);
+            padding-right: var(--content-x);
             line-height: 1.4;
         }
 
@@ -615,6 +638,8 @@
             margin-top: calc(var(--space-scale) * 36px);
             margin-bottom: calc(var(--space-scale) * 20px);
             padding-bottom: calc(var(--space-scale) * 8px);
+            padding-left: var(--content-x);
+            padding-right: var(--content-x);
             border-bottom: 2px solid var(--preview-h2-border);
             line-height: 1.4;
         }
@@ -629,7 +654,8 @@
             font-weight: bold;
             margin-top: calc(var(--space-scale) * 32px);
             margin-bottom: calc(var(--space-scale) * 16px);
-            padding-left: calc(var(--space-scale) * 12px);
+            padding-left: calc(var(--space-scale) * 12px + var(--content-x));
+            padding-right: var(--content-x);
             border-left: 4px solid var(--preview-h3-border);
             line-height: 1.4;
         }
@@ -640,6 +666,8 @@
             font-weight: bold;
             margin-top: calc(var(--space-scale) * 24px);
             margin-bottom: calc(var(--space-scale) * 12px);
+            padding-left: var(--content-x);
+            padding-right: var(--content-x);
             line-height: 1.4;
         }
 
@@ -648,6 +676,8 @@
             line-height: 1.85;
             text-align: justify;
             letter-spacing: 0.5px;
+            padding-left: var(--content-x);
+            padding-right: var(--content-x);
         }
 
         #preview strong {
@@ -666,6 +696,8 @@
             background: var(--preview-highlight-bg);
             border-radius: 8px;
             font-weight: bold;
+            padding-left: calc(var(--space-scale) * 16px + var(--content-x));
+            padding-right: calc(var(--space-scale) * 16px + var(--content-x));
         }
 
         /* 预览中的 aside/callout 样式 */
@@ -673,6 +705,8 @@
             padding: calc(var(--space-scale) * 12px) calc(var(--space-scale) * 16px);
             margin: calc(var(--space-scale) * 24px) 0;
             border-radius: 4px;
+            padding-left: calc(var(--space-scale) * 12px + var(--content-x));
+            padding-right: calc(var(--space-scale) * 12px + var(--content-x));
         }
 
         #preview section p {
@@ -713,7 +747,8 @@
 
         #preview ul,
         #preview ol {
-            padding-left: calc(var(--space-scale) * 24px);
+            padding-left: calc(var(--space-scale) * 24px + var(--content-x));
+            padding-right: var(--content-x);
             margin: calc(var(--space-scale) * 24px) 0;
         }
 
@@ -731,6 +766,8 @@
             font-size: calc(13px * var(--font-code-scale));
             line-height: 1.6;
             margin: calc(var(--space-scale) * 24px) 0;
+            padding-left: calc(var(--space-scale) * 16px + var(--content-x));
+            padding-right: calc(var(--space-scale) * 16px + var(--content-x));
         }
 
         #preview table {
@@ -738,6 +775,10 @@
             border-collapse: collapse;
             margin: calc(var(--space-scale) * 24px) 0;
             font-size: calc(14px * var(--font-base-scale));
+            width: calc(100% - (2 * var(--content-x)));
+            margin-left: var(--content-x);
+            margin-right: var(--content-x);
+            box-sizing: border-box;
         }
 
         #preview th {
@@ -746,12 +787,16 @@
             padding: calc(var(--space-scale) * 12px) calc(var(--space-scale) * 10px);
             text-align: left;
             border: 1px solid var(--preview-table-border);
+            padding-left: calc(var(--space-scale) * 12px + var(--content-x));
+            padding-right: calc(var(--space-scale) * 10px + var(--content-x));
         }
 
         #preview td {
             padding: calc(var(--space-scale) * 10px);
             border: 1px solid var(--preview-table-border);
             color: var(--preview-text-color);
+            padding-left: calc(var(--space-scale) * 10px + var(--content-x));
+            padding-right: calc(var(--space-scale) * 10px + var(--content-x));
         }
 
         #preview tr:nth-child(even) {
@@ -765,6 +810,8 @@
             padding: calc(var(--space-scale) * 16px) calc(var(--space-scale) * 20px);
             margin: calc(var(--space-scale) * 28px) 0;
             color: var(--preview-blockquote-color);
+            padding-left: calc(var(--space-scale) * 16px + var(--content-x));
+            padding-right: calc(var(--space-scale) * 20px + var(--content-x));
         }
 
         #preview blockquote p {
@@ -991,6 +1038,15 @@
                 width: 90px;
             }
 
+            .content-padding-control {
+                border-left: none;
+                padding-left: 0;
+            }
+
+            .content-padding-range {
+                width: 90px;
+            }
+
             .panel-input {
                 border-right: none;
             }
@@ -1213,6 +1269,20 @@
                             title="调整间距"
                         >
                         <span class="spacing-value" id="spacing-value">100%</span>
+                    </div>
+                    <div class="content-padding-control">
+                        <label class="style-label" for="content-padding-range">左右缩进</label>
+                        <input
+                            type="range"
+                            id="content-padding-range"
+                            class="content-padding-range"
+                            min="0"
+                            max="32"
+                            step="2"
+                            value="0"
+                            title="内容左右缩进"
+                        >
+                        <span class="content-padding-value" id="content-padding-value">0px</span>
                     </div>
                     <div class="font-control">
                         <div class="font-group">

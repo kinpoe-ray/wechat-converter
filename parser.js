@@ -402,10 +402,14 @@ export async function getWeChatStyledHtml(
   styleId = DEFAULT_STYLE_ID,
   customColors,
   spacingScale = 1,
-  fontScale = { base: 1, heading: 1, code: 1 }
+  fontScale = { base: 1, heading: 1, code: 1 },
+  contentPaddingX = 0
 ) {
   const { styles } = getStylePreset(styleId, customColors);
-  const scaledStyles = applyFontScale(applySpacingScale(styles, spacingScale), fontScale);
+  const scaledStyles = applyContentPaddingX(
+    applyFontScale(applySpacingScale(styles, spacingScale), fontScale),
+    contentPaddingX
+  );
   const normalized = normalizeNotionMarkdown(markdown);
   const processed = replaceMermaidBlocks(normalized);
   let html = marked.parse(processed);
@@ -470,4 +474,141 @@ function scaleFontSize(style, scale) {
     return `${property}: ${nextValue}`;
   });
   return `${scaled.join('; ')};`;
+}
+
+function applyContentPaddingX(styles, contentPaddingX) {
+  const paddingX = Number.isFinite(contentPaddingX) ? contentPaddingX : 0;
+  if (paddingX === 0) return styles;
+
+  const targets = new Set([
+    'h1', 'h2', 'h3', 'h4', 'p', 'ul', 'ol', 'blockquote',
+    'pre', 'th', 'td', 'highlightCard',
+  ]);
+
+  return Object.fromEntries(
+    Object.entries(styles).map(([key, value]) => {
+      if (key === 'table') {
+        return [key, addTableInset(value, paddingX)];
+      }
+      if (!targets.has(key)) return [key, value];
+      const nextValue = addPaddingX(value, paddingX, false);
+      return [key, nextValue];
+    })
+  );
+}
+
+function addPaddingX(style, paddingX, ensureBorderBox = false) {
+  const declarations = style.split(';').map((item) => item.trim()).filter(Boolean);
+  const updated = [];
+  let hasPaddingLeft = false;
+  let hasPaddingRight = false;
+  let hasBoxSizing = false;
+  let paddingLeftBase = null;
+  let paddingRightBase = null;
+
+  declarations.forEach((decl) => {
+    const [prop, ...rest] = decl.split(':');
+    if (!prop || rest.length === 0) {
+      updated.push(decl);
+      return;
+    }
+    const property = prop.trim();
+    const value = rest.join(':').trim();
+    if (property === 'padding') {
+      const shorthand = parsePaddingShorthand(value);
+      paddingLeftBase = shorthand.left;
+      paddingRightBase = shorthand.right;
+      updated.push(`${property}: ${value}`);
+      return;
+    }
+    if (property === 'padding-left') {
+      hasPaddingLeft = true;
+      updated.push(`${property}: ${addPx(value, paddingX)}`);
+      return;
+    }
+    if (property === 'padding-right') {
+      hasPaddingRight = true;
+      updated.push(`${property}: ${addPx(value, paddingX)}`);
+      return;
+    }
+    if (property === 'box-sizing') {
+      hasBoxSizing = true;
+    }
+    updated.push(`${property}: ${value}`);
+  });
+
+  if (!hasPaddingLeft) {
+    const base = paddingLeftBase ?? 0;
+    updated.push(`padding-left: ${Math.round((base + paddingX) * 100) / 100}px`);
+  }
+  if (!hasPaddingRight) {
+    const base = paddingRightBase ?? 0;
+    updated.push(`padding-right: ${Math.round((base + paddingX) * 100) / 100}px`);
+  }
+  if (ensureBorderBox && !hasBoxSizing) {
+    updated.push('box-sizing: border-box');
+  }
+  return `${updated.join('; ')};`;
+}
+
+function addPx(value, paddingX) {
+  const match = /(-?\d+(\.\d+)?)px/.exec(value);
+  if (!match) return value;
+  const base = Number.parseFloat(match[1]);
+  if (Number.isNaN(base)) return value;
+  const total = Math.round((base + paddingX) * 100) / 100;
+  return `${total}px`;
+}
+
+function addTableInset(style, paddingX) {
+  if (paddingX === 0) return style;
+  const declarations = style.split(';').map((item) => item.trim()).filter(Boolean);
+  const updated = [];
+  let hasMarginLeft = false;
+  let hasMarginRight = false;
+  let hasWidth = false;
+  let hasBoxSizing = false;
+
+  declarations.forEach((decl) => {
+    const [prop, ...rest] = decl.split(':');
+    if (!prop || rest.length === 0) {
+      updated.push(decl);
+      return;
+    }
+    const property = prop.trim();
+    const value = rest.join(':').trim();
+    if (property === 'margin-left') hasMarginLeft = true;
+    if (property === 'margin-right') hasMarginRight = true;
+    if (property === 'width') hasWidth = true;
+    if (property === 'box-sizing') hasBoxSizing = true;
+    updated.push(`${property}: ${value}`);
+  });
+
+  if (!hasMarginLeft) updated.push(`margin-left: ${paddingX}px`);
+  if (!hasMarginRight) updated.push(`margin-right: ${paddingX}px`);
+  if (!hasWidth) updated.push(`width: calc(100% - ${paddingX * 2}px)`);
+  if (!hasBoxSizing) updated.push('box-sizing: border-box');
+  return `${updated.join('; ')};`;
+}
+
+function parsePaddingShorthand(value) {
+  const parts = value.split(/\s+/).map((part) => part.trim()).filter(Boolean);
+  const pxValues = parts.map((part) => {
+    const match = /(-?\d+(\.\d+)?)px/.exec(part);
+    return match ? Number.parseFloat(match[1]) : 0;
+  });
+
+  if (pxValues.length === 1) {
+    return { top: pxValues[0], right: pxValues[0], bottom: pxValues[0], left: pxValues[0] };
+  }
+  if (pxValues.length === 2) {
+    return { top: pxValues[0], right: pxValues[1], bottom: pxValues[0], left: pxValues[1] };
+  }
+  if (pxValues.length === 3) {
+    return { top: pxValues[0], right: pxValues[1], bottom: pxValues[2], left: pxValues[1] };
+  }
+  if (pxValues.length >= 4) {
+    return { top: pxValues[0], right: pxValues[1], bottom: pxValues[2], left: pxValues[3] };
+  }
+  return { top: 0, right: 0, bottom: 0, left: 0 };
 }
