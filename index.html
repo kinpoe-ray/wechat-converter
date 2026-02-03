@@ -41,6 +41,7 @@
             --toast-bg: #22c55e;
             --code-bg: #f1f5f9;
             --code-color: #be185d;
+            --space-scale: 1;
         }
 
         body.dark {
@@ -61,6 +62,131 @@
             --toast-bg: #22c55e;
             --code-bg: #1e293b;
             --code-color: #f472b6;
+        }
+
+        body[data-style="default"] {
+            --preview-h1-color: #3b82f6;
+            --preview-h2-color: #3b82f6;
+            --preview-h2-border: #3b82f6;
+            --preview-h3-color: #1e293b;
+            --preview-h3-border: #3b82f6;
+            --preview-h4-color: #1e293b;
+            --preview-text-color: #334155;
+            --preview-strong-color: #1e293b;
+            --preview-highlight-bg: rgba(59, 130, 246, 0.1);
+            --preview-highlight-color: #3b82f6;
+            --preview-blockquote-bg: rgba(59, 130, 246, 0.05);
+            --preview-blockquote-border: #3b82f6;
+            --preview-blockquote-color: #475569;
+            --preview-pre-bg: #1e293b;
+            --preview-pre-color: #e2e8f0;
+            --preview-code-bg: #f1f5f9;
+            --preview-code-color: #be185d;
+            --preview-link-color: #3b82f6;
+            --preview-hr-color: #e2e8f0;
+            --preview-table-head-bg: #f8fafc;
+            --preview-table-border: #e2e8f0;
+            --preview-table-row-alt: #f8fafc;
+        }
+
+        body[data-style="minimal"] {
+            --preview-h1-color: #111827;
+            --preview-h2-color: #111827;
+            --preview-h2-border: #111827;
+            --preview-h3-color: #111827;
+            --preview-h3-border: #111827;
+            --preview-h4-color: #111827;
+            --preview-text-color: #1f2937;
+            --preview-strong-color: #111827;
+            --preview-highlight-bg: #f3f4f6;
+            --preview-highlight-color: #111827;
+            --preview-blockquote-bg: #f9fafb;
+            --preview-blockquote-border: #d1d5db;
+            --preview-blockquote-color: #4b5563;
+            --preview-pre-bg: #111827;
+            --preview-pre-color: #f9fafb;
+            --preview-code-bg: #f3f4f6;
+            --preview-code-color: #b91c1c;
+            --preview-link-color: #111827;
+            --preview-hr-color: #e5e7eb;
+            --preview-table-head-bg: #f3f4f6;
+            --preview-table-border: #e5e7eb;
+            --preview-table-row-alt: #f9fafb;
+        }
+
+        body[data-style="warm"] {
+            --preview-h1-color: #f97316;
+            --preview-h2-color: #f97316;
+            --preview-h2-border: #f97316;
+            --preview-h3-color: #9a3412;
+            --preview-h3-border: #fb923c;
+            --preview-h4-color: #9a3412;
+            --preview-text-color: #7c2d12;
+            --preview-strong-color: #9a3412;
+            --preview-highlight-bg: #fff7ed;
+            --preview-highlight-color: #f97316;
+            --preview-blockquote-bg: #fff7ed;
+            --preview-blockquote-border: #fdba74;
+            --preview-blockquote-color: #9a3412;
+            --preview-pre-bg: #7c2d12;
+            --preview-pre-color: #ffedd5;
+            --preview-code-bg: #ffedd5;
+            --preview-code-color: #c2410c;
+            --preview-link-color: #f97316;
+            --preview-hr-color: #fed7aa;
+            --preview-table-head-bg: #ffedd5;
+            --preview-table-border: #fed7aa;
+            --preview-table-row-alt: #fff7ed;
+        }
+
+        body[data-style="zhihu"] {
+            --preview-h1-color: #1e80ff;
+            --preview-h2-color: #1e80ff;
+            --preview-h2-border: #1e80ff;
+            --preview-h3-color: #1f2329;
+            --preview-h3-border: #1e80ff;
+            --preview-h4-color: #1f2329;
+            --preview-text-color: #1f2329;
+            --preview-strong-color: #1f2329;
+            --preview-highlight-bg: #e8f1ff;
+            --preview-highlight-color: #1e80ff;
+            --preview-blockquote-bg: #f5f6f7;
+            --preview-blockquote-border: #a9c8ff;
+            --preview-blockquote-color: #4e5969;
+            --preview-pre-bg: #0f172a;
+            --preview-pre-color: #e2e8f0;
+            --preview-code-bg: #e8f1ff;
+            --preview-code-color: #1e40af;
+            --preview-link-color: #1e80ff;
+            --preview-hr-color: #e5e6eb;
+            --preview-table-head-bg: #f5f6f7;
+            --preview-table-border: #e5e6eb;
+            --preview-table-row-alt: #f5f6f7;
+        }
+
+        body[data-style="magazine"] {
+            --preview-h1-color: #111827;
+            --preview-h2-color: #111827;
+            --preview-h2-border: #d97706;
+            --preview-h3-color: #111827;
+            --preview-h3-border: #d97706;
+            --preview-h4-color: #111827;
+            --preview-text-color: #1f2937;
+            --preview-strong-color: #111827;
+            --preview-highlight-bg: #fffbeb;
+            --preview-highlight-color: #b45309;
+            --preview-blockquote-bg: #fffbeb;
+            --preview-blockquote-border: #d97706;
+            --preview-blockquote-color: #92400e;
+            --preview-pre-bg: #111827;
+            --preview-pre-color: #f9fafb;
+            --preview-code-bg: #fffbeb;
+            --preview-code-color: #b45309;
+            --preview-link-color: #b45309;
+            --preview-hr-color: #f3d9b1;
+            --preview-table-head-bg: #fffbeb;
+            --preview-table-border: #f3d9b1;
+            --preview-table-row-alt: #fffbeb;
         }
 
         body {
@@ -252,6 +378,92 @@
             gap: 8px;
         }
 
+        .style-panel {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 12px 20px;
+            border-bottom: 1px solid var(--input-border);
+            background: var(--card-bg);
+        }
+
+        .style-panel-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .style-panel-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .style-label {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .style-select {
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            color: var(--text-primary);
+            padding: 6px 10px;
+            border-radius: 8px;
+            font-size: 13px;
+            outline: none;
+            cursor: pointer;
+            transition: border-color 0.2s ease;
+        }
+
+        .style-select:focus {
+            border-color: var(--input-focus-border);
+        }
+
+        .style-custom {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding-left: 8px;
+            border-left: 1px dashed var(--input-border);
+        }
+
+        .style-custom.hidden {
+            display: none;
+        }
+
+        .color-input {
+            width: 28px;
+            height: 28px;
+            border: none;
+            background: transparent;
+            padding: 0;
+            cursor: pointer;
+        }
+
+        .spacing-control {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding-left: 8px;
+            border-left: 1px dashed var(--input-border);
+        }
+
+        .spacing-range {
+            width: 120px;
+            cursor: pointer;
+        }
+
+        .spacing-value {
+            font-size: 12px;
+            color: var(--text-muted);
+            min-width: 40px;
+            text-align: right;
+        }
+
         /* ========== 按钮样式 ========== */
         .btn {
             display: inline-flex;
@@ -349,23 +561,33 @@
         }
 
         #preview {
-            padding: 20px;
+            padding: calc(var(--space-scale) * 20px);
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             font-size: 16px;
             line-height: 1.8;
-            color: var(--text-primary);
+            color: var(--preview-text-color);
             min-height: 100%;
         }
 
         /* ========== 公众号样式 - 与复制逻辑同步 ========== */
+        #preview h1 {
+            color: var(--preview-h1-color);
+            font-size: 26px;
+            font-weight: bold;
+            text-align: center;
+            margin: calc(var(--space-scale) * 40px) 0 calc(var(--space-scale) * 24px) 0;
+            line-height: 1.4;
+        }
+
         #preview h2 {
-            color: #3b82f6;
+            color: var(--preview-h2-color);
             font-size: 20px;
             font-weight: bold;
-            margin-top: 36px;
-            margin-bottom: 20px;
-            padding-bottom: 8px;
-            border-bottom: 2px solid #3b82f6;
+            margin-top: calc(var(--space-scale) * 36px);
+            margin-bottom: calc(var(--space-scale) * 20px);
+            padding-bottom: calc(var(--space-scale) * 8px);
+            border-bottom: 2px solid var(--preview-h2-border);
+            line-height: 1.4;
         }
 
         #preview h2:first-child {
@@ -373,44 +595,54 @@
         }
 
         #preview h3 {
-            color: var(--text-primary);
+            color: var(--preview-h3-color);
             font-size: 17px;
             font-weight: bold;
-            margin-top: 32px;
-            margin-bottom: 16px;
-            padding-left: 12px;
-            border-left: 4px solid #3b82f6;
+            margin-top: calc(var(--space-scale) * 32px);
+            margin-bottom: calc(var(--space-scale) * 16px);
+            padding-left: calc(var(--space-scale) * 12px);
+            border-left: 4px solid var(--preview-h3-border);
+            line-height: 1.4;
+        }
+
+        #preview h4 {
+            color: var(--preview-h4-color);
+            font-size: 16px;
+            font-weight: bold;
+            margin-top: calc(var(--space-scale) * 24px);
+            margin-bottom: calc(var(--space-scale) * 12px);
+            line-height: 1.4;
         }
 
         #preview p {
-            margin: 24px 0;
+            margin: calc(var(--space-scale) * 24px) 0;
             line-height: 1.85;
             text-align: justify;
             letter-spacing: 0.5px;
         }
 
         #preview strong {
-            color: var(--text-primary);
+            color: var(--preview-strong-color);
             font-weight: bold;
         }
 
         /* 高亮卡片 - 通过 JS 添加 class 控制，不再自动应用 */
         #preview .highlight-card {
             display: block;
-            color: #3b82f6;
+            color: var(--preview-highlight-color);
             font-size: 17px;
             text-align: center;
-            padding: 16px 20px;
-            margin: 28px 0;
-            background: rgba(59, 130, 246, 0.1);
+            padding: calc(var(--space-scale) * 16px) calc(var(--space-scale) * 20px);
+            margin: calc(var(--space-scale) * 28px) 0;
+            background: var(--preview-highlight-bg);
             border-radius: 8px;
             font-weight: bold;
         }
 
         /* 预览中的 aside/callout 样式 */
         #preview section {
-            padding: 12px 16px;
-            margin: 24px 0;
+            padding: calc(var(--space-scale) * 12px) calc(var(--space-scale) * 16px);
+            margin: calc(var(--space-scale) * 24px) 0;
             border-radius: 4px;
         }
 
@@ -452,57 +684,58 @@
 
         #preview ul,
         #preview ol {
-            padding-left: 24px;
-            margin: 24px 0;
+            padding-left: calc(var(--space-scale) * 24px);
+            margin: calc(var(--space-scale) * 24px) 0;
         }
 
         #preview li {
-            margin: 12px 0;
+            margin: calc(var(--space-scale) * 12px) 0;
         }
 
         #preview pre {
-            background: #1e293b;
-            color: #e2e8f0;
-            padding: 16px;
+            background: var(--preview-pre-bg);
+            color: var(--preview-pre-color);
+            padding: calc(var(--space-scale) * 16px);
             border-radius: 10px;
             overflow-x: auto;
             font-family: "SF Mono", Monaco, monospace;
             font-size: 13px;
             line-height: 1.6;
-            margin: 24px 0;
+            margin: calc(var(--space-scale) * 24px) 0;
         }
 
         #preview table {
             width: 100%;
             border-collapse: collapse;
-            margin: 24px 0;
+            margin: calc(var(--space-scale) * 24px) 0;
             font-size: 14px;
         }
 
         #preview th {
-            background: var(--bg-secondary);
-            color: var(--text-primary);
-            padding: 12px 10px;
+            background: var(--preview-table-head-bg);
+            color: var(--preview-text-color);
+            padding: calc(var(--space-scale) * 12px) calc(var(--space-scale) * 10px);
             text-align: left;
-            border: 1px solid var(--input-border);
+            border: 1px solid var(--preview-table-border);
         }
 
         #preview td {
-            padding: 10px;
-            border: 1px solid var(--input-border);
+            padding: calc(var(--space-scale) * 10px);
+            border: 1px solid var(--preview-table-border);
+            color: var(--preview-text-color);
         }
 
         #preview tr:nth-child(even) {
-            background: var(--bg-secondary);
+            background: var(--preview-table-row-alt);
         }
 
         #preview blockquote {
-            background: rgba(59, 130, 246, 0.05);
-            border-left: 4px solid #3b82f6;
+            background: var(--preview-blockquote-bg);
+            border-left: 4px solid var(--preview-blockquote-border);
             border-radius: 0 8px 8px 0;
-            padding: 16px 20px;
-            margin: 28px 0;
-            color: var(--text-secondary);
+            padding: calc(var(--space-scale) * 16px) calc(var(--space-scale) * 20px);
+            margin: calc(var(--space-scale) * 28px) 0;
+            color: var(--preview-blockquote-color);
         }
 
         #preview blockquote p {
@@ -511,9 +744,9 @@
         }
 
         #preview code {
-            background: var(--code-bg);
-            color: var(--code-color);
-            padding: 2px 6px;
+            background: var(--preview-code-bg);
+            color: var(--preview-code-color);
+            padding: calc(var(--space-scale) * 2px) calc(var(--space-scale) * 6px);
             border-radius: 4px;
             font-family: inherit;
             font-size: 0.9em;
@@ -522,12 +755,12 @@
         #preview hr {
             border: none;
             height: 1px;
-            background: #e2e8f0;
-            margin: 40px 0;
+            background: var(--preview-hr-color);
+            margin: calc(var(--space-scale) * 40px) 0;
         }
 
         #preview a {
-            color: #3b82f6;
+            color: var(--preview-link-color);
             text-decoration: none;
         }
 
@@ -689,6 +922,37 @@
                 display: flex;
             }
 
+            .style-panel {
+                padding: 10px 16px;
+            }
+
+            .style-panel-title {
+                font-size: 12px;
+            }
+
+            .style-select {
+                font-size: 12px;
+                padding: 6px 8px;
+            }
+
+            .style-label {
+                display: none;
+            }
+
+            .style-custom {
+                border-left: none;
+                padding-left: 0;
+            }
+
+            .spacing-control {
+                border-left: none;
+                padding-left: 0;
+            }
+
+            .spacing-range {
+                width: 100px;
+            }
+
             .panel-input {
                 border-right: none;
             }
@@ -712,7 +976,7 @@
             }
 
             #preview {
-                padding: 16px;
+                padding: calc(var(--space-scale) * 16px);
                 padding-bottom: 100px;
             }
 
@@ -866,7 +1130,7 @@
     </style>
 </head>
 
-<body>
+<body data-style="default">
     <!-- Header -->
     <header class="header">
         <div class="logo">
@@ -891,6 +1155,36 @@
             <div class="tabs">
                 <button class="tab-btn active" id="tab-input" onclick="switchTab('input')">📝 输入</button>
                 <button class="tab-btn" id="tab-preview" onclick="switchTab('preview')">👁️ 预览</button>
+            </div>
+
+            <div class="style-panel" id="style-panel">
+                <span class="style-panel-title">样式设置</span>
+                <div class="style-panel-controls">
+                    <label class="style-label" for="style-select">样式</label>
+                    <select id="style-select" class="style-select" title="选择样式"></select>
+                    <div class="spacing-control">
+                        <label class="style-label" for="spacing-range">间距</label>
+                        <input
+                            type="range"
+                            id="spacing-range"
+                            class="spacing-range"
+                            min="0.7"
+                            max="1.4"
+                            step="0.05"
+                            value="1"
+                            title="调整间距"
+                        >
+                        <span class="spacing-value" id="spacing-value">100%</span>
+                    </div>
+                    <div class="style-custom hidden" id="style-custom-panel">
+                        <label class="style-label" for="custom-primary">主色</label>
+                        <input type="color" id="custom-primary" class="color-input" value="#3b82f6" title="主色">
+                        <label class="style-label" for="custom-text">文字</label>
+                        <input type="color" id="custom-text" class="color-input" value="#334155" title="文字颜色">
+                        <label class="style-label" for="custom-background">背景</label>
+                        <input type="color" id="custom-background" class="color-input" value="#ffffff" title="背景色">
+                    </div>
+                </div>
             </div>
 
             <!-- Editor Area -->

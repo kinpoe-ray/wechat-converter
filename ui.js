@@ -4,6 +4,10 @@ import {
   getPreviewHtml,
   getWeChatStyledHtml,
   isHighlightCandidate,
+  STYLE_PRESETS,
+  DEFAULT_STYLE_ID,
+  CUSTOM_STYLE_ID,
+  buildCustomTheme,
 } from './parser.js';
 import { copyHtmlToClipboard, copyPlainToClipboard } from './clipboard.js';
 
@@ -14,6 +18,13 @@ const wordCountEl = document.getElementById('word-count');
 const readTimeEl = document.getElementById('read-time');
 const paragraphCountEl = document.getElementById('paragraph-count');
 const syncWarning = document.getElementById('sync-warning');
+const styleSelect = document.getElementById('style-select');
+const customPanel = document.getElementById('style-custom-panel');
+const customPrimaryInput = document.getElementById('custom-primary');
+const customTextInput = document.getElementById('custom-text');
+const customBackgroundInput = document.getElementById('custom-background');
+const spacingRange = document.getElementById('spacing-range');
+const spacingValue = document.getElementById('spacing-value');
 
 const UI_CONFIG = {
   SWIPE_THRESHOLD: 80,
@@ -23,6 +34,16 @@ const UI_CONFIG = {
   TOAST_DURATION: 2500,
   RENDER_DEBOUNCE: 120,
 };
+
+const DEFAULT_CUSTOM_COLORS = {
+  primary: '#3b82f6',
+  text: '#334155',
+  background: '#ffffff',
+};
+
+let customColors = { ...DEFAULT_CUSTOM_COLORS };
+let customPreviewVarKeys = [];
+let spacingScale = 1;
 
 marked.setOptions({
   breaks: true,
@@ -35,6 +56,106 @@ let renderTimer = null;
 function scheduleRender() {
   if (renderTimer) clearTimeout(renderTimer);
   renderTimer = setTimeout(renderPreview, UI_CONFIG.RENDER_DEBOUNCE);
+}
+
+function getCurrentStyleId() {
+  if (!styleSelect) return DEFAULT_STYLE_ID;
+  return styleSelect.value || DEFAULT_STYLE_ID;
+}
+
+function loadCustomColors() {
+  try {
+    const raw = localStorage.getItem('wechat-custom-colors');
+    if (!raw) return { ...DEFAULT_CUSTOM_COLORS };
+    const parsed = JSON.parse(raw);
+    return {
+      primary: normalizeHex(parsed.primary, DEFAULT_CUSTOM_COLORS.primary),
+      text: normalizeHex(parsed.text, DEFAULT_CUSTOM_COLORS.text),
+      background: normalizeHex(parsed.background, DEFAULT_CUSTOM_COLORS.background),
+    };
+  } catch (error) {
+    return { ...DEFAULT_CUSTOM_COLORS };
+  }
+}
+
+function saveCustomColors(nextColors) {
+  localStorage.setItem('wechat-custom-colors', JSON.stringify(nextColors));
+}
+
+function normalizeHex(value, fallback) {
+  if (typeof value !== 'string') return fallback;
+  const normalized = value.startsWith('#') ? value : `#${value}`;
+  if (/^#([0-9a-fA-F]{6})$/.test(normalized)) return normalized.toLowerCase();
+  return fallback;
+}
+
+function applyCustomPreviewVars(previewVars) {
+  if (!previewVars) return;
+  customPreviewVarKeys = Object.keys(previewVars);
+  customPreviewVarKeys.forEach((key) => {
+    document.body.style.setProperty(key, previewVars[key]);
+  });
+}
+
+function clearCustomPreviewVars() {
+  customPreviewVarKeys.forEach((key) => {
+    document.body.style.removeProperty(key);
+  });
+  customPreviewVarKeys = [];
+}
+
+function updateCustomPanelVisibility(styleId) {
+  if (!customPanel) return;
+  const isCustom = styleId === CUSTOM_STYLE_ID;
+  customPanel.classList.toggle('hidden', !isCustom);
+}
+
+function updateCustomInputs() {
+  if (customPrimaryInput) customPrimaryInput.value = customColors.primary;
+  if (customTextInput) customTextInput.value = customColors.text;
+  if (customBackgroundInput) customBackgroundInput.value = customColors.background;
+}
+
+function applyStyle(styleId) {
+  const resolvedStyleId = styleId === CUSTOM_STYLE_ID || STYLE_PRESETS[styleId]
+    ? styleId
+    : DEFAULT_STYLE_ID;
+  document.body.dataset.style = resolvedStyleId;
+  if (styleSelect) {
+    styleSelect.value = resolvedStyleId;
+  }
+  localStorage.setItem('wechat-style', resolvedStyleId);
+  updateCustomPanelVisibility(resolvedStyleId);
+
+  if (resolvedStyleId === CUSTOM_STYLE_ID) {
+    const { previewVars } = buildCustomTheme(customColors);
+    applyCustomPreviewVars(previewVars);
+  } else {
+    clearCustomPreviewVars();
+  }
+  scheduleRender();
+}
+
+function applySpacingScale(scale) {
+  const safeScale = Math.min(1.4, Math.max(0.7, scale));
+  spacingScale = safeScale;
+  document.documentElement.style.setProperty('--space-scale', String(safeScale));
+  if (spacingRange) spacingRange.value = String(safeScale);
+  if (spacingValue) spacingValue.textContent = `${Math.round(safeScale * 100)}%`;
+  localStorage.setItem('wechat-space-scale', String(safeScale));
+  scheduleRender();
+}
+
+function initSpacingControl() {
+  if (!spacingRange || !spacingValue) return;
+  const savedScaleRaw = localStorage.getItem('wechat-space-scale');
+  const savedScale = savedScaleRaw ? Number.parseFloat(savedScaleRaw) : 1;
+  applySpacingScale(Number.isNaN(savedScale) ? 1 : savedScale);
+
+  spacingRange.addEventListener('input', (event) => {
+    const value = Number.parseFloat(event.target.value);
+    applySpacingScale(Number.isNaN(value) ? 1 : value);
+  });
 }
 
 async function renderPreview() {
@@ -92,7 +213,14 @@ window.copyToClipboard = async function copyToClipboard() {
     alert('请先输入 Markdown 内容');
     return;
   }
-  const styledHtml = await getWeChatStyledHtml(input.value, marked);
+  const styleId = getCurrentStyleId();
+  const styledHtml = await getWeChatStyledHtml(
+    input.value,
+    marked,
+    styleId,
+    styleId === CUSTOM_STYLE_ID ? customColors : undefined,
+    spacingScale
+  );
   await copyHtmlToClipboard(styledHtml, preview, toast, UI_CONFIG.TOAST_DURATION);
 };
 
@@ -302,10 +430,65 @@ function setupFab() {
   });
 }
 
+function initStylePicker() {
+  if (!styleSelect) return;
+
+  styleSelect.innerHTML = '';
+  const options = {
+    ...STYLE_PRESETS,
+    [CUSTOM_STYLE_ID]: { label: '自定义' },
+  };
+
+  Object.entries(options).forEach(([id, preset]) => {
+    const option = document.createElement('option');
+    option.value = id;
+    option.textContent = preset.label;
+    styleSelect.appendChild(option);
+  });
+
+  const savedStyle = localStorage.getItem('wechat-style');
+  const defaultStyle = savedStyle === CUSTOM_STYLE_ID || STYLE_PRESETS[savedStyle]
+    ? savedStyle
+    : DEFAULT_STYLE_ID;
+  applyStyle(defaultStyle);
+
+  styleSelect.addEventListener('change', (event) => {
+    applyStyle(event.target.value);
+  });
+}
+
+function initCustomColors() {
+  if (!customPrimaryInput || !customTextInput || !customBackgroundInput) return;
+
+  customColors = loadCustomColors();
+  updateCustomInputs();
+  updateCustomPanelVisibility(getCurrentStyleId());
+  if (getCurrentStyleId() === CUSTOM_STYLE_ID) {
+    applyStyle(CUSTOM_STYLE_ID);
+  }
+
+  const handleCustomChange = () => {
+    customColors = {
+      primary: normalizeHex(customPrimaryInput.value, DEFAULT_CUSTOM_COLORS.primary),
+      text: normalizeHex(customTextInput.value, DEFAULT_CUSTOM_COLORS.text),
+      background: normalizeHex(customBackgroundInput.value, DEFAULT_CUSTOM_COLORS.background),
+    };
+    saveCustomColors(customColors);
+    applyStyle(CUSTOM_STYLE_ID);
+  };
+
+  customPrimaryInput.addEventListener('input', handleCustomChange);
+  customTextInput.addEventListener('input', handleCustomChange);
+  customBackgroundInput.addEventListener('input', handleCustomChange);
+}
+
 input.addEventListener('input', scheduleRender);
 window.addEventListener('resize', handleResize);
 handleResize();
 setupSwipe();
 setupFab();
 initTheme();
+initStylePicker();
+initCustomColors();
+initSpacingControl();
 renderPreview();
