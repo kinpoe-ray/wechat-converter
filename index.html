@@ -406,6 +406,46 @@
             flex-wrap: wrap;
         }
 
+        .style-panel-toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 10px;
+            border-radius: 8px;
+            border: 1px solid var(--input-border);
+            background: var(--input-bg);
+            color: var(--text-secondary);
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .style-panel-toggle:hover {
+            border-color: var(--input-focus-border);
+            color: var(--text-primary);
+        }
+
+        .style-panel-toggle .toggle-icon {
+            display: inline-block;
+            transition: transform 0.2s ease;
+        }
+
+        .style-panel-toggle.is-open .toggle-icon {
+            transform: rotate(180deg);
+        }
+
+        .style-panel-body {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .style-panel-body.is-collapsed {
+            display: none;
+        }
+
         .style-label {
             font-size: 12px;
             color: var(--text-muted);
@@ -1006,6 +1046,11 @@
                 font-size: 12px;
             }
 
+            .style-panel-toggle {
+                font-size: 11px;
+                padding: 6px 8px;
+            }
+
             .style-select {
                 font-size: 12px;
                 padding: 6px 8px;
@@ -1254,6 +1299,11 @@
             <div class="style-panel" id="style-panel">
                 <span class="style-panel-title">样式设置</span>
                 <div class="style-panel-controls">
+                    <button class="style-panel-toggle" id="style-panel-toggle" type="button" aria-expanded="true">
+                        样式设置
+                        <span class="toggle-icon">▾</span>
+                    </button>
+                    <div class="style-panel-body" id="style-panel-body">
                     <label class="style-label" for="style-select">样式</label>
                     <select id="style-select" class="style-select" title="选择样式"></select>
                     <div class="spacing-control">
@@ -1335,6 +1385,7 @@
                         <input type="color" id="custom-text" class="color-input" value="#334155" title="文字颜色">
                         <label class="style-label" for="custom-background">背景</label>
                         <input type="color" id="custom-background" class="color-input" value="#ffffff" title="背景色">
+                    </div>
                     </div>
                 </div>
             </div>

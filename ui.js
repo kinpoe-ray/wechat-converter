@@ -33,6 +33,8 @@ const fontHeadingValue = document.getElementById('font-heading-value');
 const fontCodeValue = document.getElementById('font-code-value');
 const contentPaddingRange = document.getElementById('content-padding-range');
 const contentPaddingValue = document.getElementById('content-padding-value');
+const stylePanelBody = document.getElementById('style-panel-body');
+const stylePanelToggle = document.getElementById('style-panel-toggle');
 
 const UI_CONFIG = {
   SWIPE_THRESHOLD: 80,
@@ -238,6 +240,24 @@ function initContentPaddingControl() {
   contentPaddingRange.addEventListener('input', (event) => {
     const value = Number.parseFloat(event.target.value);
     applyContentPaddingX(Number.isNaN(value) ? 0 : value);
+  });
+}
+
+function initStylePanelToggle() {
+  if (!stylePanelBody || !stylePanelToggle) return;
+  const savedState = localStorage.getItem('wechat-style-panel');
+  const isOpen = savedState !== 'collapsed';
+
+  stylePanelBody.classList.toggle('is-collapsed', !isOpen);
+  stylePanelToggle.classList.toggle('is-open', isOpen);
+  stylePanelToggle.setAttribute('aria-expanded', String(isOpen));
+
+  stylePanelToggle.addEventListener('click', () => {
+    const nextOpen = stylePanelBody.classList.contains('is-collapsed');
+    stylePanelBody.classList.toggle('is-collapsed', !nextOpen);
+    stylePanelToggle.classList.toggle('is-open', nextOpen);
+    stylePanelToggle.setAttribute('aria-expanded', String(nextOpen));
+    localStorage.setItem('wechat-style-panel', nextOpen ? 'open' : 'collapsed');
   });
 }
 
@@ -496,6 +516,7 @@ function setupFab() {
   const fabTop = document.getElementById('fab-top');
   const mainContent = document.querySelector('.main-content');
   const previewWrapper = document.getElementById('preview-wrapper');
+  const fabButtons = fabContainer ? Array.from(fabContainer.querySelectorAll('.fab')) : [];
 
   const getScrollTarget = () => {
     if (previewWrapper && previewWrapper.scrollHeight > previewWrapper.clientHeight) {
@@ -518,9 +539,9 @@ function setupFab() {
 
   const updateFab = (scrollTop) => {
     if (scrollTop > UI_CONFIG.SCROLL_SHOW_FAB) {
-      fabContainer.classList.add('show');
+      fabButtons.forEach((btn) => btn.classList.add('show'));
     } else if (scrollTop < UI_CONFIG.SCROLL_HIDE_FAB_OFFSET) {
-      fabContainer.classList.remove('show');
+      fabButtons.forEach((btn) => btn.classList.remove('show'));
     }
 
     if (scrollTop > 400) {
@@ -612,4 +633,5 @@ initCustomColors();
 initSpacingControl();
 initFontControl();
 initContentPaddingControl();
+initStylePanelToggle();
 renderPreview();
