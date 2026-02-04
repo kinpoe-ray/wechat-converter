@@ -35,6 +35,7 @@ const fontCodeValue = document.getElementById('font-code-value');
 const contentPaddingRange = document.getElementById('content-padding-range');
 const contentPaddingValue = document.getElementById('content-padding-value');
 const stylePanelBody = document.getElementById('style-panel-body');
+const stylePanelToggle = document.getElementById('style-panel-toggle');
 const statsPanel = document.getElementById('stats-panel');
 const statsCompactEl = document.getElementById('stats-compact');
 
@@ -245,20 +246,25 @@ function initContentPaddingControl() {
   });
 }
 
-function setStylePanelOpen(isOpen) {
-  if (!stylePanelBody) return;
-  stylePanelBody.classList.toggle('is-collapsed', !isOpen);
-  if (stylePanel) stylePanel.classList.toggle('is-collapsed', !isOpen);
-}
-
 function initStylePanelToggle() {
-  if (!stylePanelBody) return;
+  if (!stylePanelBody || !stylePanelToggle) return;
   const savedState = localStorage.getItem('wechat-style-panel');
   const prefersCollapsed = window.matchMedia('(max-width: 900px)').matches;
   const isOpen = savedState ? savedState !== 'collapsed' : !prefersCollapsed;
 
-  setStylePanelOpen(isOpen);
+  stylePanelBody.classList.toggle('is-collapsed', !isOpen);
+  stylePanelToggle.classList.toggle('is-open', isOpen);
+  stylePanelToggle.setAttribute('aria-expanded', String(isOpen));
+  if (stylePanel) stylePanel.classList.toggle('is-collapsed', !isOpen);
 
+  stylePanelToggle.addEventListener('click', () => {
+    const nextOpen = stylePanelBody.classList.contains('is-collapsed');
+    stylePanelBody.classList.toggle('is-collapsed', !nextOpen);
+    stylePanelToggle.classList.toggle('is-open', nextOpen);
+    stylePanelToggle.setAttribute('aria-expanded', String(nextOpen));
+    if (stylePanel) stylePanel.classList.toggle('is-collapsed', !nextOpen);
+    localStorage.setItem('wechat-style-panel', nextOpen ? 'open' : 'collapsed');
+  });
 }
 
 window.resetStyleSettings = function resetStyleSettings() {
@@ -466,10 +472,8 @@ window.switchTab = function switchTab(tab) {
 };
 
 window.toggleStylePanel = function toggleStylePanel() {
-  if (!stylePanelBody) return;
-  const nextOpen = stylePanelBody.classList.contains('is-collapsed');
-  setStylePanelOpen(nextOpen);
-  localStorage.setItem('wechat-style-panel', nextOpen ? 'open' : 'collapsed');
+  if (!stylePanelToggle) return;
+  stylePanelToggle.click();
 };
 
 window.toggleTheme = function toggleTheme() {
