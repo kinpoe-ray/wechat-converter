@@ -35,6 +35,8 @@ const contentPaddingRange = document.getElementById('content-padding-range');
 const contentPaddingValue = document.getElementById('content-padding-value');
 const stylePanelBody = document.getElementById('style-panel-body');
 const stylePanelToggle = document.getElementById('style-panel-toggle');
+const statsPanel = document.getElementById('stats-panel');
+const statsCompactEl = document.getElementById('stats-compact');
 
 const UI_CONFIG = {
   SWIPE_THRESHOLD: 80,
@@ -246,7 +248,8 @@ function initContentPaddingControl() {
 function initStylePanelToggle() {
   if (!stylePanelBody || !stylePanelToggle) return;
   const savedState = localStorage.getItem('wechat-style-panel');
-  const isOpen = savedState !== 'collapsed';
+  const prefersCollapsed = window.matchMedia('(max-width: 900px)').matches;
+  const isOpen = savedState ? savedState !== 'collapsed' : !prefersCollapsed;
 
   stylePanelBody.classList.toggle('is-collapsed', !isOpen);
   stylePanelToggle.classList.toggle('is-open', isOpen);
@@ -294,6 +297,7 @@ async function renderPreview() {
         <div class="empty-state-text">在左侧输入 Markdown 内容<br>这里会实时显示转换效果</div>
       </div>
     `;
+    if (statsPanel) statsPanel.style.display = 'none';
   }
 }
 
@@ -315,6 +319,14 @@ function updateStats() {
   wordCountEl.textContent = stats.wordCount;
   readTimeEl.textContent = `${stats.readTime}分钟`;
   paragraphCountEl.textContent = stats.paragraphCount;
+  if (statsCompactEl) {
+    statsCompactEl.textContent = `字数 ${stats.wordCount} · 阅读 ${stats.readTime}分钟 · 段落 ${stats.paragraphCount}`;
+  }
+  if (statsPanel) {
+    const isMobile = window.matchMedia('(max-width: 900px)').matches;
+    const shouldHide = !stats.wordCount || (isMobile && stats.wordCount < 80);
+    statsPanel.style.display = shouldHide ? 'none' : 'flex';
+  }
 }
 
 function checkStyleSync() {
@@ -396,17 +408,35 @@ window.switchTab = function switchTab(tab) {
   const tabPreview = document.getElementById('tab-preview');
   const panelInput = document.getElementById('panel-input');
   const panelPreview = document.getElementById('panel-preview');
+  const mobileTabInput = document.getElementById('mobile-tab-input');
+  const mobileTabPreview = document.getElementById('mobile-tab-preview');
+  const mobileActions = document.querySelectorAll('.mobile-action');
 
   if (tab === 'input') {
     tabInput.classList.add('active');
     tabPreview.classList.remove('active');
     panelInput.classList.add('active');
     panelPreview.classList.remove('active');
+    if (mobileTabInput && mobileTabPreview) {
+      mobileTabInput.classList.add('active');
+      mobileTabPreview.classList.remove('active');
+    }
   } else {
     tabInput.classList.remove('active');
     tabPreview.classList.add('active');
     panelInput.classList.remove('active');
     panelPreview.classList.add('active');
+    if (mobileTabInput && mobileTabPreview) {
+      mobileTabInput.classList.remove('active');
+      mobileTabPreview.classList.add('active');
+    }
+  }
+
+  if (mobileActions.length) {
+    mobileActions.forEach((btn) => {
+      const targetTab = btn.getAttribute('data-tab');
+      btn.style.display = targetTab === tab ? '' : 'none';
+    });
   }
 };
 
@@ -651,3 +681,4 @@ initFontControl();
 initContentPaddingControl();
 initStylePanelToggle();
 renderPreview();
+window.switchTab('input');
