@@ -20,6 +20,7 @@ const paragraphCountEl = document.getElementById('paragraph-count');
 const syncWarning = document.getElementById('sync-warning');
 const styleSelect = document.getElementById('style-select');
 const customPanel = document.getElementById('style-custom-panel');
+const stylePanel = document.getElementById('style-panel');
 const customPrimaryInput = document.getElementById('custom-primary');
 const customTextInput = document.getElementById('custom-text');
 const customBackgroundInput = document.getElementById('custom-background');
@@ -254,12 +255,14 @@ function initStylePanelToggle() {
   stylePanelBody.classList.toggle('is-collapsed', !isOpen);
   stylePanelToggle.classList.toggle('is-open', isOpen);
   stylePanelToggle.setAttribute('aria-expanded', String(isOpen));
+  if (stylePanel) stylePanel.classList.toggle('is-collapsed', !isOpen);
 
   stylePanelToggle.addEventListener('click', () => {
     const nextOpen = stylePanelBody.classList.contains('is-collapsed');
     stylePanelBody.classList.toggle('is-collapsed', !nextOpen);
     stylePanelToggle.classList.toggle('is-open', nextOpen);
     stylePanelToggle.setAttribute('aria-expanded', String(nextOpen));
+    if (stylePanel) stylePanel.classList.toggle('is-collapsed', !nextOpen);
     localStorage.setItem('wechat-style-panel', nextOpen ? 'open' : 'collapsed');
   });
 }
@@ -385,22 +388,50 @@ window.clearInput = function clearInput() {
 };
 
 window.pasteFromClipboard = async function pasteFromClipboard() {
+  const showPasteHintOnce = () => {
+    if (!toast) return;
+    if (sessionStorage.getItem('wechat-paste-hint-shown')) return;
+    sessionStorage.setItem('wechat-paste-hint-shown', '1');
+    toast.textContent = '📋 请长按粘贴内容';
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), UI_CONFIG.TOAST_DURATION);
+  };
+
+  const focusInput = () => {
+    if (!input) return;
+    try {
+      input.focus({ preventScroll: true });
+    } catch {
+      input.focus();
+    }
+  };
+
+  const canReadClipboard = !!(window.isSecureContext &&
+    navigator.clipboard &&
+    typeof navigator.clipboard.readText === 'function');
+
+  if (!canReadClipboard) {
+    focusInput();
+    showPasteHintOnce();
+    return;
+  }
+
   try {
     const text = await navigator.clipboard.readText();
-    if (text) {
+    if (text && text.trim()) {
       input.value = text;
       scheduleRender();
       toast.textContent = '✅ 内容已粘贴！';
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), UI_CONFIG.TOAST_DURATION);
     } else {
-      input.focus();
-      toast.textContent = '📋 请长按粘贴内容';
+      focusInput();
+      showPasteHintOnce();
     }
   } catch (error) {
-    input.focus();
-    toast.textContent = '📋 请长按粘贴内容';
+    focusInput();
+    showPasteHintOnce();
   }
-  toast.classList.add('show');
-  setTimeout(() => toast.classList.remove('show'), UI_CONFIG.TOAST_DURATION);
 };
 
 window.switchTab = function switchTab(tab) {
@@ -435,9 +466,14 @@ window.switchTab = function switchTab(tab) {
   if (mobileActions.length) {
     mobileActions.forEach((btn) => {
       const targetTab = btn.getAttribute('data-tab');
-      btn.style.display = targetTab === tab ? '' : 'none';
+      btn.style.display = targetTab === 'all' || targetTab === tab ? '' : 'none';
     });
   }
+};
+
+window.toggleStylePanel = function toggleStylePanel() {
+  if (!stylePanelToggle) return;
+  stylePanelToggle.click();
 };
 
 window.toggleTheme = function toggleTheme() {

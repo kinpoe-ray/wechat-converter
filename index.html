@@ -393,6 +393,11 @@
             background: var(--card-bg);
         }
 
+        .style-panel.is-collapsed {
+            padding-top: 8px;
+            padding-bottom: 8px;
+        }
+
         .style-panel-title {
             font-size: 13px;
             font-weight: 600;
@@ -442,6 +447,8 @@
         .mobile-actions {
             display: flex;
             gap: 8px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
         }
 
         .style-panel-toggle {
@@ -457,6 +464,10 @@
 
         .style-panel-toggle.is-open .toggle-icon {
             transform: rotate(180deg);
+        }
+
+        .style-reset-btn {
+            margin-left: auto;
         }
 
         .style-panel-body {
@@ -1114,6 +1125,12 @@
                 width: 100%;
             }
 
+            .style-reset-btn {
+                margin-left: 0;
+                width: 100%;
+                justify-content: center;
+            }
+
             .card {
                 --mobile-action-bar-height: 56px;
                 padding-bottom: calc(72px + var(--mobile-action-bar-height) + env(safe-area-inset-bottom));
@@ -1124,11 +1141,15 @@
                 left: 0;
                 right: 0;
                 bottom: calc(var(--mobile-action-bar-height) + env(safe-area-inset-bottom));
-                z-index: 30;
+                z-index: 45;
                 border-top: 1px solid var(--input-border);
                 border-bottom: none;
                 box-shadow: 0 -12px 24px rgba(15, 23, 42, 0.08);
                 padding-bottom: 10px;
+            }
+
+            .style-panel.is-collapsed {
+                gap: 8px;
             }
 
             .style-panel-body {
@@ -1181,39 +1202,57 @@
             }
 
             .style-label {
-                display: none;
+                display: inline;
+                font-size: 11px;
+                color: var(--text-secondary);
             }
 
             .style-custom {
                 border-left: none;
                 padding-left: 0;
+                align-items: flex-start;
             }
 
             .spacing-control {
                 border-left: none;
                 padding-left: 0;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 4px;
             }
 
             .spacing-range {
-                width: 100px;
+                width: 140px;
             }
 
             .font-control {
                 border-left: none;
                 padding-left: 0;
+                flex-wrap: wrap;
+                align-items: flex-start;
+                gap: 12px;
             }
 
             .font-range {
-                width: 90px;
+                width: 130px;
             }
 
             .content-padding-control {
                 border-left: none;
                 padding-left: 0;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 4px;
             }
 
             .content-padding-range {
-                width: 90px;
+                width: 140px;
+            }
+
+            .font-group {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 4px;
             }
 
             .panel-input {
@@ -1410,7 +1449,6 @@
                             🎛️ 样式
                             <span class="toggle-icon">▾</span>
                         </button>
-                        <button class="btn btn-secondary" onclick="resetStyleSettings()" title="重置样式设置">↺ 重置</button>
                     </div>
                     <div class="style-panel-body" id="style-panel-body">
                     <label class="style-label" for="style-select">样式</label>
@@ -1495,6 +1533,7 @@
                         <label class="style-label" for="custom-background">背景</label>
                         <input type="color" id="custom-background" class="color-input" value="#ffffff" title="背景色">
                     </div>
+                    <button class="btn btn-secondary style-reset-btn" onclick="resetStyleSettings()" title="重置样式设置">↺ 重置样式</button>
                     </div>
                 </div>
             </div>
@@ -1576,18 +1615,19 @@
         <a href="https://x.com/kinpoe_ray" target="_blank">Made by @kinpoe_ray</a>
     </footer>
 
-    <div class="mobile-action-bar" id="mobile-action-bar">
-        <div class="mobile-tabs">
-            <button class="mobile-tab-btn active" id="mobile-tab-input" onclick="switchTab('input')">📝 输入</button>
-            <button class="mobile-tab-btn" id="mobile-tab-preview" onclick="switchTab('preview')">👁️ 预览</button>
+        <div class="mobile-action-bar" id="mobile-action-bar">
+            <div class="mobile-tabs">
+                <button class="mobile-tab-btn active" id="mobile-tab-input" onclick="switchTab('input')">📝 输入</button>
+                <button class="mobile-tab-btn" id="mobile-tab-preview" onclick="switchTab('preview')">👁️ 预览</button>
+            </div>
+            <div class="mobile-actions">
+                <button class="btn btn-secondary mobile-action" data-tab="all" onclick="toggleStylePanel()" title="样式">🎛️</button>
+                <button class="btn btn-secondary mobile-action" data-tab="input" onclick="pasteFromClipboard()">📋 粘贴</button>
+                <button class="btn btn-icon mobile-action" data-tab="input" onclick="clearInput()" title="清空">🗑️</button>
+                <button class="btn btn-primary mobile-action" data-tab="preview" onclick="copyToClipboard()">📋 复制</button>
+                <button class="btn btn-secondary mobile-action" data-tab="preview" onclick="copyPlainText()">🧾 纯文本</button>
+            </div>
         </div>
-        <div class="mobile-actions">
-            <button class="btn btn-secondary mobile-action" data-tab="input" onclick="pasteFromClipboard()">📋 粘贴</button>
-            <button class="btn btn-icon mobile-action" data-tab="input" onclick="clearInput()" title="清空">🗑️</button>
-            <button class="btn btn-primary mobile-action" data-tab="preview" onclick="copyToClipboard()">📋 复制</button>
-            <button class="btn btn-secondary mobile-action" data-tab="preview" onclick="copyPlainText()">🧾 纯文本</button>
-        </div>
-    </div>
 
     <!-- 悬浮按钮 -->
     <div class="fab-container" id="fab-container">
