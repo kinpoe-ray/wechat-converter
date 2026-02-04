@@ -387,13 +387,10 @@
             flex-wrap: wrap;
             align-items: center;
             justify-content: space-between;
-            gap: 8px;
-            padding: 10px 16px;
+            gap: 12px;
+            padding: 12px 20px;
             border-bottom: 1px solid var(--input-border);
             background: var(--card-bg);
-            position: sticky;
-            top: 0;
-            z-index: 20;
         }
 
         .style-panel.is-collapsed {
@@ -410,9 +407,15 @@
         .style-panel-controls {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
             flex-wrap: wrap;
             width: 100%;
+        }
+
+        .style-panel-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         .mobile-action-bar {
@@ -448,6 +451,21 @@
             justify-content: flex-end;
         }
 
+        .style-panel-toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .style-panel-toggle .toggle-icon {
+            display: inline-block;
+            transition: transform 0.2s ease;
+        }
+
+        .style-panel-toggle.is-open .toggle-icon {
+            transform: rotate(180deg);
+        }
+
         .style-reset-btn {
             margin-left: auto;
         }
@@ -455,7 +473,7 @@
         .style-panel-body {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
             flex-wrap: wrap;
         }
 
@@ -507,9 +525,9 @@
             background: var(--input-bg);
             border: 1px solid var(--input-border);
             color: var(--text-primary);
-            padding: 5px 8px;
+            padding: 6px 10px;
             border-radius: 8px;
-            font-size: 12px;
+            font-size: 13px;
             outline: none;
             cursor: pointer;
             transition: border-color 0.2s ease;
@@ -522,8 +540,8 @@
         .style-custom {
             display: flex;
             align-items: center;
-            gap: 8px;
-            padding-left: 6px;
+            gap: 10px;
+            padding-left: 8px;
             border-left: 1px dashed var(--input-border);
         }
 
@@ -543,13 +561,13 @@
         .spacing-control {
             display: flex;
             align-items: center;
-            gap: 6px;
-            padding-left: 6px;
+            gap: 8px;
+            padding-left: 8px;
             border-left: 1px dashed var(--input-border);
         }
 
         .spacing-range {
-            width: 110px;
+            width: 120px;
             cursor: pointer;
         }
 
@@ -563,19 +581,19 @@
         .font-control {
             display: flex;
             align-items: center;
-            gap: 6px;
-            padding-left: 6px;
+            gap: 8px;
+            padding-left: 8px;
             border-left: 1px dashed var(--input-border);
         }
 
         .font-group {
             display: flex;
             align-items: center;
-            gap: 4px;
+            gap: 6px;
         }
 
         .font-range {
-            width: 100px;
+            width: 110px;
             cursor: pointer;
         }
 
@@ -589,13 +607,13 @@
         .content-padding-control {
             display: flex;
             align-items: center;
-            gap: 6px;
-            padding-left: 6px;
+            gap: 8px;
+            padding-left: 8px;
             border-left: 1px dashed var(--input-border);
         }
 
         .content-padding-range {
-            width: 100px;
+            width: 110px;
             cursor: pointer;
         }
 
@@ -1091,11 +1109,16 @@
             }
 
             .style-panel {
-                padding: 8px 12px;
+                padding: 10px 16px;
             }
 
             .style-panel-title {
                 font-size: 12px;
+            }
+
+            .style-panel-actions {
+                width: 100%;
+                justify-content: space-between;
             }
 
             .style-panel-body {
@@ -1130,7 +1153,7 @@
             }
 
             .style-panel-body {
-                max-height: 200px;
+                max-height: 240px;
                 overflow: hidden;
                 transition: max-height 0.25s ease, opacity 0.2s ease;
                 opacity: 1;
@@ -1175,7 +1198,7 @@
 
             .style-select {
                 font-size: 12px;
-                padding: 5px 8px;
+                padding: 6px 8px;
             }
 
             .style-label {
@@ -1199,7 +1222,7 @@
             }
 
             .spacing-range {
-                width: 120px;
+                width: 140px;
             }
 
             .font-control {
@@ -1207,11 +1230,11 @@
                 padding-left: 0;
                 flex-wrap: wrap;
                 align-items: flex-start;
-                gap: 8px;
+                gap: 12px;
             }
 
             .font-range {
-                width: 120px;
+                width: 130px;
             }
 
             .content-padding-control {
@@ -1223,7 +1246,7 @@
             }
 
             .content-padding-range {
-                width: 120px;
+                width: 140px;
             }
 
             .font-group {
@@ -1421,6 +1444,12 @@
 
             <div class="style-panel" id="style-panel">
                 <div class="style-panel-controls">
+                    <div class="style-panel-actions">
+                        <button class="btn btn-secondary style-panel-toggle" id="style-panel-toggle" type="button" aria-expanded="true" title="展开/收起样式设置">
+                            🎛️ 样式
+                            <span class="toggle-icon">▾</span>
+                        </button>
+                    </div>
                     <div class="style-panel-body" id="style-panel-body">
                     <label class="style-label" for="style-select">样式</label>
                     <select id="style-select" class="style-select" title="选择样式"></select>
