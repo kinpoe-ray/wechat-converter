@@ -3,8 +3,10 @@ export const CONFIG = {
   READ_SPEED: 400,
 };
 
-export const DEFAULT_STYLE_ID = 'default';
+export const DEFAULT_STYLE_ID = 'minimal';
 export const CUSTOM_STYLE_ID = 'custom';
+export const DEFAULT_FONT_PROFILE_ID = 'balanced';
+export const AUTO_FONT_PROFILE_ID = 'auto';
 
 export const STYLE_PRESETS = {
   default: {
@@ -144,6 +146,189 @@ export const STYLE_PRESETS = {
   },
 };
 
+export const FONT_PROFILES = {
+  balanced: {
+    label: 'PingFang SC',
+    families: {
+      base: '\'PingFang SC\', \'Hiragino Sans GB\', \'Noto Sans SC\', \'Microsoft YaHei\', \'Segoe UI\', sans-serif',
+      heading: '\'HarmonyOS Sans SC\', \'PingFang SC\', \'Noto Sans SC\', \'Microsoft YaHei\', \'Segoe UI\', sans-serif',
+      code: '\'JetBrains Mono\', \'SF Mono\', \'Cascadia Code\', \'Fira Code\', Consolas, Monaco, monospace',
+    },
+    previewVars: {
+      '--font-ui': '"Inter", "PingFang SC", "Segoe UI", sans-serif',
+      '--font-preview-base': '"PingFang SC", "Hiragino Sans GB", "Noto Sans SC", "Microsoft YaHei", sans-serif',
+      '--font-preview-heading': '"HarmonyOS Sans SC", "PingFang SC", "Noto Sans SC", "Microsoft YaHei", sans-serif',
+      '--font-preview-code': '"JetBrains Mono", "SF Mono", "Cascadia Code", "Fira Code", monospace',
+      '--preview-text-letter-spacing': '0.22px',
+      '--preview-text-line-height': '1.86',
+      '--preview-content-max-width': '780px',
+    },
+  },
+  reading: {
+    label: 'Noto Serif SC',
+    families: {
+      base: '\'Noto Serif SC\', \'Source Han Serif SC\', \'Songti SC\', \'STSong\', serif',
+      heading: '\'Noto Serif SC\', \'Source Han Serif SC\', \'Songti SC\', \'STSong\', serif',
+      code: '\'JetBrains Mono\', \'SF Mono\', \'Cascadia Code\', \'Fira Code\', Consolas, Monaco, monospace',
+    },
+    previewVars: {
+      '--font-ui': '"Inter", "PingFang SC", "Segoe UI", sans-serif',
+      '--font-preview-base': '"Noto Serif SC", "Source Han Serif SC", "Songti SC", "STSong", serif',
+      '--font-preview-heading': '"Noto Serif SC", "Source Han Serif SC", "Songti SC", "STSong", serif',
+      '--font-preview-code': '"JetBrains Mono", "SF Mono", "Cascadia Code", "Fira Code", monospace',
+      '--preview-text-letter-spacing': '0.16px',
+      '--preview-text-line-height': '1.92',
+      '--preview-content-max-width': '760px',
+    },
+  },
+  modern: {
+    label: 'Inter',
+    families: {
+      base: '\'Inter\', \'Noto Sans SC\', \'PingFang SC\', \'Microsoft YaHei\', \'Segoe UI\', sans-serif',
+      heading: '\'Inter\', \'Noto Sans SC\', \'PingFang SC\', \'Microsoft YaHei\', \'Segoe UI\', sans-serif',
+      code: '\'JetBrains Mono\', \'SF Mono\', \'Cascadia Code\', \'Fira Code\', Consolas, Monaco, monospace',
+    },
+    previewVars: {
+      '--font-ui': '"Inter", "PingFang SC", "Segoe UI", sans-serif',
+      '--font-preview-base': '"Inter", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif',
+      '--font-preview-heading': '"Inter", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif',
+      '--font-preview-code': '"JetBrains Mono", "SF Mono", "Cascadia Code", "Fira Code", monospace',
+      '--preview-text-letter-spacing': '0.1px',
+      '--preview-text-line-height': '1.8',
+      '--preview-content-max-width': '820px',
+    },
+  },
+  airy: {
+    label: 'Inter Light',
+    families: {
+      base: '\'Inter\', \'Noto Sans SC\', \'PingFang SC\', \'Hiragino Sans GB\', \'Microsoft YaHei\', sans-serif',
+      heading: '\'Inter\', \'Noto Sans SC\', \'PingFang SC\', \'Hiragino Sans GB\', \'Microsoft YaHei\', sans-serif',
+      code: '\'JetBrains Mono\', \'IBM Plex Mono\', \'SF Mono\', \'Cascadia Code\', Consolas, Monaco, monospace',
+    },
+    previewVars: {
+      '--font-ui': '"Inter", "Noto Sans SC", "PingFang SC", "Segoe UI", sans-serif',
+      '--font-preview-base': '"Inter", "Noto Sans SC", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif',
+      '--font-preview-heading': '"Inter", "Noto Sans SC", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif',
+      '--font-preview-code': '"JetBrains Mono", "IBM Plex Mono", "SF Mono", "Cascadia Code", monospace',
+      '--preview-text-letter-spacing': '0.08px',
+      '--preview-text-line-height': '1.9',
+      '--preview-content-max-width': '800px',
+    },
+  },
+  soft: {
+    label: 'Manrope',
+    families: {
+      base: '\'Manrope\', \'Noto Sans SC\', \'PingFang SC\', \'Microsoft YaHei\', \'Segoe UI\', sans-serif',
+      heading: '\'Manrope\', \'Inter\', \'Noto Sans SC\', \'PingFang SC\', \'Microsoft YaHei\', sans-serif',
+      code: '\'JetBrains Mono\', \'IBM Plex Mono\', \'SF Mono\', \'Cascadia Code\', Consolas, Monaco, monospace',
+    },
+    previewVars: {
+      '--font-ui': '"Manrope", "Inter", "Noto Sans SC", "PingFang SC", "Segoe UI", sans-serif',
+      '--font-preview-base': '"Manrope", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif',
+      '--font-preview-heading': '"Manrope", "Inter", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif',
+      '--font-preview-code': '"JetBrains Mono", "IBM Plex Mono", "SF Mono", "Cascadia Code", monospace',
+      '--preview-text-letter-spacing': '0.1px',
+      '--preview-text-line-height': '1.88',
+      '--preview-content-max-width': '810px',
+    },
+  },
+  tech: {
+    label: 'IBM Plex Sans',
+    families: {
+      base: '\'IBM Plex Sans\', \'Noto Sans SC\', \'PingFang SC\', \'Microsoft YaHei\', \'Segoe UI\', sans-serif',
+      heading: '\'IBM Plex Sans\', \'Inter\', \'Noto Sans SC\', \'PingFang SC\', \'Segoe UI\', sans-serif',
+      code: '\'IBM Plex Mono\', \'JetBrains Mono\', \'SF Mono\', \'Cascadia Code\', Consolas, Monaco, monospace',
+    },
+    previewVars: {
+      '--font-ui': '"IBM Plex Sans", "Inter", "PingFang SC", "Segoe UI", sans-serif',
+      '--font-preview-base': '"IBM Plex Sans", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif',
+      '--font-preview-heading': '"IBM Plex Sans", "Inter", "Noto Sans SC", "PingFang SC", sans-serif',
+      '--font-preview-code': '"IBM Plex Mono", "JetBrains Mono", "SF Mono", "Cascadia Code", monospace',
+      '--preview-text-letter-spacing': '0.08px',
+      '--preview-text-line-height': '1.78',
+      '--preview-content-max-width': '840px',
+    },
+  },
+  editorial: {
+    label: 'Source Han Serif SC',
+    families: {
+      base: '\'Noto Serif SC\', \'Source Han Serif SC\', \'Songti SC\', \'STSong\', serif',
+      heading: '\'Inter\', \'Noto Sans SC\', \'PingFang SC\', \'Microsoft YaHei\', sans-serif',
+      code: '\'JetBrains Mono\', \'SF Mono\', \'Cascadia Code\', \'Fira Code\', Consolas, Monaco, monospace',
+    },
+    previewVars: {
+      '--font-ui': '"Inter", "PingFang SC", "Segoe UI", sans-serif',
+      '--font-preview-base': '"Noto Serif SC", "Source Han Serif SC", "Songti SC", "STSong", serif',
+      '--font-preview-heading': '"Inter", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif',
+      '--font-preview-code': '"JetBrains Mono", "SF Mono", "Cascadia Code", "Fira Code", monospace',
+      '--preview-text-letter-spacing': '0.18px',
+      '--preview-text-line-height': '1.94',
+      '--preview-content-max-width': '740px',
+    },
+  },
+  brand: {
+    label: 'Noto Sans SC',
+    families: {
+      base: '\'Noto Sans SC\', \'PingFang SC\', \'Microsoft YaHei\', \'Segoe UI\', sans-serif',
+      heading: '\'Noto Sans SC\', \'Inter\', \'PingFang SC\', \'Microsoft YaHei\', sans-serif',
+      code: '\'JetBrains Mono\', \'SF Mono\', \'Cascadia Code\', \'Fira Code\', Consolas, Monaco, monospace',
+    },
+    previewVars: {
+      '--font-ui': '"Inter", "Noto Sans SC", "PingFang SC", "Segoe UI", sans-serif',
+      '--font-preview-base': '"Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif',
+      '--font-preview-heading': '"Noto Sans SC", "Inter", "PingFang SC", "Microsoft YaHei", sans-serif',
+      '--font-preview-code': '"JetBrains Mono", "SF Mono", "Cascadia Code", "Fira Code", monospace',
+      '--preview-text-letter-spacing': '0.12px',
+      '--preview-text-line-height': '1.82',
+      '--preview-content-max-width': '800px',
+    },
+  },
+  system: {
+    label: 'System UI',
+    families: {
+      base: '-apple-system, BlinkMacSystemFont, \'Segoe UI\', Roboto, \'Helvetica Neue\', Arial, sans-serif',
+      heading: '-apple-system, BlinkMacSystemFont, \'Segoe UI\', Roboto, \'Helvetica Neue\', Arial, sans-serif',
+      code: '\'SF Mono\', Monaco, \'Cascadia Code\', Consolas, monospace',
+    },
+    previewVars: {
+      '--font-ui': '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+      '--font-preview-base': '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+      '--font-preview-heading': '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+      '--font-preview-code': '"SF Mono", Monaco, "Cascadia Code", Consolas, monospace',
+      '--preview-text-letter-spacing': '0.2px',
+      '--preview-text-line-height': '1.84',
+      '--preview-content-max-width': '800px',
+    },
+  },
+};
+
+export const STYLE_FONT_RECOMMENDATIONS = {
+  default: 'balanced',
+  minimal: 'balanced',
+  warm: 'reading',
+  zhihu: 'modern',
+  magazine: 'editorial',
+  custom: 'brand',
+};
+
+export const STYLE_FONT_SCALE_RECOMMENDATIONS = {
+  default: { base: 1, heading: 1.05, code: 0.95 },
+  minimal: { base: 1, heading: 1, code: 0.9 },
+  warm: { base: 1.05, heading: 1.1, code: 0.95 },
+  zhihu: { base: 1, heading: 1.05, code: 0.95 },
+  magazine: { base: 1.05, heading: 1.1, code: 0.95 },
+  custom: { base: 1, heading: 1.05, code: 0.95 },
+};
+
+export const STYLE_LAYOUT_RECOMMENDATIONS = {
+  default: { spacingScale: 1, fontWeight: 400, contentPaddingX: 0 },
+  minimal: { spacingScale: 0.7, fontWeight: 300, contentPaddingX: 26 },
+  warm: { spacingScale: 1, fontWeight: 400, contentPaddingX: 0 },
+  zhihu: { spacingScale: 1, fontWeight: 400, contentPaddingX: 0 },
+  magazine: { spacingScale: 1, fontWeight: 400, contentPaddingX: 0 },
+  custom: { spacingScale: 1, fontWeight: 400, contentPaddingX: 0 },
+};
+
 export const CALLOUT_THEMES = {
   '💡': { bg: '#DBEAFE', border: '#3B82F6', label: '提示' },
   '💰': { bg: '#D1FAE5', border: '#10B981', label: '成本' },
@@ -275,6 +460,39 @@ export function getStylePreset(styleId, customColors) {
   return STYLE_PRESETS[DEFAULT_STYLE_ID];
 }
 
+export function getFontProfile(fontProfileId = DEFAULT_FONT_PROFILE_ID) {
+  if (fontProfileId && FONT_PROFILES[fontProfileId]) {
+    return FONT_PROFILES[fontProfileId];
+  }
+  return FONT_PROFILES[DEFAULT_FONT_PROFILE_ID];
+}
+
+export function getRecommendedFontProfile(styleId = DEFAULT_STYLE_ID) {
+  const recommended = STYLE_FONT_RECOMMENDATIONS[styleId] || DEFAULT_FONT_PROFILE_ID;
+  return FONT_PROFILES[recommended] ? recommended : DEFAULT_FONT_PROFILE_ID;
+}
+
+export function getRecommendedFontScale(styleId = DEFAULT_STYLE_ID) {
+  const scale = STYLE_FONT_SCALE_RECOMMENDATIONS[styleId]
+    || STYLE_FONT_SCALE_RECOMMENDATIONS[DEFAULT_STYLE_ID];
+  return {
+    base: Number.isFinite(scale.base) ? scale.base : 1,
+    heading: Number.isFinite(scale.heading) ? scale.heading : 1,
+    code: Number.isFinite(scale.code) ? scale.code : 1,
+  };
+}
+
+export function getRecommendedLayoutSettings(styleId = DEFAULT_STYLE_ID) {
+  const fallback = STYLE_LAYOUT_RECOMMENDATIONS[DEFAULT_STYLE_ID]
+    || { spacingScale: 1, fontWeight: 400, contentPaddingX: 0 };
+  const layout = STYLE_LAYOUT_RECOMMENDATIONS[styleId] || fallback;
+  return {
+    spacingScale: Number.isFinite(layout.spacingScale) ? layout.spacingScale : fallback.spacingScale,
+    fontWeight: Number.isFinite(layout.fontWeight) ? layout.fontWeight : fallback.fontWeight,
+    contentPaddingX: Number.isFinite(layout.contentPaddingX) ? layout.contentPaddingX : fallback.contentPaddingX,
+  };
+}
+
 export function normalizeNotionMarkdown(markdown) {
   let text = markdown;
   text = text.replace(/^\s*•\s+/gm, '- ');
@@ -403,11 +621,23 @@ export async function getWeChatStyledHtml(
   customColors,
   spacingScale = 1,
   fontScale = { base: 1, heading: 1, code: 1 },
-  contentPaddingX = 0
+  fontWeight = 400,
+  contentPaddingX = 0,
+  fontProfileId = DEFAULT_FONT_PROFILE_ID
 ) {
   const { styles } = getStylePreset(styleId, customColors);
+  const fontProfile = getFontProfile(fontProfileId);
   const scaledStyles = applyContentPaddingX(
-    applyFontScale(applySpacingScale(styles, spacingScale), fontScale),
+    applyFontFamily(
+      applyBaseFontWeight(
+        applyTypographyRhythm(
+          applyFontScale(applySpacingScale(styles, spacingScale), fontScale),
+          fontProfile
+        ),
+        fontWeight
+      ),
+      fontProfile
+    ),
     contentPaddingX
   );
   const normalized = normalizeNotionMarkdown(markdown);
@@ -419,6 +649,63 @@ export async function getWeChatStyledHtml(
   html = processHighlightCards(html, scaledStyles);
   html = fixColonSpacing(html);
   return html;
+}
+
+function applyBaseFontWeight(styles, fontWeight) {
+  const parsed = Number.parseInt(fontWeight, 10);
+  if (Number.isNaN(parsed)) return styles;
+  const weight = Math.min(500, Math.max(300, parsed));
+  const targets = new Set(['p', 'li', 'blockquote', 'th', 'td']);
+
+  return Object.fromEntries(
+    Object.entries(styles).map(([key, value]) => {
+      if (!targets.has(key)) return [key, value];
+      return [key, upsertDeclaration(value, 'font-weight', String(weight))];
+    })
+  );
+}
+
+function applyFontFamily(styles, fontProfile) {
+  if (!fontProfile || !fontProfile.families) return styles;
+  const { base } = fontProfile.families;
+
+  const baseTags = new Set([
+    'p', 'strong', 'em', 'del', 'a', 'ul', 'ol', 'li',
+    'blockquote', 'table', 'th', 'td', 'hr', 'highlightCard',
+  ]);
+
+  return Object.fromEntries(
+    Object.entries(styles).map(([key, value]) => {
+      if (baseTags.has(key)) return [key, upsertDeclaration(value, 'font-family', base)];
+      return [key, value];
+    })
+  );
+}
+
+function applyTypographyRhythm(styles, fontProfile) {
+  const previewVars = fontProfile && fontProfile.previewVars ? fontProfile.previewVars : null;
+  const textLineHeight = previewVars ? previewVars['--preview-text-line-height'] : null;
+  const textLetterSpacing = previewVars ? previewVars['--preview-text-letter-spacing'] : null;
+  if (!textLineHeight && !textLetterSpacing) return styles;
+
+  const headingTags = new Set(['h1', 'h2', 'h3', 'h4']);
+  const textTags = new Set(['p', 'li', 'blockquote', 'highlightCard']);
+
+  return Object.fromEntries(
+    Object.entries(styles).map(([key, value]) => {
+      let nextValue = value;
+      if (headingTags.has(key)) {
+        nextValue = upsertDeclaration(nextValue, 'line-height', key === 'h1' ? '1.34' : '1.4');
+      }
+      if (textTags.has(key) && textLineHeight) {
+        nextValue = upsertDeclaration(nextValue, 'line-height', textLineHeight);
+      }
+      if (key === 'p' && textLetterSpacing) {
+        nextValue = upsertDeclaration(nextValue, 'letter-spacing', textLetterSpacing);
+      }
+      return [key, nextValue];
+    })
+  );
 }
 
 function applyFontScale(styles, fontScale) {
@@ -447,7 +734,7 @@ function applyFontScale(styles, fontScale) {
 
   return Object.fromEntries(
     Object.entries(styles).map(([key, value]) => {
-      const scale = tagScaleMap[key] ?? 1;
+      const scale = Object.prototype.hasOwnProperty.call(tagScaleMap, key) ? tagScaleMap[key] : 1;
       if (scale === 1) return [key, value];
       return [key, scaleFontSize(value, scale)];
     })
@@ -474,6 +761,22 @@ function scaleFontSize(style, scale) {
     return `${property}: ${nextValue}`;
   });
   return `${scaled.join('; ')};`;
+}
+
+function upsertDeclaration(style, property, value) {
+  const declarations = style.split(';').map((item) => item.trim()).filter(Boolean);
+  let updated = false;
+  const next = declarations.map((decl) => {
+    const [prop, ...rest] = decl.split(':');
+    if (!prop || rest.length === 0) return decl;
+    if (prop.trim() === property) {
+      updated = true;
+      return `${property}: ${value}`;
+    }
+    return `${prop.trim()}: ${rest.join(':').trim()}`;
+  });
+  if (!updated) next.push(`${property}: ${value}`);
+  return `${next.join('; ')};`;
 }
 
 function applyContentPaddingX(styles, contentPaddingX) {
@@ -538,11 +841,11 @@ function addPaddingX(style, paddingX, ensureBorderBox = false) {
   });
 
   if (!hasPaddingLeft) {
-    const base = paddingLeftBase ?? 0;
+    const base = paddingLeftBase !== null && paddingLeftBase !== undefined ? paddingLeftBase : 0;
     updated.push(`padding-left: ${Math.round((base + paddingX) * 100) / 100}px`);
   }
   if (!hasPaddingRight) {
-    const base = paddingRightBase ?? 0;
+    const base = paddingRightBase !== null && paddingRightBase !== undefined ? paddingRightBase : 0;
     updated.push(`padding-right: ${Math.round((base + paddingX) * 100) / 100}px`);
   }
   if (ensureBorderBox && !hasBoxSizing) {

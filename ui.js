@@ -6,10 +6,17 @@ import {
   isHighlightCandidate,
   STYLE_PRESETS,
   DEFAULT_STYLE_ID,
+  DEFAULT_FONT_PROFILE_ID,
+  AUTO_FONT_PROFILE_ID,
   CUSTOM_STYLE_ID,
+  FONT_PROFILES,
+  getFontProfile,
+  getRecommendedFontProfile,
+  getRecommendedFontScale,
+  getRecommendedLayoutSettings,
   buildCustomTheme,
-} from './parser.js';
-import { copyHtmlToClipboard, copyPlainToClipboard } from './clipboard.js';
+} from './parser.js?v=20260212d';
+import { copyHtmlToClipboard, copyPlainToClipboard } from './clipboard.js?v=20260212c';
 
 const input = document.getElementById('markdown-input');
 const preview = document.getElementById('preview');
@@ -19,6 +26,9 @@ const readTimeEl = document.getElementById('read-time');
 const paragraphCountEl = document.getElementById('paragraph-count');
 const syncWarning = document.getElementById('sync-warning');
 const styleSelect = document.getElementById('style-select');
+const fontProfileSelect = document.getElementById('font-profile-select');
+const fontWeightRange = document.getElementById('font-weight-range');
+const fontWeightValue = document.getElementById('font-weight-value');
 const customPanel = document.getElementById('style-custom-panel');
 const stylePanel = document.getElementById('style-panel');
 const customPrimaryInput = document.getElementById('custom-primary');
@@ -38,6 +48,11 @@ const stylePanelBody = document.getElementById('style-panel-body');
 const stylePanelToggle = document.getElementById('style-panel-toggle');
 const statsPanel = document.getElementById('stats-panel');
 const statsCompactEl = document.getElementById('stats-compact');
+const pasteModal = document.getElementById('paste-modal');
+const pasteModalInput = document.getElementById('paste-modal-input');
+const pasteModalConfirm = document.getElementById('paste-modal-confirm');
+const pasteModalCancel = document.getElementById('paste-modal-cancel');
+const pasteModalDesc = document.getElementById('paste-modal-desc');
 
 const UI_CONFIG = {
   SWIPE_THRESHOLD: 80,
@@ -58,19 +73,105 @@ let customColors = { ...DEFAULT_CUSTOM_COLORS };
 let customPreviewVarKeys = [];
 let spacingScale = 1;
 let fontScale = { base: 1, heading: 1, code: 1 };
+let fontBaseWeight = 400;
 let contentPaddingX = 0;
+let fontProfileId = AUTO_FONT_PROFILE_ID;
+let fontPreviewVarKeys = [];
+let deleteResetTimer = null;
 
-marked.setOptions({
-  breaks: true,
-  gfm: true,
-});
+const markdownParser = (typeof window !== 'undefined' &&
+  window.marked &&
+  typeof window.marked.parse === 'function')
+  ? window.marked
+  : null;
+
+if (markdownParser && typeof markdownParser.setOptions === 'function') {
+  markdownParser.setOptions({
+    breaks: true,
+    gfm: true,
+  });
+}
 
 let renderCounter = 0;
 let renderTimer = null;
+let toastTimer = null;
 
 function scheduleRender() {
   if (renderTimer) clearTimeout(renderTimer);
   renderTimer = setTimeout(renderPreview, UI_CONFIG.RENDER_DEBOUNCE);
+}
+
+function showToast(message, duration = UI_CONFIG.TOAST_DURATION) {
+  if (!toast) return;
+  if (toastTimer) clearTimeout(toastTimer);
+  toast.textContent = message;
+  toast.classList.add('show');
+  toastTimer = setTimeout(() => {
+    toast.classList.remove('show');
+    toastTimer = null;
+  }, duration);
+}
+
+function isParserReady() {
+  return !!markdownParser;
+}
+
+function showParserUnavailableToast() {
+  showToast('⚠️ Markdown 解析器未就绪，请刷新页面重试');
+}
+
+function stripBackgroundStyles(html) {
+  if (!html || typeof html !== 'string') return html;
+  return html.replace(/style="([^"]*)"/g, (match, styleContent) => {
+    const declarations = styleContent
+      .split(';')
+      .map((item) => item.trim())
+      .filter(Boolean);
+    const filtered = declarations.filter((decl) => {
+      const [prop] = decl.split(':');
+      if (!prop) return false;
+      const key = prop.trim().toLowerCase();
+      return key !== 'background' && key !== 'background-color';
+    });
+    return filtered.length ? `style="${filtered.join('; ')};"` : '';
+  });
+}
+
+function openPasteModal(description = '当前环境限制自动读取剪贴板，请在下方粘贴后导入。') {
+  if (!pasteModal || !pasteModalInput) {
+    showToast('📋 请长按后粘贴到输入框');
+    if (input) input.focus();
+    return;
+  }
+  if (pasteModalDesc) pasteModalDesc.textContent = description;
+  pasteModal.classList.add('show');
+  pasteModal.setAttribute('aria-hidden', 'false');
+  setTimeout(() => {
+    try {
+      pasteModalInput.focus({ preventScroll: true });
+    } catch {
+      pasteModalInput.focus();
+    }
+  }, 30);
+}
+
+function closePasteModal() {
+  if (!pasteModal) return;
+  pasteModal.classList.remove('show');
+  pasteModal.setAttribute('aria-hidden', 'true');
+}
+
+function importPasteModalContent() {
+  if (!pasteModalInput) return;
+  const nextValue = pasteModalInput.value;
+  if (!nextValue.trim()) {
+    showToast('⚠️ 请先粘贴内容再导入');
+    return;
+  }
+  input.value = nextValue;
+  closePasteModal();
+  scheduleRender();
+  showToast('✅ 已导入粘贴内容');
 }
 
 function getCurrentStyleId() {
@@ -119,6 +220,34 @@ function clearCustomPreviewVars() {
   customPreviewVarKeys = [];
 }
 
+function applyFontPreviewVars(previewVars) {
+  const rootStyle = document.documentElement.style;
+  fontPreviewVarKeys.forEach((key) => rootStyle.removeProperty(key));
+  const allowedKeys = Object.keys(previewVars || {}).filter((key) => key !== '--font-ui');
+  fontPreviewVarKeys = allowedKeys;
+  fontPreviewVarKeys.forEach((key) => rootStyle.setProperty(key, previewVars[key]));
+}
+
+function getEffectiveFontProfileId(styleId = getCurrentStyleId()) {
+  if (fontProfileId === AUTO_FONT_PROFILE_ID) {
+    return getRecommendedFontProfile(styleId);
+  }
+  return FONT_PROFILES[fontProfileId] ? fontProfileId : DEFAULT_FONT_PROFILE_ID;
+}
+
+function applyFontProfile(nextProfileId, options = {}) {
+  const { persist = true, rerender = true } = options;
+  const resolved = nextProfileId === AUTO_FONT_PROFILE_ID || FONT_PROFILES[nextProfileId]
+    ? nextProfileId
+    : DEFAULT_FONT_PROFILE_ID;
+  fontProfileId = resolved;
+  const profile = getFontProfile(getEffectiveFontProfileId());
+  applyFontPreviewVars(profile.previewVars);
+  if (fontProfileSelect) fontProfileSelect.value = resolved;
+  if (persist) localStorage.setItem('wechat-font-profile', resolved);
+  if (rerender) scheduleRender();
+}
+
 function updateCustomPanelVisibility(styleId) {
   if (!customPanel) return;
   const isCustom = styleId === CUSTOM_STYLE_ID;
@@ -131,7 +260,8 @@ function updateCustomInputs() {
   if (customBackgroundInput) customBackgroundInput.value = customColors.background;
 }
 
-function applyStyle(styleId) {
+function applyStyle(styleId, options = {}) {
+  const { applyTypoPreset = true, notifyTypoPreset = false } = options;
   const resolvedStyleId = styleId === CUSTOM_STYLE_ID || STYLE_PRESETS[styleId]
     ? styleId
     : DEFAULT_STYLE_ID;
@@ -148,6 +278,24 @@ function applyStyle(styleId) {
   } else {
     clearCustomPreviewVars();
   }
+  if (fontProfileId === AUTO_FONT_PROFILE_ID) {
+    applyFontProfile(AUTO_FONT_PROFILE_ID, { persist: false, rerender: false });
+  }
+  if (applyTypoPreset) {
+    const recommendedScale = getRecommendedFontScale(resolvedStyleId);
+    const recommendedLayout = getRecommendedLayoutSettings(resolvedStyleId);
+    applyFontScale(recommendedScale);
+    applyFontBaseWeight(recommendedLayout.fontWeight);
+    applySpacingScale(recommendedLayout.spacingScale);
+    applyContentPaddingX(recommendedLayout.contentPaddingX);
+    if (notifyTypoPreset) {
+      showToast(
+        `已应用推荐排版：正文 ${Math.round(recommendedScale.base * 100)}% · 标题 ${Math.round(recommendedScale.heading * 100)}% · 代码 ${Math.round(recommendedScale.code * 100)}% · 间距 ${Math.round(recommendedLayout.spacingScale * 100)}%`,
+        2000
+      );
+    }
+    return;
+  }
   scheduleRender();
 }
 
@@ -162,10 +310,13 @@ function applySpacingScale(scale) {
 }
 
 function applyFontScale(nextScale) {
+  const baseScale = (nextScale && Number.isFinite(nextScale.base)) ? nextScale.base : 1;
+  const headingScale = (nextScale && Number.isFinite(nextScale.heading)) ? nextScale.heading : 1;
+  const codeScale = (nextScale && Number.isFinite(nextScale.code)) ? nextScale.code : 1;
   const safeScale = {
-    base: Math.min(1.4, Math.max(0.7, nextScale.base ?? 1)),
-    heading: Math.min(1.4, Math.max(0.7, nextScale.heading ?? 1)),
-    code: Math.min(1.4, Math.max(0.7, nextScale.code ?? 1)),
+    base: Math.min(1.4, Math.max(0.7, baseScale)),
+    heading: Math.min(1.4, Math.max(0.7, headingScale)),
+    code: Math.min(1.4, Math.max(0.7, codeScale)),
   };
   fontScale = safeScale;
   document.documentElement.style.setProperty('--font-base-scale', String(safeScale.base));
@@ -186,12 +337,38 @@ function applyFontScale(nextScale) {
 function initSpacingControl() {
   if (!spacingRange || !spacingValue) return;
   const savedScaleRaw = localStorage.getItem('wechat-space-scale');
-  const savedScale = savedScaleRaw ? Number.parseFloat(savedScaleRaw) : 1;
-  applySpacingScale(Number.isNaN(savedScale) ? 1 : savedScale);
+  const recommended = getRecommendedLayoutSettings(getCurrentStyleId());
+  const savedScale = savedScaleRaw ? Number.parseFloat(savedScaleRaw) : recommended.spacingScale;
+  applySpacingScale(Number.isNaN(savedScale) ? recommended.spacingScale : savedScale);
 
   spacingRange.addEventListener('input', (event) => {
     const value = Number.parseFloat(event.target.value);
     applySpacingScale(Number.isNaN(value) ? 1 : value);
+  });
+}
+
+function applyFontBaseWeight(nextWeight) {
+  const parsed = Math.round(nextWeight);
+  const clamped = Math.min(500, Math.max(300, Number.isFinite(parsed) ? parsed : 400));
+  const snapped = Math.round(clamped / 50) * 50;
+  fontBaseWeight = snapped;
+  document.documentElement.style.setProperty('--font-base-weight', String(snapped));
+  if (fontWeightRange) fontWeightRange.value = String(snapped);
+  if (fontWeightValue) fontWeightValue.textContent = String(snapped);
+  localStorage.setItem('wechat-font-weight', String(snapped));
+  scheduleRender();
+}
+
+function initFontWeightControl() {
+  if (!fontWeightRange || !fontWeightValue) return;
+  const savedRaw = localStorage.getItem('wechat-font-weight');
+  const recommended = getRecommendedLayoutSettings(getCurrentStyleId());
+  const savedWeight = savedRaw ? Number.parseInt(savedRaw, 10) : recommended.fontWeight;
+  applyFontBaseWeight(Number.isNaN(savedWeight) ? recommended.fontWeight : savedWeight);
+
+  fontWeightRange.addEventListener('input', (event) => {
+    const value = Number.parseInt(event.target.value, 10);
+    applyFontBaseWeight(Number.isNaN(value) ? 400 : value);
   });
 }
 
@@ -206,9 +383,9 @@ function initFontControl() {
   }
 
   applyFontScale({
-    base: savedScale?.base ?? 1,
-    heading: savedScale?.heading ?? 1,
-    code: savedScale?.code ?? 1,
+    base: savedScale && Number.isFinite(savedScale.base) ? savedScale.base : 1,
+    heading: savedScale && Number.isFinite(savedScale.heading) ? savedScale.heading : 1,
+    code: savedScale && Number.isFinite(savedScale.code) ? savedScale.code : 1,
   });
 
   const handleFontChange = () => {
@@ -237,8 +414,9 @@ function applyContentPaddingX(nextPadding) {
 function initContentPaddingControl() {
   if (!contentPaddingRange || !contentPaddingValue) return;
   const savedRaw = localStorage.getItem('wechat-content-padding-x');
-  const saved = savedRaw ? Number.parseFloat(savedRaw) : 0;
-  applyContentPaddingX(Number.isNaN(saved) ? 0 : saved);
+  const recommended = getRecommendedLayoutSettings(getCurrentStyleId());
+  const saved = savedRaw ? Number.parseFloat(savedRaw) : recommended.contentPaddingX;
+  applyContentPaddingX(Number.isNaN(saved) ? recommended.contentPaddingX : saved);
 
   contentPaddingRange.addEventListener('input', (event) => {
     const value = Number.parseFloat(event.target.value);
@@ -272,22 +450,33 @@ window.resetStyleSettings = function resetStyleSettings() {
   saveCustomColors(customColors);
   updateCustomInputs();
 
-  applyStyle(DEFAULT_STYLE_ID);
-  applySpacingScale(1);
-  applyFontScale({ base: 1, heading: 1, code: 1 });
-  applyContentPaddingX(0);
+  applyStyle(DEFAULT_STYLE_ID, { applyTypoPreset: true });
+  applyFontProfile(AUTO_FONT_PROFILE_ID);
 
   localStorage.removeItem('wechat-style');
   localStorage.removeItem('wechat-space-scale');
   localStorage.removeItem('wechat-font-scale');
+  localStorage.removeItem('wechat-font-weight');
   localStorage.removeItem('wechat-content-padding-x');
+  localStorage.removeItem('wechat-font-profile');
 };
 
 async function renderPreview() {
   const markdown = input.value;
   const current = ++renderCounter;
   if (markdown.trim()) {
-    const html = await getPreviewHtml(markdown, marked);
+    if (!isParserReady()) {
+      preview.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-state-icon">⚠️</div>
+          <div class="empty-state-text">Markdown 解析器加载失败，请刷新页面后重试</div>
+        </div>
+      `;
+      updateStats();
+      if (syncWarning) syncWarning.style.display = 'none';
+      return;
+    }
+    const html = await getPreviewHtml(markdown, markdownParser);
     if (current !== renderCounter) return;
     preview.innerHTML = html;
     processHighlightSentences();
@@ -333,6 +522,7 @@ function updateStats() {
 }
 
 function checkStyleSync() {
+  if (!syncWarning) return;
   const sample = preview.querySelector('p');
   if (!sample) {
     syncWarning.style.display = 'none';
@@ -347,17 +537,24 @@ window.copyToClipboard = async function copyToClipboard() {
     alert('请先输入 Markdown 内容');
     return;
   }
+  if (!isParserReady()) {
+    showParserUnavailableToast();
+    return;
+  }
   const styleId = getCurrentStyleId();
   const styledHtml = await getWeChatStyledHtml(
     input.value,
-    marked,
+    markdownParser,
     styleId,
     styleId === CUSTOM_STYLE_ID ? customColors : undefined,
     spacingScale,
     fontScale,
-    contentPaddingX
+    fontBaseWeight,
+    contentPaddingX,
+    getEffectiveFontProfileId()
   );
-  await copyHtmlToClipboard(styledHtml, preview, toast, UI_CONFIG.TOAST_DURATION);
+  const cleanHtml = stripBackgroundStyles(styledHtml);
+  await copyHtmlToClipboard(cleanHtml, preview, toast, UI_CONFIG.TOAST_DURATION, showToast);
 };
 
 window.copyPlainText = async function copyPlainText() {
@@ -365,7 +562,7 @@ window.copyPlainText = async function copyPlainText() {
     alert('请先输入 Markdown 内容');
     return;
   }
-  await copyPlainToClipboard(input.value, toast, UI_CONFIG.TOAST_DURATION);
+  await copyPlainToClipboard(input.value, toast, UI_CONFIG.TOAST_DURATION, showToast);
 };
 
 
@@ -374,45 +571,30 @@ window.clearInput = function clearInput() {
   window.__deleteClickCount += 1;
 
   if (window.__deleteClickCount === 1) {
-    toast.textContent = '🗑️ 再点一次确认清空';
-    toast.classList.add('show');
-    setTimeout(() => {
-      toast.classList.remove('show');
+    showToast('🗑️ 再点一次确认清空', UI_CONFIG.DELETE_CONFIRM_TIMEOUT);
+    if (deleteResetTimer) clearTimeout(deleteResetTimer);
+    deleteResetTimer = setTimeout(() => {
       window.__deleteClickCount = 0;
+      deleteResetTimer = null;
     }, UI_CONFIG.DELETE_CONFIRM_TIMEOUT);
   } else {
     window.__deleteClickCount = 0;
+    if (deleteResetTimer) {
+      clearTimeout(deleteResetTimer);
+      deleteResetTimer = null;
+    }
     input.value = '';
     renderPreview();
   }
 };
 
 window.pasteFromClipboard = async function pasteFromClipboard() {
-  const showPasteHintOnce = () => {
-    if (!toast) return;
-    if (sessionStorage.getItem('wechat-paste-hint-shown')) return;
-    sessionStorage.setItem('wechat-paste-hint-shown', '1');
-    toast.textContent = '📋 请长按粘贴内容';
-    toast.classList.add('show');
-    setTimeout(() => toast.classList.remove('show'), UI_CONFIG.TOAST_DURATION);
-  };
-
-  const focusInput = () => {
-    if (!input) return;
-    try {
-      input.focus({ preventScroll: true });
-    } catch {
-      input.focus();
-    }
-  };
-
   const canReadClipboard = !!(window.isSecureContext &&
     navigator.clipboard &&
     typeof navigator.clipboard.readText === 'function');
 
   if (!canReadClipboard) {
-    focusInput();
-    showPasteHintOnce();
+    openPasteModal('当前网络环境不支持自动读取剪贴板，请手动粘贴后点击“导入内容”。');
     return;
   }
 
@@ -421,16 +603,12 @@ window.pasteFromClipboard = async function pasteFromClipboard() {
     if (text && text.trim()) {
       input.value = text;
       scheduleRender();
-      toast.textContent = '✅ 内容已粘贴！';
-      toast.classList.add('show');
-      setTimeout(() => toast.classList.remove('show'), UI_CONFIG.TOAST_DURATION);
+      showToast('✅ 内容已粘贴！');
     } else {
-      focusInput();
-      showPasteHintOnce();
+      openPasteModal('剪贴板为空，请手动粘贴内容后导入。');
     }
   } catch (error) {
-    focusInput();
-    showPasteHintOnce();
+    openPasteModal('浏览器限制了读取剪贴板，请手动粘贴内容后导入。');
   }
 };
 
@@ -480,16 +658,17 @@ window.toggleTheme = function toggleTheme() {
   const body = document.body;
   const themeBtn = document.getElementById('theme-toggle');
   const themeColorMeta = document.getElementById('theme-color-meta');
+  if (!body) return;
 
   if (body.classList.contains('dark')) {
     body.classList.remove('dark');
-    themeBtn.innerHTML = '🌙';
-    themeColorMeta.content = '#dbeafe';
+    if (themeBtn) themeBtn.innerHTML = '🌙';
+    if (themeColorMeta) themeColorMeta.content = '#dbeafe';
     localStorage.setItem('x-theme', 'light');
   } else {
     body.classList.add('dark');
-    themeBtn.innerHTML = '☀️';
-    themeColorMeta.content = '#0f172a';
+    if (themeBtn) themeBtn.innerHTML = '☀️';
+    if (themeColorMeta) themeColorMeta.content = '#0f172a';
     localStorage.setItem('x-theme', 'dark');
   }
 };
@@ -498,15 +677,17 @@ function initTheme() {
   const savedTheme = localStorage.getItem('x-theme');
   const themeBtn = document.getElementById('theme-toggle');
   const themeColorMeta = document.getElementById('theme-color-meta');
+  const body = document.body;
+  if (!body) return;
 
   if (savedTheme === 'dark') {
-    document.body.classList.add('dark');
-    themeBtn.innerHTML = '☀️';
-    themeColorMeta.content = '#0f172a';
+    body.classList.add('dark');
+    if (themeBtn) themeBtn.innerHTML = '☀️';
+    if (themeColorMeta) themeColorMeta.content = '#0f172a';
   } else {
-    document.body.classList.remove('dark');
-    themeBtn.innerHTML = '🌙';
-    themeColorMeta.content = '#dbeafe';
+    body.classList.remove('dark');
+    if (themeBtn) themeBtn.innerHTML = '🌙';
+    if (themeColorMeta) themeColorMeta.content = '#dbeafe';
   }
 }
 
@@ -634,7 +815,7 @@ function setupFab() {
   };
 
   const handleScroll = (event) => {
-    const target = event?.target;
+    const target = event && event.target ? event.target : null;
     if (!target || target === document) {
       updateFab(window.scrollY);
       return;
@@ -675,7 +856,29 @@ function initStylePicker() {
   applyStyle(defaultStyle);
 
   styleSelect.addEventListener('change', (event) => {
-    applyStyle(event.target.value);
+    applyStyle(event.target.value, { applyTypoPreset: true, notifyTypoPreset: true });
+  });
+}
+
+function initFontProfilePicker() {
+  if (!fontProfileSelect) return;
+  fontProfileSelect.innerHTML = '';
+  const autoOption = document.createElement('option');
+  autoOption.value = AUTO_FONT_PROFILE_ID;
+  autoOption.textContent = '跟随样式（推荐）';
+  fontProfileSelect.appendChild(autoOption);
+  Object.entries(FONT_PROFILES).forEach(([id, profile]) => {
+    const option = document.createElement('option');
+    option.value = id;
+    option.textContent = profile.label;
+    fontProfileSelect.appendChild(option);
+  });
+
+  const saved = localStorage.getItem('wechat-font-profile');
+  applyFontProfile(saved || AUTO_FONT_PROFILE_ID, { persist: false, rerender: false });
+
+  fontProfileSelect.addEventListener('change', (event) => {
+    applyFontProfile(event.target.value);
   });
 }
 
@@ -686,7 +889,7 @@ function initCustomColors() {
   updateCustomInputs();
   updateCustomPanelVisibility(getCurrentStyleId());
   if (getCurrentStyleId() === CUSTOM_STYLE_ID) {
-    applyStyle(CUSTOM_STYLE_ID);
+    applyStyle(CUSTOM_STYLE_ID, { applyTypoPreset: false });
   }
 
   const handleCustomChange = () => {
@@ -696,12 +899,33 @@ function initCustomColors() {
       background: normalizeHex(customBackgroundInput.value, DEFAULT_CUSTOM_COLORS.background),
     };
     saveCustomColors(customColors);
-    applyStyle(CUSTOM_STYLE_ID);
+    applyStyle(CUSTOM_STYLE_ID, { applyTypoPreset: false });
   };
 
   customPrimaryInput.addEventListener('input', handleCustomChange);
   customTextInput.addEventListener('input', handleCustomChange);
   customBackgroundInput.addEventListener('input', handleCustomChange);
+}
+
+function initPasteModal() {
+  if (!pasteModal || !pasteModalInput || !pasteModalConfirm || !pasteModalCancel) return;
+
+  pasteModalConfirm.addEventListener('click', importPasteModalContent);
+  pasteModalCancel.addEventListener('click', closePasteModal);
+
+  pasteModal.addEventListener('click', (event) => {
+    if (event.target === pasteModal) closePasteModal();
+  });
+
+  pasteModalInput.addEventListener('keydown', (event) => {
+    if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') {
+      importPasteModalContent();
+      return;
+    }
+    if (event.key === 'Escape') {
+      closePasteModal();
+    }
+  });
 }
 
 input.addEventListener('input', scheduleRender);
@@ -711,9 +935,12 @@ setupSwipe();
 setupFab();
 initTheme();
 initStylePicker();
+initFontProfilePicker();
 initCustomColors();
+initPasteModal();
 initSpacingControl();
 initFontControl();
+initFontWeightControl();
 initContentPaddingControl();
 initStylePanelToggle();
 renderPreview();

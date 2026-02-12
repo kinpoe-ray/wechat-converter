@@ -12,7 +12,12 @@
     <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0f172a">
     <meta name="color-scheme" content="light dark">
     <title>Markdown → 公众号格式转换器</title>
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="vendor/marked.min.js?v=20260212c"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&family=Manrope:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&family=Noto+Serif+SC:wght@400;600;700&display=swap"
+        rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -26,12 +31,12 @@
             --primary-hover: #2563eb;
             --bg-gradient: linear-gradient(180deg, #dbeafe 0%, #bfdbfe 50%, #93c5fd 100%);
             --page-bg: #eff6ff;
-            --card-bg: rgba(255, 255, 255, 0.95);
+            --card-bg: #ffffff;
             --card-border: rgba(59, 130, 246, 0.2);
             --card-shadow: 0 4px 24px rgba(59, 130, 246, 0.15);
             --text-primary: #1e293b;
-            --text-secondary: #475569;
-            --text-muted: #94a3b8;
+            --text-secondary: #1f2937;
+            --text-muted: #475569;
             --input-bg: #ffffff;
             --input-border: #e2e8f0;
             --input-focus-border: #3b82f6;
@@ -45,7 +50,15 @@
             --font-base-scale: 1;
             --font-heading-scale: 1;
             --font-code-scale: 1;
+            --font-base-weight: 400;
             --content-x: 0px;
+            --font-ui: "Inter", "PingFang SC", "Segoe UI", sans-serif;
+            --font-preview-base: "PingFang SC", "Hiragino Sans GB", "Noto Sans SC", "Microsoft YaHei", sans-serif;
+            --font-preview-heading: "HarmonyOS Sans SC", "PingFang SC", "Noto Sans SC", "Microsoft YaHei", sans-serif;
+            --font-preview-code: "JetBrains Mono", "SF Mono", "Cascadia Code", "Fira Code", monospace;
+            --preview-text-letter-spacing: 0.22px;
+            --preview-text-line-height: 1.86;
+            --preview-content-max-width: 780px;
         }
 
         body.dark {
@@ -66,6 +79,71 @@
             --toast-bg: #22c55e;
             --code-bg: #1e293b;
             --code-color: #f472b6;
+            --preview-text-color: #e2e8f0;
+            --preview-strong-color: #f8fafc;
+            --preview-h3-color: #e2e8f0;
+            --preview-h4-color: #e2e8f0;
+            --preview-highlight-bg: rgba(59, 130, 246, 0.25);
+            --preview-highlight-color: #dbeafe;
+            --preview-blockquote-bg: rgba(148, 163, 184, 0.16);
+            --preview-blockquote-border: rgba(148, 163, 184, 0.7);
+            --preview-blockquote-color: #e2e8f0;
+            --preview-pre-bg: #020617;
+            --preview-pre-color: #e2e8f0;
+            --preview-code-bg: rgba(148, 163, 184, 0.2);
+            --preview-code-color: #fbcfe8;
+            --preview-link-color: #93c5fd;
+            --preview-hr-color: rgba(148, 163, 184, 0.4);
+            --preview-table-head-bg: rgba(148, 163, 184, 0.18);
+            --preview-table-border: rgba(148, 163, 184, 0.4);
+            --preview-table-row-alt: rgba(148, 163, 184, 0.08);
+        }
+
+        body.dark[data-style="default"] {
+            --preview-h1-color: #60a5fa;
+            --preview-h2-color: #60a5fa;
+            --preview-h2-border: #3b82f6;
+            --preview-h3-border: #60a5fa;
+        }
+
+        body.dark[data-style="minimal"] {
+            --preview-h1-color: #e2e8f0;
+            --preview-h2-color: #e2e8f0;
+            --preview-h2-border: #94a3b8;
+            --preview-h3-border: #94a3b8;
+            --preview-highlight-color: #f8fafc;
+            --preview-code-color: #fda4af;
+            --preview-link-color: #cbd5e1;
+        }
+
+        body.dark[data-style="warm"] {
+            --preview-h1-color: #fb923c;
+            --preview-h2-color: #fb923c;
+            --preview-h2-border: #f97316;
+            --preview-h3-border: #fb923c;
+            --preview-highlight-color: #ffedd5;
+            --preview-code-color: #fdba74;
+            --preview-link-color: #fdba74;
+            --preview-blockquote-border: #fb923c;
+        }
+
+        body.dark[data-style="zhihu"] {
+            --preview-h1-color: #60a5fa;
+            --preview-h2-color: #60a5fa;
+            --preview-h2-border: #3b82f6;
+            --preview-h3-border: #60a5fa;
+            --preview-link-color: #93c5fd;
+            --preview-code-color: #93c5fd;
+        }
+
+        body.dark[data-style="magazine"] {
+            --preview-h1-color: #fbbf24;
+            --preview-h2-color: #fbbf24;
+            --preview-h2-border: #f59e0b;
+            --preview-h3-border: #f59e0b;
+            --preview-highlight-color: #fef3c7;
+            --preview-code-color: #fbbf24;
+            --preview-link-color: #fbbf24;
         }
 
         body[data-style="default"] {
@@ -75,7 +153,7 @@
             --preview-h3-color: #1e293b;
             --preview-h3-border: #3b82f6;
             --preview-h4-color: #1e293b;
-            --preview-text-color: #334155;
+            --preview-text-color: #1f2937;
             --preview-strong-color: #1e293b;
             --preview-highlight-bg: rgba(59, 130, 246, 0.1);
             --preview-highlight-color: #3b82f6;
@@ -193,8 +271,29 @@
             --preview-table-row-alt: #fffbeb;
         }
 
+        body.dark[data-style] {
+            --preview-text-color: #e2e8f0;
+            --preview-strong-color: #f8fafc;
+            --preview-h3-color: #e2e8f0;
+            --preview-h4-color: #e2e8f0;
+            --preview-highlight-bg: rgba(59, 130, 246, 0.25);
+            --preview-highlight-color: #dbeafe;
+            --preview-blockquote-bg: rgba(148, 163, 184, 0.16);
+            --preview-blockquote-border: rgba(148, 163, 184, 0.7);
+            --preview-blockquote-color: #e2e8f0;
+            --preview-pre-bg: #020617;
+            --preview-pre-color: #e2e8f0;
+            --preview-code-bg: rgba(148, 163, 184, 0.2);
+            --preview-code-color: #fbcfe8;
+            --preview-link-color: #93c5fd;
+            --preview-hr-color: rgba(148, 163, 184, 0.4);
+            --preview-table-head-bg: rgba(148, 163, 184, 0.18);
+            --preview-table-border: rgba(148, 163, 184, 0.4);
+            --preview-table-row-alt: rgba(148, 163, 184, 0.08);
+        }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter", sans-serif;
+            font-family: var(--font-ui);
             background: var(--bg-gradient);
             min-height: 100vh;
             min-height: 100dvh;
@@ -439,7 +538,7 @@
         }
 
         .mobile-tab-btn.active {
-            background: var(--primary-color);
+            background: var(--primary);
             color: #fff;
             border-color: transparent;
         }
@@ -518,7 +617,7 @@
 
         .style-label {
             font-size: 12px;
-            color: var(--text-muted);
+            color: var(--text-secondary);
         }
 
         .style-select {
@@ -566,8 +665,21 @@
             border-left: 1px dashed var(--input-border);
         }
 
+        .font-weight-control {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding-left: 6px;
+            border-left: 1px dashed var(--input-border);
+        }
+
         .spacing-range {
             width: 120px;
+            cursor: pointer;
+        }
+
+        .font-weight-range {
+            width: 96px;
             cursor: pointer;
         }
 
@@ -575,6 +687,13 @@
             font-size: 12px;
             color: var(--text-muted);
             min-width: 40px;
+            text-align: right;
+        }
+
+        .font-weight-value {
+            font-size: 12px;
+            color: var(--text-muted);
+            min-width: 32px;
             text-align: right;
         }
 
@@ -699,7 +818,7 @@
             padding: 20px;
             border: none;
             resize: none;
-            font-family: "SF Mono", Monaco, "Cascadia Code", monospace;
+            font-family: var(--font-preview-code);
             font-size: 14px;
             line-height: 1.7;
             color: var(--text-primary);
@@ -722,11 +841,13 @@
 
         #preview {
             padding: calc(var(--space-scale) * 20px);
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-family: var(--font-preview-base);
             font-size: calc(16px * var(--font-base-scale));
-            line-height: 1.8;
+            line-height: var(--preview-text-line-height);
             color: var(--preview-text-color);
             min-height: 100%;
+            max-width: min(var(--preview-content-max-width), 100%);
+            margin: 0 auto;
         }
 
         /* ========== 公众号样式 - 与复制逻辑同步 ========== */
@@ -738,7 +859,9 @@
             margin: calc(var(--space-scale) * 40px) 0 calc(var(--space-scale) * 24px) 0;
             padding-left: var(--content-x);
             padding-right: var(--content-x);
-            line-height: 1.4;
+            line-height: 1.34;
+            font-family: var(--font-preview-heading);
+            letter-spacing: 0.2px;
         }
 
         #preview h2 {
@@ -751,7 +874,9 @@
             padding-left: var(--content-x);
             padding-right: var(--content-x);
             border-bottom: 2px solid var(--preview-h2-border);
-            line-height: 1.4;
+            line-height: 1.36;
+            font-family: var(--font-preview-heading);
+            letter-spacing: 0.15px;
         }
 
         #preview h2:first-child {
@@ -768,6 +893,7 @@
             padding-right: var(--content-x);
             border-left: 4px solid var(--preview-h3-border);
             line-height: 1.4;
+            font-family: var(--font-preview-heading);
         }
 
         #preview h4 {
@@ -778,14 +904,16 @@
             margin-bottom: calc(var(--space-scale) * 12px);
             padding-left: var(--content-x);
             padding-right: var(--content-x);
-            line-height: 1.4;
+            line-height: 1.45;
+            font-family: var(--font-preview-heading);
         }
 
         #preview p {
             margin: calc(var(--space-scale) * 24px) 0;
-            line-height: 1.85;
+            line-height: var(--preview-text-line-height);
             text-align: justify;
-            letter-spacing: 0.5px;
+            letter-spacing: var(--preview-text-letter-spacing);
+            font-weight: var(--font-base-weight);
             padding-left: var(--content-x);
             padding-right: var(--content-x);
         }
@@ -822,6 +950,7 @@
         #preview section p {
             margin: 0 !important;
             line-height: 1.6;
+            font-weight: var(--font-base-weight);
         }
 
         /* 预览区 Emoji 高亮框样式 */
@@ -864,6 +993,7 @@
 
         #preview li {
             margin: calc(var(--space-scale) * 12px) 0;
+            font-weight: var(--font-base-weight);
         }
 
         #preview pre {
@@ -872,7 +1002,7 @@
             padding: calc(var(--space-scale) * 16px);
             border-radius: 10px;
             overflow-x: auto;
-            font-family: "SF Mono", Monaco, monospace;
+            font-family: var(--font-preview-code);
             font-size: calc(13px * var(--font-code-scale));
             line-height: 1.6;
             margin: calc(var(--space-scale) * 24px) 0;
@@ -896,6 +1026,7 @@
             color: var(--preview-text-color);
             padding: calc(var(--space-scale) * 12px) calc(var(--space-scale) * 10px);
             text-align: left;
+            font-weight: var(--font-base-weight);
             border: 1px solid var(--preview-table-border);
             padding-left: calc(var(--space-scale) * 12px + var(--content-x));
             padding-right: calc(var(--space-scale) * 10px + var(--content-x));
@@ -905,6 +1036,7 @@
             padding: calc(var(--space-scale) * 10px);
             border: 1px solid var(--preview-table-border);
             color: var(--preview-text-color);
+            font-weight: var(--font-base-weight);
             padding-left: calc(var(--space-scale) * 10px + var(--content-x));
             padding-right: calc(var(--space-scale) * 10px + var(--content-x));
         }
@@ -920,6 +1052,7 @@
             padding: calc(var(--space-scale) * 16px) calc(var(--space-scale) * 20px);
             margin: calc(var(--space-scale) * 28px) 0;
             color: var(--preview-blockquote-color);
+            font-weight: var(--font-base-weight);
             padding-left: calc(var(--space-scale) * 16px + var(--content-x));
             padding-right: calc(var(--space-scale) * 20px + var(--content-x));
         }
@@ -972,6 +1105,73 @@
         .toast.show {
             opacity: 1;
             visibility: visible;
+        }
+
+        .paste-modal {
+            position: fixed;
+            inset: 0;
+            z-index: 1200;
+            display: none;
+            align-items: flex-end;
+            justify-content: center;
+            padding: 16px;
+            background: rgba(15, 23, 42, 0.5);
+            backdrop-filter: blur(2px);
+            -webkit-backdrop-filter: blur(2px);
+        }
+
+        .paste-modal.show {
+            display: flex;
+        }
+
+        .paste-modal-sheet {
+            width: min(680px, 100%);
+            background: var(--card-bg);
+            border: 1px solid var(--input-border);
+            border-radius: 16px;
+            box-shadow: 0 20px 48px rgba(2, 6, 23, 0.35);
+            padding: 16px;
+        }
+
+        .paste-modal-title {
+            color: var(--text-primary);
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .paste-modal-desc {
+            color: var(--text-secondary);
+            font-size: 13px;
+            line-height: 1.5;
+            margin-bottom: 10px;
+        }
+
+        .paste-modal-input {
+            width: 100%;
+            min-height: 180px;
+            border-radius: 10px;
+            border: 1px solid var(--input-border);
+            background: var(--input-bg);
+            color: var(--text-primary);
+            font-family: var(--font-preview-code);
+            font-size: 14px;
+            line-height: 1.65;
+            padding: 12px;
+            resize: vertical;
+            outline: none;
+        }
+
+        .paste-modal-input:focus {
+            border-color: var(--input-focus-border);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.18);
+        }
+
+        .paste-modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 12px;
         }
 
         /* ========== 悬浮按钮 ========== */
@@ -1221,8 +1421,20 @@
                 gap: 4px;
             }
 
+            .font-weight-control {
+                border-left: none;
+                padding-left: 0;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 4px;
+            }
+
             .spacing-range {
                 width: 140px;
+            }
+
+            .font-weight-range {
+                width: 120px;
             }
 
             .font-control {
@@ -1324,6 +1536,26 @@
                 height: 48px;
                 font-size: 20px;
             }
+
+            .paste-modal {
+                padding: 10px;
+                align-items: flex-end;
+            }
+
+            .paste-modal-sheet {
+                border-radius: 14px;
+                padding: 14px;
+            }
+
+            .paste-modal-input {
+                min-height: 160px;
+                font-size: 16px;
+            }
+
+            .paste-modal-actions .btn {
+                flex: 1;
+                justify-content: center;
+            }
         }
 
         /* ========== 响应式 - 大屏 ========== */
@@ -1337,51 +1569,20 @@
             }
 
             .panel-header {
-
-                /* 字数统计面板 */
-                .stats-panel {
-                    display: flex;
-                    gap: 16px;
-                    padding: 12px 20px;
-                    border-top: 1px solid var(--input-border);
-                    background: var(--card-bg);
-                    flex-shrink: 0;
-                }
-
-                .stat-item {
-                    display: flex;
-                    flex-direction: column;
-                    align-items: center;
-                    gap: 4px;
-                }
-
-                .stat-label {
-                    font-size: 12px;
-                    color: var(--text-muted);
-                }
-
-                .stat-value {
-                    font-size: 16px;
-                    font-weight: 600;
-                    color: var(--primary);
-                }
-
-                @media (max-width: 768px) {
-                    .stats-panel {
-                        padding: 10px 16px;
-                        gap: 12px;
-                    }
-
-                    .stat-label {
-                        font-size: 11px;
-                    }
-
-                    .stat-value {
-                        font-size: 14px;
-                    }
-                }
-
                 padding: 16px 24px;
+            }
+
+            .stats-panel {
+                padding: 12px 20px;
+                gap: 16px;
+            }
+
+            .stat-label {
+                font-size: 12px;
+            }
+
+            .stat-value {
+                font-size: 16px;
             }
 
             #markdown-input,
@@ -1397,7 +1598,7 @@
             align-items: center;
             justify-content: center;
             height: 100%;
-            color: var(--text-muted);
+            color: var(--text-secondary);
             text-align: center;
             padding: 40px;
         }
@@ -1411,6 +1612,7 @@
         .empty-state-text {
             font-size: 15px;
             line-height: 1.6;
+            color: var(--text-secondary);
         }
     </style>
 </head>
@@ -1453,6 +1655,22 @@
                     <div class="style-panel-body" id="style-panel-body">
                     <label class="style-label" for="style-select">样式</label>
                     <select id="style-select" class="style-select" title="选择样式"></select>
+                    <label class="style-label" for="font-profile-select">字体</label>
+                    <select id="font-profile-select" class="style-select" title="选择字体方案"></select>
+                    <div class="font-weight-control">
+                        <label class="style-label" for="font-weight-range">正文字重</label>
+                        <input
+                            type="range"
+                            id="font-weight-range"
+                            class="font-weight-range"
+                            min="300"
+                            max="500"
+                            step="50"
+                            value="400"
+                            title="调整正文粗细"
+                        >
+                        <span class="font-weight-value" id="font-weight-value">400</span>
+                    </div>
                     <div class="spacing-control">
                         <label class="style-label" for="spacing-range">间距</label>
                         <input
@@ -1636,8 +1854,147 @@
     </div>
 
     <div class="toast" id="toast">✅ 已复制！粘贴到公众号即可</div>
+    <div class="paste-modal" id="paste-modal" aria-hidden="true">
+        <div class="paste-modal-sheet" role="dialog" aria-modal="true" aria-labelledby="paste-modal-title">
+            <h3 class="paste-modal-title" id="paste-modal-title">手动粘贴内容</h3>
+            <p class="paste-modal-desc" id="paste-modal-desc">当前环境限制自动读取剪贴板，请在下方粘贴后导入。</p>
+            <textarea
+                id="paste-modal-input"
+                class="paste-modal-input"
+                placeholder="在这里粘贴 Markdown 内容..."
+                spellcheck="false"
+            ></textarea>
+            <div class="paste-modal-actions">
+                <button type="button" class="btn btn-secondary" id="paste-modal-cancel">取消</button>
+                <button type="button" class="btn btn-primary" id="paste-modal-confirm">导入内容</button>
+            </div>
+        </div>
+    </div>
 
-    <script type="module" src="ui.js"></script>
+    <script>
+        (function initFallbackRuntime() {
+            const body = document.body;
+            const themeBtn = document.getElementById('theme-toggle');
+            const themeColorMeta = document.getElementById('theme-color-meta');
+            const input = document.getElementById('markdown-input');
+            const toast = document.getElementById('toast');
+            const pasteModal = document.getElementById('paste-modal');
+            const pasteModalInput = document.getElementById('paste-modal-input');
+            const pasteModalConfirm = document.getElementById('paste-modal-confirm');
+            const pasteModalCancel = document.getElementById('paste-modal-cancel');
+            const pasteModalDesc = document.getElementById('paste-modal-desc');
+
+            let fallbackToastTimer = null;
+
+            const showToast = (message, duration = 2500) => {
+                if (!toast) return;
+                if (fallbackToastTimer) clearTimeout(fallbackToastTimer);
+                toast.textContent = message;
+                toast.classList.add('show');
+                fallbackToastTimer = setTimeout(() => {
+                    toast.classList.remove('show');
+                    fallbackToastTimer = null;
+                }, duration);
+            };
+
+            const applyTheme = (theme) => {
+                if (!body) return;
+                const isDark = theme === 'dark';
+                body.classList.toggle('dark', isDark);
+                if (themeBtn) themeBtn.innerHTML = isDark ? '☀️' : '🌙';
+                if (themeColorMeta) themeColorMeta.content = isDark ? '#0f172a' : '#dbeafe';
+                localStorage.setItem('x-theme', isDark ? 'dark' : 'light');
+            };
+
+            const savedTheme = localStorage.getItem('x-theme');
+            applyTheme(savedTheme === 'dark' ? 'dark' : 'light');
+
+            if (typeof window.toggleTheme !== 'function') {
+                window.toggleTheme = function fallbackToggleTheme() {
+                    const nextTheme = body && body.classList.contains('dark') ? 'light' : 'dark';
+                    applyTheme(nextTheme);
+                };
+            }
+
+            const openPasteModal = (description) => {
+                if (!pasteModal || !pasteModalInput) {
+                    if (input) input.focus();
+                    showToast('📋 请长按后粘贴到输入框');
+                    return;
+                }
+                if (pasteModalDesc && description) pasteModalDesc.textContent = description;
+                pasteModal.classList.add('show');
+                pasteModal.setAttribute('aria-hidden', 'false');
+                setTimeout(() => {
+                    try {
+                        pasteModalInput.focus({ preventScroll: true });
+                    } catch (error) {
+                        pasteModalInput.focus();
+                    }
+                }, 30);
+            };
+
+            const closePasteModal = () => {
+                if (!pasteModal) return;
+                pasteModal.classList.remove('show');
+                pasteModal.setAttribute('aria-hidden', 'true');
+            };
+
+            const importPasteContent = () => {
+                if (!pasteModalInput || !input) return;
+                if (!pasteModalInput.value.trim()) {
+                    showToast('⚠️ 请先粘贴内容再导入');
+                    return;
+                }
+                input.value = pasteModalInput.value;
+                closePasteModal();
+                input.dispatchEvent(new Event('input', { bubbles: true }));
+                showToast('✅ 已导入粘贴内容');
+            };
+
+            if (pasteModalConfirm && !pasteModalConfirm.dataset.fallbackBound) {
+                pasteModalConfirm.dataset.fallbackBound = '1';
+                pasteModalConfirm.addEventListener('click', importPasteContent);
+            }
+            if (pasteModalCancel && !pasteModalCancel.dataset.fallbackBound) {
+                pasteModalCancel.dataset.fallbackBound = '1';
+                pasteModalCancel.addEventListener('click', closePasteModal);
+            }
+            if (pasteModal && !pasteModal.dataset.fallbackBound) {
+                pasteModal.dataset.fallbackBound = '1';
+                pasteModal.addEventListener('click', (event) => {
+                    if (event.target === pasteModal) closePasteModal();
+                });
+            }
+
+            if (typeof window.pasteFromClipboard !== 'function') {
+                window.pasteFromClipboard = async function fallbackPaste() {
+                    const canReadClipboard = !!(window.isSecureContext &&
+                        navigator.clipboard &&
+                        typeof navigator.clipboard.readText === 'function');
+                    if (!canReadClipboard) {
+                        openPasteModal('当前网络环境不支持自动读取剪贴板，请手动粘贴后点击“导入内容”。');
+                        return;
+                    }
+                    try {
+                        const text = await navigator.clipboard.readText();
+                        if (text && text.trim()) {
+                            if (input) {
+                                input.value = text;
+                                input.dispatchEvent(new Event('input', { bubbles: true }));
+                            }
+                            showToast('✅ 内容已粘贴！');
+                            return;
+                        }
+                        openPasteModal('剪贴板为空，请手动粘贴内容后导入。');
+                    } catch (error) {
+                        openPasteModal('浏览器限制了读取剪贴板，请手动粘贴内容后导入。');
+                    }
+                };
+            }
+        }());
+    </script>
+    <script type="module" src="ui.js?v=20260212d"></script>
 </body>
 
 </html>
