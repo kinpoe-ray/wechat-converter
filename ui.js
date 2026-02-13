@@ -676,7 +676,7 @@ window.toggleStylePanel = function toggleStylePanel() {
   stylePanelToggle.click();
 };
 
-window.toggleTheme = function toggleTheme() {
+function toggleTheme() {
   const body = document.body;
   const themeBtn = document.getElementById('theme-toggle');
   const themeColorMeta = document.getElementById('theme-color-meta');
@@ -693,7 +693,10 @@ window.toggleTheme = function toggleTheme() {
     if (themeColorMeta) themeColorMeta.content = '#0f172a';
     localStorage.setItem('x-theme', 'dark');
   }
-};
+}
+
+// 同时挂载到 window 对象，保持兼容性
+window.toggleTheme = toggleTheme;
 
 function initTheme() {
   const savedTheme = localStorage.getItem('x-theme');
@@ -952,6 +955,13 @@ function initPasteModal() {
 
 input.addEventListener('input', scheduleRender);
 window.addEventListener('resize', handleResize);
+
+// 绑定主题切换按钮事件
+const themeToggleBtn = document.getElementById('theme-toggle');
+if (themeToggleBtn) {
+  themeToggleBtn.addEventListener('click', toggleTheme);
+}
+
 handleResize();
 setupSwipe();
 setupFab();
