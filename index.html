@@ -1008,6 +1008,68 @@
             margin: calc(var(--space-scale) * 24px) 0;
             padding-left: calc(var(--space-scale) * 16px + var(--content-x));
             padding-right: calc(var(--space-scale) * 16px + var(--content-x));
+            position: relative;
+        }
+
+        /* 代码块语言标签 */
+        #preview pre::before {
+            content: attr(data-language);
+            position: absolute;
+            top: 8px;
+            right: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--preview-pre-color);
+            opacity: 0.7;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* 表格容器 - 支持横向滚动 */
+        .table-wrapper {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            margin: calc(var(--space-scale) * 24px) 0;
+            padding-left: var(--content-x);
+            padding-right: var(--content-x);
+        }
+
+        .table-wrapper::-webkit-scrollbar {
+            height: 8px;
+        }
+
+        .table-wrapper::-webkit-scrollbar-track {
+            background: rgba(148, 163, 184, 0.1);
+            border-radius: 4px;
+        }
+
+        .table-wrapper::-webkit-scrollbar-thumb {
+            background: rgba(148, 163, 184, 0.4);
+            border-radius: 4px;
+        }
+
+        .table-wrapper::-webkit-scrollbar-thumb:hover {
+            background: rgba(148, 163, 184, 0.6);
+        }
+
+        /* 移动端表格滚动提示 */
+        .table-wrapper.has-scroll::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: 60px;
+            background: linear-gradient(to right, transparent, var(--card-bg));
+            pointer-events: none;
+        }
+
+        @media (max-width: 768px) {
+            .table-wrapper {
+                padding-left: 16px;
+                padding-right: 16px;
+            }
         }
 
         #preview table {
@@ -1088,7 +1150,7 @@
             position: fixed;
             top: 24px;
             left: 50%;
-            transform: translateX(-50%);
+            transform: translateX(-50%) translateY(-20px);
             background: var(--toast-bg);
             color: white;
             padding: 12px 24px;
@@ -1099,12 +1161,35 @@
             z-index: 1000;
             opacity: 0;
             visibility: hidden;
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         .toast.show {
             opacity: 1;
             visibility: visible;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .toast-icon {
+            font-size: 18px;
+            animation: checkmark 0.4s ease-out;
+        }
+
+        @keyframes checkmark {
+            0% {
+                transform: scale(0);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.3);
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
         }
 
         .paste-modal {

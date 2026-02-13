@@ -101,10 +101,14 @@ function scheduleRender() {
   renderTimer = setTimeout(renderPreview, UI_CONFIG.RENDER_DEBOUNCE);
 }
 
-function showToast(message, duration = UI_CONFIG.TOAST_DURATION) {
+function showToast(message, duration = UI_CONFIG.TOAST_DURATION, withIcon = false) {
   if (!toast) return;
   if (toastTimer) clearTimeout(toastTimer);
-  toast.textContent = message;
+  if (withIcon) {
+    toast.innerHTML = `<span class="toast-icon">✅</span><span>${message}</span>`;
+  } else {
+    toast.textContent = message;
+  }
   toast.classList.add('show');
   toastTimer = setTimeout(() => {
     toast.classList.remove('show');
@@ -171,7 +175,7 @@ function importPasteModalContent() {
   input.value = nextValue;
   closePasteModal();
   scheduleRender();
-  showToast('✅ 已导入粘贴内容');
+  showToast('已导入粘贴内容', UI_CONFIG.TOAST_DURATION, true);
 }
 
 function getCurrentStyleId() {
@@ -461,6 +465,23 @@ window.resetStyleSettings = function resetStyleSettings() {
   localStorage.removeItem('wechat-font-profile');
 };
 
+function wrapTables() {
+  const tables = preview.querySelectorAll('table');
+  tables.forEach((table) => {
+    if (!table.parentElement.classList.contains('table-wrapper')) {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'table-wrapper';
+      table.parentNode.insertBefore(wrapper, table);
+      wrapper.appendChild(table);
+
+      // 检查是否需要横向滚动
+      if (table.offsetWidth > wrapper.offsetWidth) {
+        wrapper.classList.add('has-scroll');
+      }
+    }
+  });
+}
+
 async function renderPreview() {
   const markdown = input.value;
   const current = ++renderCounter;
@@ -479,6 +500,7 @@ async function renderPreview() {
     const html = await getPreviewHtml(markdown, markdownParser);
     if (current !== renderCounter) return;
     preview.innerHTML = html;
+    wrapTables();
     processHighlightSentences();
     updateStats();
     checkStyleSync();
@@ -554,7 +576,7 @@ window.copyToClipboard = async function copyToClipboard() {
     getEffectiveFontProfileId()
   );
   const cleanHtml = stripBackgroundStyles(styledHtml);
-  await copyHtmlToClipboard(cleanHtml, preview, toast, UI_CONFIG.TOAST_DURATION, showToast);
+  await copyHtmlToClipboard(cleanHtml, preview, toast, UI_CONFIG.TOAST_DURATION, (msg) => showToast(msg, UI_CONFIG.TOAST_DURATION, true));
 };
 
 window.copyPlainText = async function copyPlainText() {
@@ -603,7 +625,7 @@ window.pasteFromClipboard = async function pasteFromClipboard() {
     if (text && text.trim()) {
       input.value = text;
       scheduleRender();
-      showToast('✅ 内容已粘贴！');
+      showToast('内容已粘贴', UI_CONFIG.TOAST_DURATION, true);
     } else {
       openPasteModal('剪贴板为空，请手动粘贴内容后导入。');
     }

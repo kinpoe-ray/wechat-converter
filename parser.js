@@ -573,6 +573,25 @@ export function processNotionAside(html, styles, spacingScale = 1) {
   });
 }
 
+export function extractLanguageFromCodeBlock(markdown) {
+  const codeBlockRegex = /```(\w+)?\n/g;
+  const languages = [];
+  let match;
+  while ((match = codeBlockRegex.exec(markdown)) !== null) {
+    languages.push(match[1] || 'text');
+  }
+  return languages;
+}
+
+export function addCodeLanguageLabels(html, languages) {
+  let index = 0;
+  return html.replace(/<pre /g, (match) => {
+    const language = languages[index] || 'text';
+    index++;
+    return `${match}data-language="${language}" `;
+  });
+}
+
 export function fixPreCode(html, styles) {
   return html.replace(
     /<pre style="([^"]+)">\s*<code style="[^"]+">/g,
@@ -611,6 +630,8 @@ export async function getPreviewHtml(markdown, marked) {
   const normalized = normalizeNotionMarkdown(markdown);
   const processed = replaceMermaidBlocks(normalized);
   let html = marked.parse(processed);
+  const languages = extractLanguageFromCodeBlock(normalized);
+  html = addCodeLanguageLabels(html, languages);
   return html;
 }
 
@@ -643,6 +664,8 @@ export async function getWeChatStyledHtml(
   const normalized = normalizeNotionMarkdown(markdown);
   const processed = replaceMermaidBlocks(normalized);
   let html = marked.parse(processed);
+  const languages = extractLanguageFromCodeBlock(normalized);
+  html = addCodeLanguageLabels(html, languages);
   html = applyInlineStyles(html, scaledStyles);
   html = processNotionAside(html, scaledStyles, spacingScale);
   html = fixPreCode(html, scaledStyles);
