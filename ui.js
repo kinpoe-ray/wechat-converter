@@ -556,7 +556,7 @@ function checkStyleSync() {
 
 window.copyToClipboard = async function copyToClipboard() {
   if (!input.value.trim()) {
-    alert('请先输入 Markdown 内容');
+    showToast('⚠️ 请先输入 Markdown内容');
     return;
   }
   if (!isParserReady()) {
@@ -581,7 +581,7 @@ window.copyToClipboard = async function copyToClipboard() {
 
 window.copyPlainText = async function copyPlainText() {
   if (!input.value.trim()) {
-    alert('请先输入 Markdown 内容');
+    showToast('⚠️ 请先输入 Markdown内容');
     return;
   }
   await copyPlainToClipboard(input.value, toast, UI_CONFIG.TOAST_DURATION, showToast);
