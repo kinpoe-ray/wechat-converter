@@ -140,34 +140,70 @@ function renderMermaidPanelEmpty() {
   if (fabMermaid) fabMermaid.classList.remove('show');
 }
 
-function downloadSvgFromDom(stageEl, filename = 'mermaid-diagram.svg') {
-  const liveSvg = stageEl.querySelector('svg');
-  if (!liveSvg) throw new Error('SVG 元素不存在');
+function downloadMermaidAsPng(stageEl, filename = 'mermaid-diagram.png') {
+  return new Promise((resolve, reject) => {
+    const liveSvg = stageEl.querySelector('svg');
+    if (!liveSvg) { reject(new Error('SVG 元素不存在')); return; }
 
-  const clone = liveSvg.cloneNode(true);
+    const clone = liveSvg.cloneNode(true);
+    if (!clone.getAttribute('xmlns')) {
+      clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+    }
+    clone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink');
 
-  if (!clone.getAttribute('xmlns')) {
-    clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-  }
-  clone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink');
+    const vb = clone.getAttribute('viewBox');
+    let w = 0, h = 0;
+    if (vb) {
+      const parts = vb.split(/[\s,]+/).map(Number);
+      if (parts.length === 4) { w = parts[2]; h = parts[3]; }
+    }
+    if (!w || !h) {
+      const bbox = liveSvg.getBBox();
+      w = Math.ceil(bbox.x + bbox.width + 20);
+      h = Math.ceil(bbox.y + bbox.height + 20);
+    }
 
-  const bgRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-  bgRect.setAttribute('width', '100%');
-  bgRect.setAttribute('height', '100%');
-  bgRect.setAttribute('fill', '#ffffff');
-  clone.insertBefore(bgRect, clone.firstChild);
+    clone.setAttribute('width', String(w));
+    clone.setAttribute('height', String(h));
+    if (!vb) clone.setAttribute('viewBox', `0 0 ${w} ${h}`);
 
-  const serializer = new XMLSerializer();
-  const svgStr = '<?xml version="1.0" encoding="UTF-8"?>\n' + serializer.serializeToString(clone);
-  const blob = new Blob([svgStr], { type: 'image/svg+xml;charset=utf-8' });
-  const url = URL.createObjectURL(blob);
-  const anchor = document.createElement('a');
-  anchor.href = url;
-  anchor.download = filename;
-  document.body.appendChild(anchor);
-  anchor.click();
-  anchor.remove();
-  URL.revokeObjectURL(url);
+    const bgRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+    bgRect.setAttribute('width', String(w));
+    bgRect.setAttribute('height', String(h));
+    bgRect.setAttribute('fill', '#ffffff');
+    clone.insertBefore(bgRect, clone.firstChild);
+
+    const serializer = new XMLSerializer();
+    const svgStr = serializer.serializeToString(clone);
+    const dataUrl = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgStr);
+
+    const scale = 2;
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.round(w * scale);
+      canvas.height = Math.round(h * scale);
+      const ctx = canvas.getContext('2d');
+      if (!ctx) { reject(new Error('Canvas 上下文创建失败')); return; }
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      canvas.toBlob((pngBlob) => {
+        if (!pngBlob) { reject(new Error('PNG 生成失败')); return; }
+        const pngUrl = URL.createObjectURL(pngBlob);
+        const anchor = document.createElement('a');
+        anchor.href = pngUrl;
+        anchor.download = filename;
+        document.body.appendChild(anchor);
+        anchor.click();
+        anchor.remove();
+        URL.revokeObjectURL(pngUrl);
+        resolve();
+      }, 'image/png');
+    };
+    img.onerror = () => reject(new Error('SVG 渲染为图片失败'));
+    img.src = dataUrl;
+  });
 }
 
 async function renderMermaidPanel(mermaidBlocks) {
@@ -199,7 +235,7 @@ async function renderMermaidPanel(mermaidBlocks) {
     const exportBtn = document.createElement('button');
     exportBtn.className = 'btn btn-secondary';
     exportBtn.style.cssText = 'padding: 4px 10px; font-size: 12px;';
-    exportBtn.textContent = '⬇️ 导出 SVG';
+    exportBtn.textContent = '⬇️ 导出 PNG';
     header.appendChild(label);
     header.appendChild(exportBtn);
 
@@ -222,14 +258,14 @@ async function renderMermaidPanel(mermaidBlocks) {
 
     const stageRef = stage;
     const exportIdx = i;
-    exportBtn.addEventListener('click', () => {
+    exportBtn.addEventListener('click', async () => {
       if (!stageRef.querySelector('svg')) {
         showToast('⚠️ 该图渲染失败，无法导出');
         return;
       }
       try {
-        downloadSvgFromDom(stageRef, `mermaid-${exportIdx + 1}.svg`);
-        showToast(`图 ${exportIdx + 1} 已导出为 SVG`, UI_CONFIG.TOAST_DURATION, true);
+        await downloadMermaidAsPng(stageRef, `mermaid-${exportIdx + 1}.png`);
+        showToast(`图 ${exportIdx + 1} 已导出为 PNG`, UI_CONFIG.TOAST_DURATION, true);
       } catch (error) {
         showToast(`⚠️ 导出失败：${error.message}`);
       }
