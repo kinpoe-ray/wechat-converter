@@ -133,65 +133,45 @@ function renderMermaidPanelEmpty() {
   if (fabMermaid) fabMermaid.classList.remove('show');
 }
 
-function getSvgDimensions(svgEl) {
-  const vb = svgEl.getAttribute('viewBox');
-  if (vb) {
-    const parts = vb.split(/[\s,]+/).map(Number);
-    if (parts.length === 4 && parts[2] > 0 && parts[3] > 0) {
-      return { w: parts[2], h: parts[3] };
+function downloadSvgFromDom(stageEl, filename = 'mermaid-diagram.svg') {
+  const liveSvg = stageEl.querySelector('svg');
+  if (!liveSvg) throw new Error('SVG 元素不存在');
+
+  const clone = liveSvg.cloneNode(true);
+
+  if (!clone.getAttribute('xmlns')) {
+    clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+  }
+  clone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink');
+
+  const allLive = liveSvg.querySelectorAll('*');
+  const allClone = clone.querySelectorAll('*');
+  const svgProps = ['fill', 'stroke', 'stroke-width', 'stroke-dasharray', 'stroke-linecap',
+    'stroke-linejoin', 'opacity', 'font-family', 'font-size', 'font-weight',
+    'font-style', 'text-anchor', 'dominant-baseline', 'color', 'display',
+    'visibility', 'text-decoration', 'line-height', 'letter-spacing',
+    'word-spacing', 'white-space', 'overflow', 'background-color',
+    'border', 'padding', 'margin', 'max-width'];
+  for (let i = 0; i < allLive.length; i++) {
+    const cs = window.getComputedStyle(allLive[i]);
+    const pairs = [];
+    for (const p of svgProps) {
+      const v = cs.getPropertyValue(p);
+      if (v && v !== '' && v !== 'none' && v !== 'normal' && v !== 'auto' && v !== '0px') {
+        pairs.push(`${p}:${v}`);
+      }
+    }
+    if (pairs.length) {
+      const existing = allClone[i].getAttribute('style') || '';
+      allClone[i].setAttribute('style', existing ? `${existing};${pairs.join(';')}` : pairs.join(';'));
     }
   }
-  const rawW = svgEl.getAttribute('width');
-  const rawH = svgEl.getAttribute('height');
-  const w = rawW && !rawW.includes('%') ? parseFloat(rawW) : 0;
-  const h = rawH && !rawH.includes('%') ? parseFloat(rawH) : 0;
-  if (w > 0 && h > 0) return { w, h };
-  return { w: w || 800, h: h || 600 };
-}
 
-function inlineSvgStyles(svgEl) {
-  const styleEls = svgEl.querySelectorAll('style');
-  if (!styleEls.length) return;
+  clone.querySelectorAll('style').forEach((s) => s.remove());
 
-  const tempContainer = document.createElement('div');
-  tempContainer.style.cssText = 'position:absolute;left:-9999px;top:0;visibility:hidden;';
-  tempContainer.appendChild(svgEl.cloneNode(true));
-  document.body.appendChild(tempContainer);
-  const liveSvg = tempContainer.querySelector('svg');
-
-  const allEls = liveSvg.querySelectorAll('*');
-  const computed = new Map();
-  allEls.forEach((el) => {
-    const cs = window.getComputedStyle(el);
-    const props = ['fill', 'stroke', 'stroke-width', 'stroke-dasharray', 'stroke-linecap',
-      'stroke-linejoin', 'opacity', 'font-family', 'font-size', 'font-weight',
-      'font-style', 'text-anchor', 'dominant-baseline', 'color', 'transform'];
-    const styles = {};
-    props.forEach((p) => {
-      const v = cs.getPropertyValue(p);
-      if (v && v !== 'none' && v !== 'normal' && v !== '' && v !== 'auto') styles[p] = v;
-    });
-    computed.set(el, styles);
-  });
-
-  const origEls = svgEl.querySelectorAll('*');
-  let idx = 0;
-  origEls.forEach((el) => {
-    const styles = computed.get(allEls[idx]);
-    if (styles) {
-      const existing = el.getAttribute('style') || '';
-      const additions = Object.entries(styles)
-        .map(([k, v]) => `${k}:${v}`).join(';');
-      el.setAttribute('style', existing ? `${existing};${additions}` : additions);
-    }
-    idx++;
-  });
-
-  tempContainer.remove();
-  styleEls.forEach((s) => s.remove());
-}
-
-function triggerDownload(blob, filename) {
+  const serializer = new XMLSerializer();
+  const svgStr = '<?xml version="1.0" encoding="UTF-8"?>\n' + serializer.serializeToString(clone);
+  const blob = new Blob([svgStr], { type: 'image/svg+xml;charset=utf-8' });
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement('a');
   anchor.href = url;
@@ -200,77 +180,6 @@ function triggerDownload(blob, filename) {
   anchor.click();
   anchor.remove();
   URL.revokeObjectURL(url);
-}
-
-function downloadSvgAsPng(svgText, filename = 'mermaid-diagram.png') {
-  return new Promise((resolve, reject) => {
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(svgText, 'image/svg+xml');
-    const svgEl = doc.querySelector('svg');
-    if (!svgEl) { reject(new Error('SVG 解析失败')); return; }
-
-    const { w, h } = getSvgDimensions(svgEl);
-
-    if (!svgEl.getAttribute('xmlns')) {
-      svgEl.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-    }
-    svgEl.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink');
-
-    const hasForeignObject = svgEl.querySelector('foreignObject') !== null;
-
-    inlineSvgStyles(svgEl);
-
-    svgEl.setAttribute('width', String(w));
-    svgEl.setAttribute('height', String(h));
-    if (!svgEl.getAttribute('viewBox')) {
-      svgEl.setAttribute('viewBox', `0 0 ${w} ${h}`);
-    }
-
-    const serializer = new XMLSerializer();
-    const svgStr = serializer.serializeToString(svgEl);
-    const dataUrl = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgStr);
-
-    const scale = 2;
-    const img = new Image();
-    img.onload = () => {
-      const canvas = document.createElement('canvas');
-      canvas.width = Math.round(w * scale);
-      canvas.height = Math.round(h * scale);
-      const ctx = canvas.getContext('2d');
-      if (!ctx) { reject(new Error('Canvas 上下文创建失败')); return; }
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-      if (hasForeignObject) {
-        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        let nonWhite = 0;
-        for (let i = 0; i < imageData.data.length; i += 16) {
-          if (imageData.data[i] < 250 || imageData.data[i + 1] < 250 || imageData.data[i + 2] < 250) {
-            nonWhite++;
-          }
-        }
-        if (nonWhite < 20) {
-          const svgBlob = new Blob([svgStr], { type: 'image/svg+xml;charset=utf-8' });
-          triggerDownload(svgBlob, filename.replace(/\.png$/i, '.svg'));
-          resolve();
-          return;
-        }
-      }
-
-      canvas.toBlob((pngBlob) => {
-        if (!pngBlob) { reject(new Error('PNG 生成失败')); return; }
-        triggerDownload(pngBlob, filename);
-        resolve();
-      }, 'image/png');
-    };
-    img.onerror = () => {
-      const svgBlob = new Blob([svgStr], { type: 'image/svg+xml;charset=utf-8' });
-      triggerDownload(svgBlob, filename.replace(/\.png$/i, '.svg'));
-      resolve();
-    };
-    img.src = dataUrl;
-  });
 }
 
 async function renderMermaidPanel(mermaidBlocks) {
@@ -302,25 +211,16 @@ async function renderMermaidPanel(mermaidBlocks) {
     const exportBtn = document.createElement('button');
     exportBtn.className = 'btn btn-secondary';
     exportBtn.style.cssText = 'padding: 4px 10px; font-size: 12px;';
-    exportBtn.textContent = '⬇️ 导出 PNG';
-    const idx = i;
-    exportBtn.addEventListener('click', async () => {
-      if (!mermaidSvgs[idx]) {
-        showToast('⚠️ 该图渲染失败，无法导出');
-        return;
-      }
-      try {
-        await downloadSvgAsPng(mermaidSvgs[idx], `mermaid-${idx + 1}.png`);
-        showToast(`图 ${idx + 1} 已导出为 PNG`, UI_CONFIG.TOAST_DURATION, true);
-      } catch (error) {
-        showToast(`⚠️ 导出失败：${error.message}`);
-      }
-    });
+    exportBtn.textContent = '⬇️ 导出 SVG';
     header.appendChild(label);
     header.appendChild(exportBtn);
 
     const stage = document.createElement('div');
     stage.className = 'mermaid-item-stage';
+
+    item.appendChild(header);
+    item.appendChild(stage);
+    mermaidList.appendChild(item);
 
     try {
       const renderId = `mermaid-${Date.now()}-${i}`;
@@ -332,9 +232,20 @@ async function renderMermaidPanel(mermaidBlocks) {
       stage.innerHTML = `<p>⚠️ 语法错误：${error.message}</p>`;
     }
 
-    item.appendChild(header);
-    item.appendChild(stage);
-    mermaidList.appendChild(item);
+    const stageRef = stage;
+    const exportIdx = i;
+    exportBtn.addEventListener('click', () => {
+      if (!stageRef.querySelector('svg')) {
+        showToast('⚠️ 该图渲染失败，无法导出');
+        return;
+      }
+      try {
+        downloadSvgFromDom(stageRef, `mermaid-${exportIdx + 1}.svg`);
+        showToast(`图 ${exportIdx + 1} 已导出为 SVG`, UI_CONFIG.TOAST_DURATION, true);
+      } catch (error) {
+        showToast(`⚠️ 导出失败：${error.message}`);
+      }
+    });
   }
 
   const fabMermaid = document.getElementById('fab-mermaid');
@@ -934,6 +845,15 @@ window.switchTab = function switchTab(tab) {
       const targetTab = btn.getAttribute('data-tab');
       btn.style.display = targetTab === 'all' || targetTab === tab ? '' : 'none';
     });
+  }
+
+  const fabMermaid = document.getElementById('fab-mermaid');
+  if (fabMermaid) {
+    if (tab === 'preview' && mermaidSvgs && mermaidSvgs.length > 0) {
+      fabMermaid.classList.add('show');
+    } else {
+      fabMermaid.classList.remove('show');
+    }
   }
 };
 
