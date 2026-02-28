@@ -505,9 +505,30 @@ export function normalizeNotionMarkdown(markdown) {
 }
 
 export function replaceMermaidBlocks(markdown) {
-  return markdown.replace(/```mermaid[\s\S]*?```/g, () => {
-    return '⚠️ Mermaid 图表无法在公众号渲染，请在此处插入截图/图片。';
+  return extractMermaidBlocks(markdown).markdown;
+}
+
+export function extractMermaidBlocks(markdown) {
+  const blocks = [];
+  let index = 0;
+
+  const nextMarkdown = markdown.replace(/```mermaid\s*\n([\s\S]*?)```/gi, (match, code = '') => {
+    index += 1;
+    const id = `M${index}`;
+    const placeholder = `【${id}】`;
+    blocks.push({
+      id,
+      placeholder,
+      code: code.trim(),
+      raw: match,
+    });
+    return `\n\n${placeholder}\n\n`;
   });
+
+  return {
+    markdown: nextMarkdown,
+    blocks,
+  };
 }
 
 export function applyInlineStyles(html, styles) {
@@ -628,11 +649,11 @@ export function getStats(markdown) {
 
 export async function getPreviewHtml(markdown, marked) {
   const normalized = normalizeNotionMarkdown(markdown);
-  const processed = replaceMermaidBlocks(normalized);
+  const { markdown: processed, blocks: mermaidBlocks } = extractMermaidBlocks(normalized);
   let html = marked.parse(processed);
-  const languages = extractLanguageFromCodeBlock(normalized);
+  const languages = extractLanguageFromCodeBlock(processed);
   html = addCodeLanguageLabels(html, languages);
-  return html;
+  return { html, mermaidBlocks };
 }
 
 export async function getWeChatStyledHtml(
@@ -662,9 +683,9 @@ export async function getWeChatStyledHtml(
     contentPaddingX
   );
   const normalized = normalizeNotionMarkdown(markdown);
-  const processed = replaceMermaidBlocks(normalized);
+  const { markdown: processed } = extractMermaidBlocks(normalized);
   let html = marked.parse(processed);
-  const languages = extractLanguageFromCodeBlock(normalized);
+  const languages = extractLanguageFromCodeBlock(processed);
   html = addCodeLanguageLabels(html, languages);
   html = applyInlineStyles(html, scaledStyles);
   html = processNotionAside(html, scaledStyles, spacingScale);

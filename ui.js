@@ -53,6 +53,10 @@ const pasteModalInput = document.getElementById('paste-modal-input');
 const pasteModalConfirm = document.getElementById('paste-modal-confirm');
 const pasteModalCancel = document.getElementById('paste-modal-cancel');
 const pasteModalDesc = document.getElementById('paste-modal-desc');
+const mermaidPanel = document.getElementById('mermaid-panel');
+const mermaidMeta = document.getElementById('mermaid-meta');
+const mermaidStage = document.getElementById('mermaid-stage');
+const mermaidExportBtn = document.getElementById('mermaid-export-btn');
 
 const UI_CONFIG = {
   SWIPE_THRESHOLD: 80,
@@ -95,10 +99,111 @@ if (markdownParser && typeof markdownParser.setOptions === 'function') {
 let renderCounter = 0;
 let renderTimer = null;
 let toastTimer = null;
+let currentMermaidSvg = '';
+let mermaidInitialized = false;
+
+function getMermaidRuntime() {
+  if (typeof window === 'undefined' || !window.mermaid) return null;
+  return window.mermaid;
+}
+
+function ensureMermaidInitialized() {
+  const runtime = getMermaidRuntime();
+  if (!runtime || mermaidInitialized) return runtime;
+  runtime.initialize({
+    startOnLoad: false,
+    securityLevel: 'strict',
+    theme: document.body.classList.contains('dark') ? 'dark' : 'default',
+  });
+  mermaidInitialized = true;
+  return runtime;
+}
 
 function scheduleRender() {
   if (renderTimer) clearTimeout(renderTimer);
   renderTimer = setTimeout(renderPreview, UI_CONFIG.RENDER_DEBOUNCE);
+}
+
+function renderMermaidPanelEmpty() {
+  currentMermaidSvg = '';
+  if (!mermaidPanel || !mermaidMeta || !mermaidStage) return;
+  mermaidPanel.classList.remove('show');
+  mermaidMeta.textContent = '未检测到 Mermaid 图表';
+  mermaidStage.innerHTML = '';
+}
+
+function downloadSvgAsPng(svgText, filename = 'mermaid-diagram.png') {
+  return new Promise((resolve, reject) => {
+    const blob = new Blob([svgText], { type: 'image/svg+xml;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const img = new Image();
+    img.onload = () => {
+      const width = Math.max(img.width || 1200, 1200);
+      const height = Math.max(img.height || 700, 700);
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        URL.revokeObjectURL(url);
+        reject(new Error('Canvas 上下文创建失败'));
+        return;
+      }
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, width, height);
+      ctx.drawImage(img, 0, 0, width, height);
+      URL.revokeObjectURL(url);
+      canvas.toBlob((pngBlob) => {
+        if (!pngBlob) {
+          reject(new Error('PNG 生成失败'));
+          return;
+        }
+        const pngUrl = URL.createObjectURL(pngBlob);
+        const anchor = document.createElement('a');
+        anchor.href = pngUrl;
+        anchor.download = filename;
+        document.body.appendChild(anchor);
+        anchor.click();
+        anchor.remove();
+        URL.revokeObjectURL(pngUrl);
+        resolve();
+      }, 'image/png');
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error('SVG 加载失败'));
+    };
+    img.src = url;
+  });
+}
+
+async function renderMermaidPanel(mermaidBlocks) {
+  if (!mermaidPanel || !mermaidMeta || !mermaidStage) return;
+  if (!mermaidBlocks || mermaidBlocks.length === 0) {
+    renderMermaidPanelEmpty();
+    return;
+  }
+  mermaidPanel.classList.add('show');
+  mermaidMeta.textContent = `检测到 ${mermaidBlocks.length} 个 Mermaid 图，仅展示第 1 个（占位符：${mermaidBlocks[0].placeholder}）`;
+
+  const runtime = ensureMermaidInitialized();
+  if (!runtime || typeof runtime.render !== 'function') {
+    mermaidStage.innerHTML = '<p>⚠️ Mermaid 运行库未加载，无法渲染。请检查网络后重试。</p>';
+    currentMermaidSvg = '';
+    return;
+  }
+
+  try {
+    const first = mermaidBlocks[0];
+    const renderId = `mermaid-${Date.now()}`;
+    const result = await runtime.render(renderId, first.code || 'graph TD;A-->B;');
+    const svg = result && result.svg ? result.svg : '';
+    currentMermaidSvg = svg;
+    mermaidStage.innerHTML = svg || '<p>⚠️ Mermaid 渲染结果为空。</p>';
+  } catch (error) {
+    currentMermaidSvg = '';
+    mermaidStage.innerHTML = `<p>⚠️ Mermaid 语法可能有误：${error.message}</p>`;
+  }
 }
 
 function showToast(message, duration = UI_CONFIG.TOAST_DURATION, withIcon = false) {
@@ -497,11 +602,12 @@ async function renderPreview() {
       if (syncWarning) syncWarning.style.display = 'none';
       return;
     }
-    const html = await getPreviewHtml(markdown, markdownParser);
+    const { html, mermaidBlocks } = await getPreviewHtml(markdown, markdownParser);
     if (current !== renderCounter) return;
     preview.innerHTML = html;
     wrapTables();
     processHighlightSentences();
+    await renderMermaidPanel(mermaidBlocks);
     updateStats();
     checkStyleSync();
   } else {
@@ -511,6 +617,7 @@ async function renderPreview() {
         <div class="empty-state-text">在左侧输入 Markdown 内容<br>这里会实时显示转换效果</div>
       </div>
     `;
+    renderMermaidPanelEmpty();
     if (statsPanel) statsPanel.style.display = 'none';
   }
 }
@@ -586,6 +693,21 @@ window.copyPlainText = async function copyPlainText() {
   }
   await copyPlainToClipboard(input.value, toast, UI_CONFIG.TOAST_DURATION, showToast);
 };
+
+if (mermaidExportBtn) {
+  mermaidExportBtn.addEventListener('click', async () => {
+    if (!currentMermaidSvg) {
+      showToast('⚠️ 当前没有可导出的 Mermaid 图');
+      return;
+    }
+    try {
+      await downloadSvgAsPng(currentMermaidSvg, 'mermaid-diagram.png');
+      showToast('Mermaid 图已导出为 PNG', UI_CONFIG.TOAST_DURATION, true);
+    } catch (error) {
+      showToast(`⚠️ 导出失败：${error.message}`);
+    }
+  });
+}
 
 
 window.clearInput = function clearInput() {
