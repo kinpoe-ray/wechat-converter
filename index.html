@@ -870,7 +870,37 @@
             padding: 12px;
         }
 
-        .mermaid-stage svg {
+        .mermaid-list {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .mermaid-item {
+            border: 1px solid var(--input-border);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .mermaid-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            background: var(--card-bg);
+            border-bottom: 1px solid var(--input-border);
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .mermaid-item-stage {
+            background: #fff;
+            min-height: 80px;
+            overflow: auto;
+            padding: 12px;
+        }
+
+        .mermaid-item-stage svg {
             max-width: 100%;
             height: auto;
             display: block;
@@ -1749,7 +1779,7 @@
         </div>
         <div class="header-actions">
             <a href="https://x.com/kinpoe_ray" target="_blank" class="author-link">@kinpoe_ray</a>
-            <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" title="切换主题">🌙</button>
+            <button class="theme-toggle" id="theme-toggle" title="切换主题">🌙</button>
         </div>
     </header>
 
@@ -1949,12 +1979,9 @@
                     <div class="mermaid-panel" id="mermaid-panel">
                         <div class="panel-header">
                             <span class="panel-title"><span>🧭</span> Mermaid 渲染</span>
-                            <div class="btn-group">
-                                <button class="btn btn-secondary" id="mermaid-export-btn">⬇️ 导出 PNG</button>
-                            </div>
                         </div>
                         <div class="mermaid-meta" id="mermaid-meta">未检测到 Mermaid 图表</div>
-                        <div class="mermaid-stage" id="mermaid-stage"></div>
+                        <div class="mermaid-list" id="mermaid-list"></div>
                     </div>
                 </div>
             </div>
@@ -2047,6 +2074,7 @@
                     const nextTheme = body && body.classList.contains('dark') ? 'light' : 'dark';
                     applyTheme(nextTheme);
                 };
+                if (themeBtn) themeBtn.addEventListener('click', window.toggleTheme);
             }
 
             const openPasteModal = (description) => {

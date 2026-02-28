@@ -55,8 +55,7 @@ const pasteModalCancel = document.getElementById('paste-modal-cancel');
 const pasteModalDesc = document.getElementById('paste-modal-desc');
 const mermaidPanel = document.getElementById('mermaid-panel');
 const mermaidMeta = document.getElementById('mermaid-meta');
-const mermaidStage = document.getElementById('mermaid-stage');
-const mermaidExportBtn = document.getElementById('mermaid-export-btn');
+const mermaidList = document.getElementById('mermaid-list');
 
 const UI_CONFIG = {
   SWIPE_THRESHOLD: 80,
@@ -99,7 +98,7 @@ if (markdownParser && typeof markdownParser.setOptions === 'function') {
 let renderCounter = 0;
 let renderTimer = null;
 let toastTimer = null;
-let currentMermaidSvg = '';
+let mermaidSvgs = [];
 let mermaidInitialized = false;
 
 function getMermaidRuntime() {
@@ -125,11 +124,11 @@ function scheduleRender() {
 }
 
 function renderMermaidPanelEmpty() {
-  currentMermaidSvg = '';
-  if (!mermaidPanel || !mermaidMeta || !mermaidStage) return;
+  mermaidSvgs = [];
+  if (!mermaidPanel || !mermaidMeta || !mermaidList) return;
   mermaidPanel.classList.remove('show');
   mermaidMeta.textContent = '未检测到 Mermaid 图表';
-  mermaidStage.innerHTML = '';
+  mermaidList.innerHTML = '';
 }
 
 function downloadSvgAsPng(svgText, filename = 'mermaid-diagram.png') {
@@ -178,31 +177,67 @@ function downloadSvgAsPng(svgText, filename = 'mermaid-diagram.png') {
 }
 
 async function renderMermaidPanel(mermaidBlocks) {
-  if (!mermaidPanel || !mermaidMeta || !mermaidStage) return;
+  if (!mermaidPanel || !mermaidMeta || !mermaidList) return;
   if (!mermaidBlocks || mermaidBlocks.length === 0) {
     renderMermaidPanelEmpty();
     return;
   }
   mermaidPanel.classList.add('show');
-  mermaidMeta.textContent = `检测到 ${mermaidBlocks.length} 个 Mermaid 图，仅展示第 1 个（占位符：${mermaidBlocks[0].placeholder}）`;
+  mermaidMeta.textContent = `检测到 ${mermaidBlocks.length} 个 Mermaid 图`;
+  mermaidList.innerHTML = '';
+  mermaidSvgs = new Array(mermaidBlocks.length).fill('');
 
   const runtime = ensureMermaidInitialized();
   if (!runtime || typeof runtime.render !== 'function') {
-    mermaidStage.innerHTML = '<p>⚠️ Mermaid 运行库未加载，无法渲染。请检查网络后重试。</p>';
-    currentMermaidSvg = '';
+    mermaidList.innerHTML = '<p>⚠️ Mermaid 运行库未加载，无法渲染。请检查网络后重试。</p>';
     return;
   }
 
-  try {
-    const first = mermaidBlocks[0];
-    const renderId = `mermaid-${Date.now()}`;
-    const result = await runtime.render(renderId, first.code || 'graph TD;A-->B;');
-    const svg = result && result.svg ? result.svg : '';
-    currentMermaidSvg = svg;
-    mermaidStage.innerHTML = svg || '<p>⚠️ Mermaid 渲染结果为空。</p>';
-  } catch (error) {
-    currentMermaidSvg = '';
-    mermaidStage.innerHTML = `<p>⚠️ Mermaid 语法可能有误：${error.message}</p>`;
+  for (let i = 0; i < mermaidBlocks.length; i++) {
+    const block = mermaidBlocks[i];
+    const item = document.createElement('div');
+    item.className = 'mermaid-item';
+
+    const header = document.createElement('div');
+    header.className = 'mermaid-item-header';
+    const label = document.createElement('span');
+    label.textContent = `${block.placeholder}`;
+    const exportBtn = document.createElement('button');
+    exportBtn.className = 'btn btn-secondary';
+    exportBtn.style.cssText = 'padding: 4px 10px; font-size: 12px;';
+    exportBtn.textContent = '⬇️ 导出 PNG';
+    const idx = i;
+    exportBtn.addEventListener('click', async () => {
+      if (!mermaidSvgs[idx]) {
+        showToast('⚠️ 该图渲染失败，无法导出');
+        return;
+      }
+      try {
+        await downloadSvgAsPng(mermaidSvgs[idx], `mermaid-${idx + 1}.png`);
+        showToast(`图 ${idx + 1} 已导出为 PNG`, UI_CONFIG.TOAST_DURATION, true);
+      } catch (error) {
+        showToast(`⚠️ 导出失败：${error.message}`);
+      }
+    });
+    header.appendChild(label);
+    header.appendChild(exportBtn);
+
+    const stage = document.createElement('div');
+    stage.className = 'mermaid-item-stage';
+
+    try {
+      const renderId = `mermaid-${Date.now()}-${i}`;
+      const result = await runtime.render(renderId, block.code || 'graph TD;A-->B;');
+      const svg = result && result.svg ? result.svg : '';
+      mermaidSvgs[i] = svg;
+      stage.innerHTML = svg || '<p>⚠️ 渲染结果为空。</p>';
+    } catch (error) {
+      stage.innerHTML = `<p>⚠️ 语法错误：${error.message}</p>`;
+    }
+
+    item.appendChild(header);
+    item.appendChild(stage);
+    mermaidList.appendChild(item);
   }
 }
 
@@ -694,21 +729,30 @@ window.copyPlainText = async function copyPlainText() {
   await copyPlainToClipboard(input.value, toast, UI_CONFIG.TOAST_DURATION, showToast);
 };
 
-if (mermaidExportBtn) {
-  mermaidExportBtn.addEventListener('click', async () => {
-    if (!currentMermaidSvg) {
-      showToast('⚠️ 当前没有可导出的 Mermaid 图');
-      return;
-    }
-    try {
-      await downloadSvgAsPng(currentMermaidSvg, 'mermaid-diagram.png');
-      showToast('Mermaid 图已导出为 PNG', UI_CONFIG.TOAST_DURATION, true);
-    } catch (error) {
-      showToast(`⚠️ 导出失败：${error.message}`);
-    }
-  });
-}
+window.pasteFromClipboard = async function pasteFromClipboard() {
+  if (window.innerWidth <= 768) {
+    window.switchTab('input');
+  }
 
+  const canReadClipboard = !!(window.isSecureContext &&
+    navigator.clipboard &&
+    typeof navigator.clipboard.readText === 'function');
+
+  if (canReadClipboard) {
+    try {
+      const text = await navigator.clipboard.readText();
+      if (text && text.trim()) {
+        input.value = text;
+        scheduleRender();
+        showToast('内容已粘贴', UI_CONFIG.TOAST_DURATION, true);
+        return;
+      }
+    } catch (_) { /* fall through to focus */ }
+  }
+
+  input.focus();
+  showToast('📋 请直接 Ctrl+V / Cmd+V 粘贴', 3000);
+};
 
 window.clearInput = function clearInput() {
   if (!window.__deleteClickCount) window.__deleteClickCount = 0;
@@ -729,30 +773,6 @@ window.clearInput = function clearInput() {
     }
     input.value = '';
     renderPreview();
-  }
-};
-
-window.pasteFromClipboard = async function pasteFromClipboard() {
-  const canReadClipboard = !!(window.isSecureContext &&
-    navigator.clipboard &&
-    typeof navigator.clipboard.readText === 'function');
-
-  if (!canReadClipboard) {
-    openPasteModal('当前网络环境不支持自动读取剪贴板，请手动粘贴后点击“导入内容”。');
-    return;
-  }
-
-  try {
-    const text = await navigator.clipboard.readText();
-    if (text && text.trim()) {
-      input.value = text;
-      scheduleRender();
-      showToast('内容已粘贴', UI_CONFIG.TOAST_DURATION, true);
-    } else {
-      openPasteModal('剪贴板为空，请手动粘贴内容后导入。');
-    }
-  } catch (error) {
-    openPasteModal('浏览器限制了读取剪贴板，请手动粘贴内容后导入。');
   }
 };
 
@@ -1078,9 +1098,22 @@ function initPasteModal() {
 input.addEventListener('input', scheduleRender);
 window.addEventListener('resize', handleResize);
 
-// 绑定主题切换按钮事件
+document.addEventListener('keydown', (e) => {
+  if ((e.metaKey || e.ctrlKey) && e.key === 'v') {
+    const active = document.activeElement;
+    if (active === input || active === pasteModalInput) return;
+    if (window.innerWidth <= 768) window.switchTab('input');
+    input.focus();
+  }
+});
+
 const themeToggleBtn = document.getElementById('theme-toggle');
 if (themeToggleBtn) {
+  const oldHandler = window.toggleTheme;
+  window.toggleTheme = toggleTheme;
+  if (oldHandler && oldHandler !== toggleTheme) {
+    themeToggleBtn.removeEventListener('click', oldHandler);
+  }
   themeToggleBtn.addEventListener('click', toggleTheme);
 }
 
