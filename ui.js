@@ -129,6 +129,77 @@ function renderMermaidPanelEmpty() {
   mermaidPanel.classList.remove('show');
   mermaidMeta.textContent = '未检测到 Mermaid 图表';
   mermaidList.innerHTML = '';
+  const fabMermaid = document.getElementById('fab-mermaid');
+  if (fabMermaid) fabMermaid.classList.remove('show');
+}
+
+function getSvgDimensions(svgEl) {
+  const vb = svgEl.getAttribute('viewBox');
+  if (vb) {
+    const parts = vb.split(/[\s,]+/).map(Number);
+    if (parts.length === 4 && parts[2] > 0 && parts[3] > 0) {
+      return { w: parts[2], h: parts[3] };
+    }
+  }
+  const rawW = svgEl.getAttribute('width');
+  const rawH = svgEl.getAttribute('height');
+  const w = rawW && !rawW.includes('%') ? parseFloat(rawW) : 0;
+  const h = rawH && !rawH.includes('%') ? parseFloat(rawH) : 0;
+  if (w > 0 && h > 0) return { w, h };
+  return { w: w || 800, h: h || 600 };
+}
+
+function inlineSvgStyles(svgEl) {
+  const styleEls = svgEl.querySelectorAll('style');
+  if (!styleEls.length) return;
+
+  const tempContainer = document.createElement('div');
+  tempContainer.style.cssText = 'position:absolute;left:-9999px;top:0;visibility:hidden;';
+  tempContainer.appendChild(svgEl.cloneNode(true));
+  document.body.appendChild(tempContainer);
+  const liveSvg = tempContainer.querySelector('svg');
+
+  const allEls = liveSvg.querySelectorAll('*');
+  const computed = new Map();
+  allEls.forEach((el) => {
+    const cs = window.getComputedStyle(el);
+    const props = ['fill', 'stroke', 'stroke-width', 'stroke-dasharray', 'stroke-linecap',
+      'stroke-linejoin', 'opacity', 'font-family', 'font-size', 'font-weight',
+      'font-style', 'text-anchor', 'dominant-baseline', 'color', 'transform'];
+    const styles = {};
+    props.forEach((p) => {
+      const v = cs.getPropertyValue(p);
+      if (v && v !== 'none' && v !== 'normal' && v !== '' && v !== 'auto') styles[p] = v;
+    });
+    computed.set(el, styles);
+  });
+
+  const origEls = svgEl.querySelectorAll('*');
+  let idx = 0;
+  origEls.forEach((el) => {
+    const styles = computed.get(allEls[idx]);
+    if (styles) {
+      const existing = el.getAttribute('style') || '';
+      const additions = Object.entries(styles)
+        .map(([k, v]) => `${k}:${v}`).join(';');
+      el.setAttribute('style', existing ? `${existing};${additions}` : additions);
+    }
+    idx++;
+  });
+
+  tempContainer.remove();
+  styleEls.forEach((s) => s.remove());
+}
+
+function triggerDownload(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.download = filename;
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  URL.revokeObjectURL(url);
 }
 
 function downloadSvgAsPng(svgText, filename = 'mermaid-diagram.png') {
@@ -136,26 +207,24 @@ function downloadSvgAsPng(svgText, filename = 'mermaid-diagram.png') {
     const parser = new DOMParser();
     const doc = parser.parseFromString(svgText, 'image/svg+xml');
     const svgEl = doc.querySelector('svg');
-    if (!svgEl) {
-      reject(new Error('SVG 解析失败'));
-      return;
-    }
+    if (!svgEl) { reject(new Error('SVG 解析失败')); return; }
 
-    const vb = svgEl.getAttribute('viewBox');
-    let w = parseFloat(svgEl.getAttribute('width')) || 0;
-    let h = parseFloat(svgEl.getAttribute('height')) || 0;
-    if (vb && (!w || !h)) {
-      const parts = vb.split(/[\s,]+/).map(Number);
-      if (parts.length === 4) { w = w || parts[2]; h = h || parts[3]; }
-    }
-    w = Math.max(w || 800, 400);
-    h = Math.max(h || 600, 300);
+    const { w, h } = getSvgDimensions(svgEl);
 
     if (!svgEl.getAttribute('xmlns')) {
       svgEl.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
     }
+    svgEl.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink');
+
+    const hasForeignObject = svgEl.querySelector('foreignObject') !== null;
+
+    inlineSvgStyles(svgEl);
+
     svgEl.setAttribute('width', String(w));
     svgEl.setAttribute('height', String(h));
+    if (!svgEl.getAttribute('viewBox')) {
+      svgEl.setAttribute('viewBox', `0 0 ${w} ${h}`);
+    }
 
     const serializer = new XMLSerializer();
     const svgStr = serializer.serializeToString(svgEl);
@@ -165,27 +234,41 @@ function downloadSvgAsPng(svgText, filename = 'mermaid-diagram.png') {
     const img = new Image();
     img.onload = () => {
       const canvas = document.createElement('canvas');
-      canvas.width = w * scale;
-      canvas.height = h * scale;
+      canvas.width = Math.round(w * scale);
+      canvas.height = Math.round(h * scale);
       const ctx = canvas.getContext('2d');
       if (!ctx) { reject(new Error('Canvas 上下文创建失败')); return; }
       ctx.fillStyle = '#ffffff';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+      if (hasForeignObject) {
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        let nonWhite = 0;
+        for (let i = 0; i < imageData.data.length; i += 16) {
+          if (imageData.data[i] < 250 || imageData.data[i + 1] < 250 || imageData.data[i + 2] < 250) {
+            nonWhite++;
+          }
+        }
+        if (nonWhite < 20) {
+          const svgBlob = new Blob([svgStr], { type: 'image/svg+xml;charset=utf-8' });
+          triggerDownload(svgBlob, filename.replace(/\.png$/i, '.svg'));
+          resolve();
+          return;
+        }
+      }
+
       canvas.toBlob((pngBlob) => {
         if (!pngBlob) { reject(new Error('PNG 生成失败')); return; }
-        const pngUrl = URL.createObjectURL(pngBlob);
-        const anchor = document.createElement('a');
-        anchor.href = pngUrl;
-        anchor.download = filename;
-        document.body.appendChild(anchor);
-        anchor.click();
-        anchor.remove();
-        URL.revokeObjectURL(pngUrl);
+        triggerDownload(pngBlob, filename);
         resolve();
       }, 'image/png');
     };
-    img.onerror = () => reject(new Error('SVG 渲染为图片失败'));
+    img.onerror = () => {
+      const svgBlob = new Blob([svgStr], { type: 'image/svg+xml;charset=utf-8' });
+      triggerDownload(svgBlob, filename.replace(/\.png$/i, '.svg'));
+      resolve();
+    };
     img.src = dataUrl;
   });
 }
@@ -253,6 +336,9 @@ async function renderMermaidPanel(mermaidBlocks) {
     item.appendChild(stage);
     mermaidList.appendChild(item);
   }
+
+  const fabMermaid = document.getElementById('fab-mermaid');
+  if (fabMermaid) fabMermaid.classList.add('show');
 }
 
 function showToast(message, duration = UI_CONFIG.TOAST_DURATION, withIcon = false) {
@@ -790,6 +876,30 @@ window.clearInput = function clearInput() {
   }
 };
 
+window.pasteFromClipboard = async function pasteFromClipboard() {
+  const canReadClipboard = !!(window.isSecureContext &&
+    navigator.clipboard &&
+    typeof navigator.clipboard.readText === 'function');
+
+  if (!canReadClipboard) {
+    openPasteModal('当前网络环境不支持自动读取剪贴板，请手动粘贴后点击“导入内容”。');
+    return;
+  }
+
+  try {
+    const text = await navigator.clipboard.readText();
+    if (text && text.trim()) {
+      input.value = text;
+      scheduleRender();
+      showToast('内容已粘贴', UI_CONFIG.TOAST_DURATION, true);
+    } else {
+      openPasteModal('剪贴板为空，请手动粘贴内容后导入。');
+    }
+  } catch (error) {
+    openPasteModal('浏览器限制了读取剪贴板，请手动粘贴内容后导入。');
+  }
+};
+
 window.switchTab = function switchTab(tab) {
   const tabInput = document.getElementById('tab-input');
   const tabPreview = document.getElementById('tab-preview');
@@ -1009,6 +1119,15 @@ function setupFab() {
   }
   window.addEventListener('scroll', handleScroll);
   updateFab(getScrollTarget() === window ? window.scrollY : getScrollTarget().scrollTop || 0);
+
+  const fabMermaid = document.getElementById('fab-mermaid');
+  if (fabMermaid) {
+    fabMermaid.addEventListener('click', () => {
+      if (mermaidPanel) {
+        mermaidPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
+  }
 }
 
 function initStylePicker() {

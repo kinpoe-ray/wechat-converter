@@ -1386,6 +1386,53 @@
             background: var(--input-border);
         }
 
+        /* 跳到 Mermaid 图悬浮按钮 */
+        .fab-mermaid {
+            position: fixed;
+            right: 20px;
+            bottom: 100px;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            border: 1px solid var(--input-border);
+            background: var(--card-bg);
+            color: var(--text-secondary);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            cursor: pointer;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+            transition: all 0.3s ease;
+            z-index: 201;
+            opacity: 0;
+            transform: scale(0.8);
+        }
+
+        .fab-mermaid.show {
+            display: flex;
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .fab-mermaid:hover {
+            background: var(--input-border);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .fab-mermaid:active {
+            transform: scale(0.95);
+        }
+
+        @media (max-width: 768px) {
+            .fab-mermaid {
+                bottom: 160px;
+                width: 44px;
+                height: 44px;
+                font-size: 18px;
+            }
+        }
+
         /* 移动端底部信息 */
         .mobile-footer {
             display: none;
@@ -2012,6 +2059,9 @@
         <button class="fab fab-top" id="fab-top" onclick="scrollToTop()" title="回到顶部">⬆️</button>
         <button class="fab fab-copy" id="fab-copy" onclick="copyToClipboard()" title="复制到公众号">复制</button>
     </div>
+
+    <!-- 跳到 Mermaid 图悬浮按钮（桌面端+移动端都可用） -->
+    <button class="fab-mermaid" id="fab-mermaid" title="跳到 Mermaid 图表">📊</button>
 
     <div class="toast" id="toast">✅ 已复制！粘贴到公众号即可</div>
     <div class="paste-modal" id="paste-modal" aria-hidden="true">
