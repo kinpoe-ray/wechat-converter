@@ -839,6 +839,39 @@
             min-height: 0;
         }
 
+        .mermaid-panel {
+            border-top: 1px dashed var(--card-border);
+            padding: 14px 16px 16px;
+            display: none;
+            gap: 10px;
+            flex-direction: column;
+        }
+
+        .mermaid-panel.show {
+            display: flex;
+        }
+
+        .mermaid-meta {
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+
+        .mermaid-stage {
+            background: #fff;
+            border: 1px solid var(--input-border);
+            border-radius: 10px;
+            min-height: 90px;
+            overflow: auto;
+            padding: 12px;
+        }
+
+        .mermaid-stage svg {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 0 auto;
+        }
+
         #preview {
             padding: calc(var(--space-scale) * 20px);
             font-family: var(--font-preview-base);
@@ -1908,6 +1941,16 @@
                             </div>
                         </div>
                     </div>
+                    <div class="mermaid-panel" id="mermaid-panel">
+                        <div class="panel-header">
+                            <span class="panel-title"><span>🧭</span> Mermaid 渲染</span>
+                            <div class="btn-group">
+                                <button class="btn btn-secondary" id="mermaid-export-btn">⬇️ 导出 PNG</button>
+                            </div>
+                        </div>
+                        <div class="mermaid-meta" id="mermaid-meta">未检测到 Mermaid 图表</div>
+                        <div class="mermaid-stage" id="mermaid-stage"></div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -2079,7 +2122,8 @@
             }
         }());
     </script>
-    <script type="module" src="ui.js?v=20260212d"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+    <script type="module" src="ui.js?v=20260212e"></script>
 </body>
 
 </html>
