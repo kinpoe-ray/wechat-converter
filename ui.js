@@ -109,10 +109,17 @@ function getMermaidRuntime() {
 function ensureMermaidInitialized() {
   const runtime = getMermaidRuntime();
   if (!runtime || mermaidInitialized) return runtime;
+  const noHtmlLabels = { htmlLabels: false };
   runtime.initialize({
     startOnLoad: false,
     securityLevel: 'strict',
     theme: document.body.classList.contains('dark') ? 'dark' : 'default',
+    flowchart: noHtmlLabels,
+    sequence: { useHtmlLabels: false },
+    class: noHtmlLabels,
+    state: noHtmlLabels,
+    er: noHtmlLabels,
+    gantt: noHtmlLabels,
   });
   mermaidInitialized = true;
   return runtime;
@@ -144,30 +151,11 @@ function downloadSvgFromDom(stageEl, filename = 'mermaid-diagram.svg') {
   }
   clone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink');
 
-  const allLive = liveSvg.querySelectorAll('*');
-  const allClone = clone.querySelectorAll('*');
-  const svgProps = ['fill', 'stroke', 'stroke-width', 'stroke-dasharray', 'stroke-linecap',
-    'stroke-linejoin', 'opacity', 'font-family', 'font-size', 'font-weight',
-    'font-style', 'text-anchor', 'dominant-baseline', 'color', 'display',
-    'visibility', 'text-decoration', 'line-height', 'letter-spacing',
-    'word-spacing', 'white-space', 'overflow', 'background-color',
-    'border', 'padding', 'margin', 'max-width'];
-  for (let i = 0; i < allLive.length; i++) {
-    const cs = window.getComputedStyle(allLive[i]);
-    const pairs = [];
-    for (const p of svgProps) {
-      const v = cs.getPropertyValue(p);
-      if (v && v !== '' && v !== 'none' && v !== 'normal' && v !== 'auto' && v !== '0px') {
-        pairs.push(`${p}:${v}`);
-      }
-    }
-    if (pairs.length) {
-      const existing = allClone[i].getAttribute('style') || '';
-      allClone[i].setAttribute('style', existing ? `${existing};${pairs.join(';')}` : pairs.join(';'));
-    }
-  }
-
-  clone.querySelectorAll('style').forEach((s) => s.remove());
+  const bgRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+  bgRect.setAttribute('width', '100%');
+  bgRect.setAttribute('height', '100%');
+  bgRect.setAttribute('fill', '#ffffff');
+  clone.insertBefore(bgRect, clone.firstChild);
 
   const serializer = new XMLSerializer();
   const svgStr = '<?xml version="1.0" encoding="UTF-8"?>\n' + serializer.serializeToString(clone);
