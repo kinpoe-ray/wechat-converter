@@ -393,32 +393,32 @@ function applyStyle(styleId, options = {}) {
   if (applyTypoPreset) {
     const recommendedScale = getRecommendedFontScale(resolvedStyleId);
     const recommendedLayout = getRecommendedLayoutSettings(resolvedStyleId);
-    applyFontScale(recommendedScale);
-    applyFontBaseWeight(recommendedLayout.fontWeight);
-    applySpacingScale(recommendedLayout.spacingScale);
-    applyContentPaddingX(recommendedLayout.contentPaddingX);
+    const noRerender = { rerender: false };
+    applyFontScale(recommendedScale, noRerender);
+    applyFontBaseWeight(recommendedLayout.fontWeight, noRerender);
+    applySpacingScale(recommendedLayout.spacingScale, noRerender);
+    applyContentPaddingX(recommendedLayout.contentPaddingX, noRerender);
     if (notifyTypoPreset) {
       showToast(
         `已应用推荐排版：正文 ${Math.round(recommendedScale.base * 100)}% · 标题 ${Math.round(recommendedScale.heading * 100)}% · 代码 ${Math.round(recommendedScale.code * 100)}% · 间距 ${Math.round(recommendedLayout.spacingScale * 100)}%`,
         2000
       );
     }
-    return;
   }
   scheduleRender();
 }
 
-function applySpacingScale(scale) {
+function applySpacingScale(scale, { rerender = true } = {}) {
   const safeScale = Math.min(1.4, Math.max(0.7, scale));
   spacingScale = safeScale;
   document.documentElement.style.setProperty('--space-scale', String(safeScale));
   if (spacingRange) spacingRange.value = String(safeScale);
   if (spacingValue) spacingValue.textContent = `${Math.round(safeScale * 100)}%`;
   localStorage.setItem('wechat-space-scale', String(safeScale));
-  scheduleRender();
+  if (rerender) scheduleRender();
 }
 
-function applyFontScale(nextScale) {
+function applyFontScale(nextScale, { rerender = true } = {}) {
   const baseScale = (nextScale && Number.isFinite(nextScale.base)) ? nextScale.base : 1;
   const headingScale = (nextScale && Number.isFinite(nextScale.heading)) ? nextScale.heading : 1;
   const codeScale = (nextScale && Number.isFinite(nextScale.code)) ? nextScale.code : 1;
@@ -440,7 +440,7 @@ function applyFontScale(nextScale) {
   if (fontCodeValue) fontCodeValue.textContent = `${Math.round(safeScale.code * 100)}%`;
 
   localStorage.setItem('wechat-font-scale', JSON.stringify(safeScale));
-  scheduleRender();
+  if (rerender) scheduleRender();
 }
 
 function initSpacingControl() {
@@ -456,7 +456,7 @@ function initSpacingControl() {
   });
 }
 
-function applyFontBaseWeight(nextWeight) {
+function applyFontBaseWeight(nextWeight, { rerender = true } = {}) {
   const parsed = Math.round(nextWeight);
   const clamped = Math.min(500, Math.max(300, Number.isFinite(parsed) ? parsed : 400));
   const snapped = Math.round(clamped / 50) * 50;
@@ -465,7 +465,7 @@ function applyFontBaseWeight(nextWeight) {
   if (fontWeightRange) fontWeightRange.value = String(snapped);
   if (fontWeightValue) fontWeightValue.textContent = String(snapped);
   localStorage.setItem('wechat-font-weight', String(snapped));
-  scheduleRender();
+  if (rerender) scheduleRender();
 }
 
 function initFontWeightControl() {
@@ -510,14 +510,14 @@ function initFontControl() {
   fontCodeRange.addEventListener('input', handleFontChange);
 }
 
-function applyContentPaddingX(nextPadding) {
+function applyContentPaddingX(nextPadding, { rerender = true } = {}) {
   const safePadding = Math.min(32, Math.max(0, nextPadding));
   contentPaddingX = safePadding;
   document.documentElement.style.setProperty('--content-x', `${safePadding}px`);
   if (contentPaddingRange) contentPaddingRange.value = String(safePadding);
   if (contentPaddingValue) contentPaddingValue.textContent = `${safePadding}px`;
   localStorage.setItem('wechat-content-padding-x', String(safePadding));
-  scheduleRender();
+  if (rerender) scheduleRender();
 }
 
 function initContentPaddingControl() {
@@ -560,7 +560,7 @@ window.resetStyleSettings = function resetStyleSettings() {
   updateCustomInputs();
 
   applyStyle(DEFAULT_STYLE_ID, { applyTypoPreset: true });
-  applyFontProfile(AUTO_FONT_PROFILE_ID);
+  applyFontProfile(AUTO_FONT_PROFILE_ID, { rerender: false });
 
   localStorage.removeItem('wechat-style');
   localStorage.removeItem('wechat-space-scale');

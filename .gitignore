@@ -1,0 +1,6 @@
+.DS_Store
+*.backup
+*.backup-*
+*.bak
+*.fix
+fix_*.py
