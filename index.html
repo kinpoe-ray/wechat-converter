@@ -2074,7 +2074,11 @@
                     const nextTheme = body && body.classList.contains('dark') ? 'light' : 'dark';
                     applyTheme(nextTheme);
                 };
-                if (themeBtn) themeBtn.addEventListener('click', window.toggleTheme);
+            }
+            if (themeBtn) {
+                themeBtn.addEventListener('click', () => {
+                    if (typeof window.toggleTheme === 'function') window.toggleTheme();
+                });
             }
 
             const openPasteModal = (description) => {

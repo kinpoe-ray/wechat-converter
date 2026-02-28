@@ -133,30 +133,47 @@ function renderMermaidPanelEmpty() {
 
 function downloadSvgAsPng(svgText, filename = 'mermaid-diagram.png') {
   return new Promise((resolve, reject) => {
-    const blob = new Blob([svgText], { type: 'image/svg+xml;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(svgText, 'image/svg+xml');
+    const svgEl = doc.querySelector('svg');
+    if (!svgEl) {
+      reject(new Error('SVG 解析失败'));
+      return;
+    }
+
+    const vb = svgEl.getAttribute('viewBox');
+    let w = parseFloat(svgEl.getAttribute('width')) || 0;
+    let h = parseFloat(svgEl.getAttribute('height')) || 0;
+    if (vb && (!w || !h)) {
+      const parts = vb.split(/[\s,]+/).map(Number);
+      if (parts.length === 4) { w = w || parts[2]; h = h || parts[3]; }
+    }
+    w = Math.max(w || 800, 400);
+    h = Math.max(h || 600, 300);
+
+    if (!svgEl.getAttribute('xmlns')) {
+      svgEl.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+    }
+    svgEl.setAttribute('width', String(w));
+    svgEl.setAttribute('height', String(h));
+
+    const serializer = new XMLSerializer();
+    const svgStr = serializer.serializeToString(svgEl);
+    const dataUrl = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgStr);
+
+    const scale = 2;
     const img = new Image();
     img.onload = () => {
-      const width = Math.max(img.width || 1200, 1200);
-      const height = Math.max(img.height || 700, 700);
       const canvas = document.createElement('canvas');
-      canvas.width = width;
-      canvas.height = height;
+      canvas.width = w * scale;
+      canvas.height = h * scale;
       const ctx = canvas.getContext('2d');
-      if (!ctx) {
-        URL.revokeObjectURL(url);
-        reject(new Error('Canvas 上下文创建失败'));
-        return;
-      }
+      if (!ctx) { reject(new Error('Canvas 上下文创建失败')); return; }
       ctx.fillStyle = '#ffffff';
-      ctx.fillRect(0, 0, width, height);
-      ctx.drawImage(img, 0, 0, width, height);
-      URL.revokeObjectURL(url);
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
       canvas.toBlob((pngBlob) => {
-        if (!pngBlob) {
-          reject(new Error('PNG 生成失败'));
-          return;
-        }
+        if (!pngBlob) { reject(new Error('PNG 生成失败')); return; }
         const pngUrl = URL.createObjectURL(pngBlob);
         const anchor = document.createElement('a');
         anchor.href = pngUrl;
@@ -168,11 +185,8 @@ function downloadSvgAsPng(svgText, filename = 'mermaid-diagram.png') {
         resolve();
       }, 'image/png');
     };
-    img.onerror = () => {
-      URL.revokeObjectURL(url);
-      reject(new Error('SVG 加载失败'));
-    };
-    img.src = url;
+    img.onerror = () => reject(new Error('SVG 渲染为图片失败'));
+    img.src = dataUrl;
   });
 }
 
@@ -837,9 +851,6 @@ function toggleTheme() {
   }
 }
 
-// 同时挂载到 window 对象，保持兼容性
-window.toggleTheme = toggleTheme;
-
 function initTheme() {
   const savedTheme = localStorage.getItem('x-theme');
   const themeBtn = document.getElementById('theme-toggle');
@@ -1107,15 +1118,7 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
-const themeToggleBtn = document.getElementById('theme-toggle');
-if (themeToggleBtn) {
-  const oldHandler = window.toggleTheme;
-  window.toggleTheme = toggleTheme;
-  if (oldHandler && oldHandler !== toggleTheme) {
-    themeToggleBtn.removeEventListener('click', oldHandler);
-  }
-  themeToggleBtn.addEventListener('click', toggleTheme);
-}
+window.toggleTheme = toggleTheme;
 
 handleResize();
 setupSwipe();
