@@ -446,7 +446,7 @@
         /* ========== 编辑器区域 ========== */
         .editor {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
             flex: 1;
             min-height: 0;
         }
@@ -455,6 +455,7 @@
             display: flex;
             flex-direction: column;
             min-height: 0;
+            min-width: 0;
             transition: transform 0.2s ease, opacity 0.2s ease;
         }
 
@@ -839,6 +840,7 @@
             display: flex;
             flex-direction: column;
             min-height: 0;
+            min-width: 0;
         }
 
         #markdown-input {
@@ -867,6 +869,7 @@
             overflow-x: hidden;
             -webkit-overflow-scrolling: touch;
             min-height: 0;
+            min-width: 0;
         }
 
         .mermaid-panel {
@@ -939,8 +942,10 @@
             line-height: var(--preview-text-line-height);
             color: var(--preview-text-color);
             min-height: 100%;
+            width: 100%;
             max-width: min(var(--preview-content-max-width), 100%);
             margin: 0 auto;
+            box-sizing: border-box;
         }
 
         /* ========== 公众号样式 - 与复制逻辑同步 ========== */
@@ -1138,6 +1143,7 @@
             padding-left: var(--content-x);
             padding-right: var(--content-x);
             position: relative;
+            box-sizing: border-box;
         }
 
         .table-wrapper::-webkit-scrollbar {
@@ -1220,6 +1226,49 @@
 
         #preview tr:nth-child(even) {
             background: var(--preview-table-row-alt);
+        }
+
+        #preview .table-list-preview {
+            margin: calc(var(--space-scale) * 24px) 0;
+            padding-left: var(--content-x);
+            padding-right: var(--content-x);
+        }
+
+        #preview .table-list-card-preview {
+            border: 1px solid var(--preview-table-border);
+            background: var(--preview-table-head-bg);
+            border-radius: 8px;
+            padding: calc(var(--space-scale) * 12px) calc(var(--space-scale) * 14px);
+            margin-bottom: calc(var(--space-scale) * 12px);
+        }
+
+        #preview .table-list-card-preview:nth-child(even) {
+            background: var(--preview-table-row-alt);
+        }
+
+        #preview .table-list-card-preview:last-child {
+            margin-bottom: 0;
+        }
+
+        #preview .table-list-row-preview {
+            margin: 0;
+            color: var(--preview-text-color);
+            font-size: calc(14px * var(--font-base-scale));
+            line-height: 1.72;
+            text-align: left;
+            word-break: break-word;
+            overflow-wrap: anywhere;
+        }
+
+        #preview .table-list-row-preview + .table-list-row-preview {
+            margin-top: calc(var(--space-scale) * 8px);
+            padding-top: calc(var(--space-scale) * 8px);
+            border-top: 1px dashed var(--preview-table-border);
+        }
+
+        #preview .table-list-row-preview strong {
+            color: var(--preview-strong-color);
+            font-weight: 600;
         }
 
         #preview blockquote {
@@ -1952,7 +2001,7 @@
                         <span class="content-padding-value" id="content-padding-value">0px</span>
                     </div>
                     <div class="table-convert-control">
-                        <label class="table-convert-switch" for="table-convert-toggle" title="超过 4 列或出现长文本单元格时，复制到公众号自动转清单">
+                        <label class="table-convert-switch" for="table-convert-toggle" title="超过 4 列或出现长文本单元格时，预览与复制都会自动转清单">
                             <input type="checkbox" id="table-convert-toggle" checked>
                             <span>复杂表格转清单</span>
                         </label>
@@ -2270,7 +2319,7 @@
     </script>
     <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jszip@3/dist/jszip.min.js"></script>
-    <script type="module" src="ui.js?v=20260303a"></script>
+    <script type="module" src="ui.js?v=20260303b"></script>
 </body>
 
 </html>

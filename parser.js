@@ -716,6 +716,69 @@ export function convertComplexTablesToLists(html, styles, options = {}) {
   return container.innerHTML;
 }
 
+export function convertComplexTablesToPreviewLists(html, options = {}) {
+  const enabled = options && options.convertComplexTables !== false;
+  if (!enabled || typeof document === 'undefined' || !html || typeof html !== 'string') return html;
+
+  const container = document.createElement('div');
+  container.innerHTML = html;
+  const tables = Array.from(container.querySelectorAll('table'));
+  if (!tables.length) return html;
+
+  tables.forEach((table) => {
+    if (!shouldConvertTable(table, options)) return;
+
+    const allRows = Array.from(table.querySelectorAll('tr'));
+    if (!allRows.length) return;
+
+    const { headerRows, bodyRows } = getTableRowsBySection(table);
+    let headerCells = [];
+    let dataRows = [];
+
+    if (headerRows.length > 0) {
+      headerCells = Array.from(headerRows[0].querySelectorAll('th,td'));
+      dataRows = bodyRows.length ? bodyRows : allRows.slice(1);
+    } else if (allRows[0].querySelectorAll('th').length > 0) {
+      headerCells = Array.from(allRows[0].querySelectorAll('th,td'));
+      dataRows = allRows.slice(1);
+    } else {
+      dataRows = allRows;
+    }
+
+    if (!dataRows.length) return;
+
+    const headers = headerCells.map((cell, index) => normalizeCellText(cell.textContent || '') || `字段${index + 1}`);
+    const wrapper = document.createElement('div');
+    wrapper.className = 'table-list-preview';
+
+    dataRows.forEach((row) => {
+      const pairs = buildFieldPairs(row, headers);
+      if (!pairs.length) return;
+
+      const card = document.createElement('section');
+      card.className = 'table-list-card-preview';
+
+      pairs.forEach((pair) => {
+        const field = document.createElement('p');
+        field.className = 'table-list-row-preview';
+
+        const label = document.createElement('strong');
+        label.textContent = `${pair.label}：`;
+        field.appendChild(label);
+        field.appendChild(document.createTextNode(pair.value));
+
+        card.appendChild(field);
+      });
+
+      wrapper.appendChild(card);
+    });
+
+    table.replaceWith(wrapper);
+  });
+
+  return container.innerHTML;
+}
+
 function scaleStyleSpacing(style, scale) {
   if (scale === 1) return style;
   const declarations = style.split(';').map((item) => item.trim()).filter(Boolean);

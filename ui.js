@@ -3,6 +3,7 @@ import {
   getStats,
   getPreviewHtml,
   getWeChatStyledHtml,
+  convertComplexTablesToPreviewLists,
   isHighlightCandidate,
   STYLE_PRESETS,
   DEFAULT_STYLE_ID,
@@ -15,7 +16,7 @@ import {
   getRecommendedFontScale,
   getRecommendedLayoutSettings,
   buildCustomTheme,
-} from './parser.js?v=20260303a';
+} from './parser.js?v=20260303b';
 import { copyHtmlToClipboard, copyPlainToClipboard } from './clipboard.js?v=20260212c';
 
 const input = document.getElementById('markdown-input');
@@ -663,17 +664,18 @@ function initContentPaddingControl() {
   });
 }
 
-function applyTableConvertSetting(enabled, { persist = true } = {}) {
+function applyTableConvertSetting(enabled, { persist = true, rerender = true } = {}) {
   convertComplexTables = !!enabled;
   if (tableConvertToggle) tableConvertToggle.checked = convertComplexTables;
   if (persist) localStorage.setItem('wechat-convert-complex-tables', convertComplexTables ? '1' : '0');
+  if (rerender) scheduleRender();
 }
 
 function initTableConvertControl() {
   if (!tableConvertToggle) return;
   const saved = localStorage.getItem('wechat-convert-complex-tables');
   const initial = saved === null ? true : saved === '1';
-  applyTableConvertSetting(initial, { persist: false });
+  applyTableConvertSetting(initial, { persist: false, rerender: false });
   tableConvertToggle.addEventListener('change', (event) => {
     applyTableConvertSetting(event.target.checked);
   });
@@ -715,7 +717,8 @@ window.resetStyleSettings = function resetStyleSettings() {
   localStorage.removeItem('wechat-content-padding-x');
   localStorage.removeItem('wechat-font-profile');
   localStorage.removeItem('wechat-convert-complex-tables');
-  applyTableConvertSetting(true, { persist: false });
+  applyTableConvertSetting(true, { persist: false, rerender: false });
+  scheduleRender();
 };
 
 function wrapTables() {
@@ -752,7 +755,10 @@ async function renderPreview() {
     }
     const { html, mermaidBlocks } = await getPreviewHtml(markdown, markdownParser);
     if (current !== renderCounter) return;
-    preview.innerHTML = html;
+    const previewHtml = convertComplexTables
+      ? convertComplexTablesToPreviewLists(html, { convertComplexTables: true })
+      : html;
+    preview.innerHTML = previewHtml;
     wrapTables();
     processHighlightSentences();
     await renderMermaidPanel(mermaidBlocks);
