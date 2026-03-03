@@ -748,6 +748,30 @@
             text-align: right;
         }
 
+        .table-convert-control {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding-left: 8px;
+            border-left: 1px dashed var(--input-border);
+        }
+
+        .table-convert-switch {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .table-convert-switch input {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
         /* ========== 按钮样式 ========== */
         .btn {
             display: inline-flex;
@@ -840,6 +864,7 @@
         .preview-wrapper {
             flex: 1;
             overflow-y: auto;
+            overflow-x: hidden;
             -webkit-overflow-scrolling: touch;
             min-height: 0;
         }
@@ -1093,14 +1118,26 @@
             letter-spacing: 0.5px;
         }
 
+        #preview img {
+            max-width: 100%;
+            width: auto;
+            height: auto;
+            display: block;
+            margin: calc(var(--space-scale) * 24px) auto;
+            border-radius: 8px;
+            object-fit: contain;
+        }
+
         /* 表格容器 - 支持横向滚动 */
         .table-wrapper {
             width: 100%;
+            max-width: 100%;
             overflow-x: auto;
             -webkit-overflow-scrolling: touch;
             margin: calc(var(--space-scale) * 24px) 0;
             padding-left: var(--content-x);
             padding-right: var(--content-x);
+            position: relative;
         }
 
         .table-wrapper::-webkit-scrollbar {
@@ -1143,8 +1180,10 @@
         #preview table {
             width: 100%;
             border-collapse: collapse;
+            border-spacing: 0;
             margin: calc(var(--space-scale) * 24px) 0;
             font-size: calc(14px * var(--font-base-scale));
+            line-height: 1.65;
             width: calc(100% - (2 * var(--content-x)));
             margin-left: var(--content-x);
             margin-right: var(--content-x);
@@ -1156,10 +1195,14 @@
             color: var(--preview-text-color);
             padding: calc(var(--space-scale) * 12px) calc(var(--space-scale) * 10px);
             text-align: left;
-            font-weight: var(--font-base-weight);
+            font-weight: 600;
             border: 1px solid var(--preview-table-border);
             padding-left: calc(var(--space-scale) * 12px + var(--content-x));
             padding-right: calc(var(--space-scale) * 10px + var(--content-x));
+            vertical-align: top;
+            line-height: 1.65;
+            word-break: break-word;
+            overflow-wrap: anywhere;
         }
 
         #preview td {
@@ -1169,6 +1212,10 @@
             font-weight: var(--font-base-weight);
             padding-left: calc(var(--space-scale) * 10px + var(--content-x));
             padding-right: calc(var(--space-scale) * 10px + var(--content-x));
+            vertical-align: top;
+            line-height: 1.72;
+            word-break: break-word;
+            overflow-wrap: anywhere;
         }
 
         #preview tr:nth-child(even) {
@@ -1661,6 +1708,11 @@
                 width: 140px;
             }
 
+            .table-convert-control {
+                border-left: none;
+                padding-left: 0;
+            }
+
             .font-group {
                 flex-direction: column;
                 align-items: flex-start;
@@ -1898,6 +1950,12 @@
                             title="内容左右缩进"
                         >
                         <span class="content-padding-value" id="content-padding-value">0px</span>
+                    </div>
+                    <div class="table-convert-control">
+                        <label class="table-convert-switch" for="table-convert-toggle" title="超过 4 列或出现长文本单元格时，复制到公众号自动转清单">
+                            <input type="checkbox" id="table-convert-toggle" checked>
+                            <span>复杂表格转清单</span>
+                        </label>
                     </div>
                     <div class="font-control">
                         <div class="font-group">
@@ -2212,7 +2270,7 @@
     </script>
     <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jszip@3/dist/jszip.min.js"></script>
-    <script type="module" src="ui.js?v=20260212e"></script>
+    <script type="module" src="ui.js?v=20260303a"></script>
 </body>
 
 </html>

@@ -26,9 +26,10 @@ function buildPresetStyles(t) {
     pre: `background: ${t.preBg}; color: ${t.preColor}; padding: 16px; border-radius: 10px; overflow-x: auto; font-family: Consolas, Monaco, monospace; font-size: 13px; line-height: 1.6; margin: 24px 0;`,
     code: `background: ${t.codeBg}; color: ${t.codeColor}; padding: 2px 6px; border-radius: 4px; font-family: Consolas, Monaco, monospace; font-size: 14px;`,
     codeInPre: 'background: none; color: inherit; padding: 0; font-family: inherit; font-size: inherit;',
-    table: 'width: 100%; border-collapse: collapse; margin: 24px 0; font-size: 14px;',
-    th: `background: ${t.thBg}; color: ${t.thColor || t.text}; padding: 12px 10px; text-align: left; font-weight: bold; border: 1px solid ${t.border};`,
-    td: `padding: 10px; border: 1px solid ${t.border}; color: ${t.text};`,
+    table: 'width: 100%; border-collapse: collapse; border-spacing: 0; margin: 24px 0; font-size: 14px; line-height: 1.65;',
+    th: `background: ${t.thBg}; color: ${t.thColor || t.text}; padding: 12px 10px; text-align: left; font-weight: 600; border: 1px solid ${t.border}; vertical-align: top; line-height: 1.65; word-break: break-word; overflow-wrap: anywhere;`,
+    td: `padding: 10px; border: 1px solid ${t.border}; color: ${t.text}; vertical-align: top; line-height: 1.72; word-break: break-word; overflow-wrap: anywhere;`,
+    tableRow: `background: ${t.tableRowAlt || t.thBg || '#f8fafc'};`,
     hr: `border: none; height: 1px; background: ${t.border}; margin: 40px 0;`,
     img: 'max-width: 100%; height: auto; display: block; margin: 24px auto; border-radius: 8px;',
     highlightCard: `display: block; text-align: center; padding: 16px 20px; margin: 28px 0; background: ${t.hlBg}; border-radius: 8px; color: ${t.hlColor || t.primary}; font-size: 17px; font-weight: bold; line-height: 1.6;`,
@@ -41,7 +42,7 @@ const STYLE_TOKENS = {
     bqBg: '#f8fafc', bqBorder: '#cbd5e1', bqColor: '#57606a',
     preBg: '#1e293b', preColor: '#e2e8f0',
     codeBg: '#f1f5f9', codeColor: '#be185d',
-    thBg: '#f8fafc', border: '#e2e8f0',
+    thBg: '#f8fafc', border: '#e2e8f0', tableRowAlt: '#f8fafc',
     hlBg: '#f0f9ff',
   },
   minimal: {
@@ -51,7 +52,7 @@ const STYLE_TOKENS = {
     bqBg: '#f9fafb', bqBorder: '#d1d5db', bqColor: '#4b5563',
     preBg: '#111827', preColor: '#f9fafb',
     codeBg: '#f3f4f6', codeColor: '#b91c1c',
-    thBg: '#f3f4f6', thColor: '#111827', border: '#e5e7eb',
+    thBg: '#f3f4f6', thColor: '#111827', border: '#e5e7eb', tableRowAlt: '#f9fafb',
     hlBg: '#f3f4f6', hlColor: '#111827',
   },
   warm: {
@@ -61,7 +62,7 @@ const STYLE_TOKENS = {
     bqBg: '#fff7ed', bqBorder: '#fdba74', bqColor: '#9a3412',
     preBg: '#7c2d12', preColor: '#ffedd5',
     codeBg: '#ffedd5', codeColor: '#c2410c',
-    thBg: '#ffedd5', thColor: '#9a3412', border: '#fed7aa',
+    thBg: '#ffedd5', thColor: '#9a3412', border: '#fed7aa', tableRowAlt: '#fff7ed',
     hlBg: '#fff7ed',
   },
   zhihu: {
@@ -70,7 +71,7 @@ const STYLE_TOKENS = {
     bqBg: '#f5f6f7', bqBorder: '#a9c8ff', bqColor: '#4e5969',
     preBg: '#0f172a', preColor: '#e2e8f0',
     codeBg: '#e8f1ff', codeColor: '#1e40af',
-    thBg: '#f5f6f7', border: '#e5e6eb',
+    thBg: '#f5f6f7', border: '#e5e6eb', tableRowAlt: '#f5f6f7',
     hlBg: '#e8f1ff',
   },
   magazine: {
@@ -81,7 +82,7 @@ const STYLE_TOKENS = {
     bqBg: '#fffbeb', bqBorder: '#d97706', bqColor: '#92400e',
     preBg: '#111827', preColor: '#f9fafb',
     codeBg: '#fffbeb', codeColor: '#b45309',
-    thBg: '#fffbeb', border: '#f3d9b1',
+    thBg: '#fffbeb', border: '#f3d9b1', tableRowAlt: '#fffbeb',
     hlBg: '#fffbeb', hlColor: '#b45309',
   },
 };
@@ -366,9 +367,10 @@ export function buildCustomTheme(customColors = {}) {
     pre: `background: ${preBg}; color: ${preText}; padding: 16px; border-radius: 10px; overflow-x: auto; font-family: Consolas, Monaco, monospace; font-size: 13px; line-height: 1.6; margin: 24px 0;`,
     code: `background: ${codeBg}; color: ${codeColor}; padding: 2px 6px; border-radius: 4px; font-family: Consolas, Monaco, monospace; font-size: 14px;`,
     codeInPre: 'background: none; color: inherit; padding: 0; font-family: inherit; font-size: inherit;',
-    table: 'width: 100%; border-collapse: collapse; margin: 24px 0; font-size: 14px;',
-    th: `background: ${tableHeadBg}; color: ${text}; padding: 12px 10px; text-align: left; font-weight: bold; border: 1px solid ${border};`,
-    td: `padding: 10px; border: 1px solid ${border}; color: ${text};`,
+    table: 'width: 100%; border-collapse: collapse; border-spacing: 0; margin: 24px 0; font-size: 14px; line-height: 1.65;',
+    th: `background: ${tableHeadBg}; color: ${text}; padding: 12px 10px; text-align: left; font-weight: 600; border: 1px solid ${border}; vertical-align: top; line-height: 1.65; word-break: break-word; overflow-wrap: anywhere;`,
+    td: `padding: 10px; border: 1px solid ${border}; color: ${text}; vertical-align: top; line-height: 1.72; word-break: break-word; overflow-wrap: anywhere;`,
+    tableRow: `background: ${tableRowAlt};`,
     hr: `border: none; height: 1px; background: ${border}; margin: 40px 0;`,
     img: 'max-width: 100%; height: auto; display: block; margin: 24px auto; border-radius: 8px;',
     highlightCard: `display: block; text-align: center; padding: 16px 20px; margin: 28px 0; background: ${highlightBg}; border-radius: 8px; color: ${primary}; font-size: 17px; font-weight: bold; line-height: 1.6;`,
@@ -494,6 +496,226 @@ export function applyInlineStyles(html, styles) {
   return result;
 }
 
+function concatInlineStyles(baseStyle, extraStyle) {
+  const safeBase = typeof baseStyle === 'string' ? baseStyle.trim() : '';
+  const safeExtra = typeof extraStyle === 'string' ? extraStyle.trim() : '';
+  if (!safeExtra) return safeBase;
+  if (!safeBase) return safeExtra.endsWith(';') ? safeExtra : `${safeExtra};`;
+  const normalizedBase = safeBase.endsWith(';') ? safeBase : `${safeBase};`;
+  return `${normalizedBase} ${safeExtra}`;
+}
+
+export function applyTableRowStripes(html, styles) {
+  const tableRowStyle = styles && typeof styles.tableRow === 'string' ? styles.tableRow : '';
+  if (!tableRowStyle || typeof document === 'undefined') return html;
+
+  const container = document.createElement('div');
+  container.innerHTML = html;
+  const tables = container.querySelectorAll('table');
+  tables.forEach((table) => {
+    const bodies = Array.from(table.querySelectorAll('tbody'));
+    const rows = [];
+
+    if (bodies.length > 0) {
+      bodies.forEach((tbody) => {
+        Array.from(tbody.children).forEach((child) => {
+          if (child.tagName === 'TR') rows.push(child);
+        });
+      });
+    } else {
+      Array.from(table.children).forEach((child) => {
+        if (child.tagName === 'TR') rows.push(child);
+      });
+    }
+
+    rows.forEach((row, index) => {
+      if (index % 2 === 1) {
+        const mergedStyle = concatInlineStyles(row.getAttribute('style'), tableRowStyle);
+        row.setAttribute('style', mergedStyle);
+      }
+    });
+  });
+
+  return container.innerHTML;
+}
+
+function getDeclarationValue(style, property) {
+  if (!style || typeof style !== 'string') return '';
+  const target = property.trim().toLowerCase();
+  const declarations = style.split(';').map((item) => item.trim()).filter(Boolean);
+  for (const decl of declarations) {
+    const [prop, ...rest] = decl.split(':');
+    if (!prop || rest.length === 0) continue;
+    if (prop.trim().toLowerCase() === target) {
+      return rest.join(':').trim();
+    }
+  }
+  return '';
+}
+
+function getBorderColorFromStyle(style) {
+  const borderValue = getDeclarationValue(style, 'border');
+  if (!borderValue) return '';
+  const parts = borderValue.split(/\s+/).filter(Boolean);
+  for (let i = parts.length - 1; i >= 0; i -= 1) {
+    const value = parts[i];
+    if (value.startsWith('#') || value.startsWith('rgb') || value.startsWith('hsl')) {
+      return value;
+    }
+  }
+  return '';
+}
+
+function normalizeCellText(value) {
+  if (typeof value !== 'string') return '';
+  return value.replace(/\s+/g, ' ').trim();
+}
+
+function getDirectRows(node) {
+  if (!node) return [];
+  return Array.from(node.children).filter((child) => child.tagName === 'TR');
+}
+
+function getTableRowsBySection(table) {
+  const head = table.querySelector('thead');
+  const body = table.querySelector('tbody');
+  const directRows = getDirectRows(table);
+  if (head) {
+    const headerRows = getDirectRows(head);
+    const bodyRows = body ? getDirectRows(body) : directRows.filter((row) => !head.contains(row));
+    return { headerRows, bodyRows };
+  }
+  if (body) {
+    return { headerRows: [], bodyRows: getDirectRows(body) };
+  }
+  return { headerRows: [], bodyRows: directRows };
+}
+
+function shouldConvertTable(table, options) {
+  const {
+    maxColumnsBeforeList = 4,
+    longCellThreshold = 48,
+    minDataRows = 1,
+  } = options || {};
+
+  const rows = Array.from(table.querySelectorAll('tr'));
+  if (!rows.length) return false;
+
+  const columnCount = rows.reduce((max, row) => {
+    const cells = row.querySelectorAll('th,td');
+    return Math.max(max, cells.length);
+  }, 0);
+
+  const cellTexts = rows.reduce((acc, row) => {
+    const texts = Array.from(row.querySelectorAll('th,td'))
+      .map((cell) => normalizeCellText(cell.textContent || ''));
+    return acc.concat(texts);
+  }, []);
+  const hasLongCell = cellTexts.some((text) => text.length >= longCellThreshold);
+
+  const { headerRows, bodyRows } = getTableRowsBySection(table);
+  const hasHeader = headerRows.length > 0 || rows[0].querySelectorAll('th').length > 0;
+  const dataRows = hasHeader ? (bodyRows.length ? bodyRows : rows.slice(1)) : rows;
+
+  if (dataRows.length < minDataRows) return false;
+  return columnCount > maxColumnsBeforeList || hasLongCell;
+}
+
+function buildFieldPairs(row, headers) {
+  const cells = Array.from(row.querySelectorAll('th,td'));
+  const pairs = [];
+  const maxLen = Math.max(headers.length, cells.length);
+  for (let i = 0; i < maxLen; i += 1) {
+    const label = normalizeCellText(headers[i] || `字段${i + 1}`);
+    const value = normalizeCellText(cells[i] ? (cells[i].textContent || '') : '');
+    if (!value) continue;
+    pairs.push({ label: label || `字段${i + 1}`, value });
+  }
+  return pairs;
+}
+
+export function convertComplexTablesToLists(html, styles, options = {}) {
+  const enabled = options && options.convertComplexTables !== false;
+  if (!enabled || typeof document === 'undefined' || !html || typeof html !== 'string') return html;
+
+  const container = document.createElement('div');
+  container.innerHTML = html;
+  const tables = Array.from(container.querySelectorAll('table'));
+  if (!tables.length) return html;
+
+  const tableMargin = getDeclarationValue(styles.table, 'margin') || '24px 0';
+  const textColor = getDeclarationValue(styles.p, 'color') || '#1f2937';
+  const borderColor = getBorderColorFromStyle(styles.td)
+    || getBorderColorFromStyle(styles.th)
+    || '#e5e7eb';
+  const cardBg = getDeclarationValue(styles.th, 'background') || '#f8fafc';
+  const rowFontSize = getDeclarationValue(styles.td, 'font-size')
+    || getDeclarationValue(styles.table, 'font-size')
+    || '14px';
+  const labelStyle = upsertDeclaration(styles.strong, 'font-weight', '600');
+  const rowStyle = `margin: 0; color: ${textColor}; font-size: ${rowFontSize}; line-height: 1.72; text-align: left;`;
+
+  tables.forEach((table) => {
+    if (!shouldConvertTable(table, options)) return;
+
+    const allRows = Array.from(table.querySelectorAll('tr'));
+    if (!allRows.length) return;
+
+    const { headerRows, bodyRows } = getTableRowsBySection(table);
+    let headerCells = [];
+    let dataRows = [];
+
+    if (headerRows.length > 0) {
+      headerCells = Array.from(headerRows[0].querySelectorAll('th,td'));
+      dataRows = bodyRows.length ? bodyRows : allRows.slice(1);
+    } else if (allRows[0].querySelectorAll('th').length > 0) {
+      headerCells = Array.from(allRows[0].querySelectorAll('th,td'));
+      dataRows = allRows.slice(1);
+    } else {
+      dataRows = allRows;
+    }
+
+    if (!dataRows.length) return;
+
+    const headers = headerCells.map((cell, index) => normalizeCellText(cell.textContent || '') || `字段${index + 1}`);
+    const wrapper = document.createElement('div');
+    wrapper.setAttribute('style', `margin: ${tableMargin};`);
+
+    dataRows.forEach((row, index) => {
+      const pairs = buildFieldPairs(row, headers);
+      if (!pairs.length) return;
+
+      const card = document.createElement('section');
+      const marginBottom = index === dataRows.length - 1 ? '0' : '12px';
+      card.setAttribute(
+        'style',
+        `margin: 0 0 ${marginBottom} 0; padding: 12px 14px; border: 1px solid ${borderColor}; border-radius: 8px; background: ${cardBg};`
+      );
+
+      pairs.forEach((pair, pairIndex) => {
+        const field = document.createElement('p');
+        const topMargin = pairIndex === 0 ? '0' : '8px';
+        const bottomMargin = pairIndex === pairs.length - 1 ? '0' : '8px';
+        field.setAttribute('style', `${rowStyle} margin-top: ${topMargin}; margin-bottom: ${bottomMargin};`);
+
+        const label = document.createElement('strong');
+        label.setAttribute('style', labelStyle);
+        label.textContent = `${pair.label}：`;
+        field.appendChild(label);
+        field.appendChild(document.createTextNode(pair.value));
+
+        card.appendChild(field);
+      });
+
+      wrapper.appendChild(card);
+    });
+
+    table.replaceWith(wrapper);
+  });
+
+  return container.innerHTML;
+}
+
 function scaleStyleSpacing(style, scale) {
   if (scale === 1) return style;
   const declarations = style.split(';').map((item) => item.trim()).filter(Boolean);
@@ -615,7 +837,8 @@ export async function getWeChatStyledHtml(
   fontScale = { base: 1, heading: 1, code: 1 },
   fontWeight = 400,
   contentPaddingX = 0,
-  fontProfileId = DEFAULT_FONT_PROFILE_ID
+  fontProfileId = DEFAULT_FONT_PROFILE_ID,
+  exportOptions = {}
 ) {
   const { styles } = getStylePreset(styleId, customColors);
   const fontProfile = getFontProfile(fontProfileId);
@@ -638,6 +861,8 @@ export async function getWeChatStyledHtml(
   const languages = extractLanguageFromCodeBlock(processed);
   html = addCodeLanguageLabels(html, languages);
   html = applyInlineStyles(html, scaledStyles);
+  html = applyTableRowStripes(html, scaledStyles);
+  html = convertComplexTablesToLists(html, scaledStyles, exportOptions);
   html = processNotionAside(html, scaledStyles, spacingScale);
   html = fixPreCode(html, scaledStyles);
   html = processHighlightCards(html, scaledStyles);
@@ -649,10 +874,12 @@ function applyBaseFontWeight(styles, fontWeight) {
   const parsed = Number.parseInt(fontWeight, 10);
   if (Number.isNaN(parsed)) return styles;
   const weight = Math.min(500, Math.max(300, parsed));
-  const targets = new Set(['p', 'li', 'blockquote', 'th', 'td']);
+  const targets = new Set(['p', 'li', 'blockquote', 'td']);
+  const tableHeaderWeight = Math.max(600, Math.min(700, weight + 180));
 
   return Object.fromEntries(
     Object.entries(styles).map(([key, value]) => {
+      if (key === 'th') return [key, upsertDeclaration(value, 'font-weight', String(tableHeaderWeight))];
       if (!targets.has(key)) return [key, value];
       return [key, upsertDeclaration(value, 'font-weight', String(weight))];
     })

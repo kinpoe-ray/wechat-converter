@@ -15,7 +15,7 @@ import {
   getRecommendedFontScale,
   getRecommendedLayoutSettings,
   buildCustomTheme,
-} from './parser.js?v=20260212d';
+} from './parser.js?v=20260303a';
 import { copyHtmlToClipboard, copyPlainToClipboard } from './clipboard.js?v=20260212c';
 
 const input = document.getElementById('markdown-input');
@@ -44,6 +44,7 @@ const fontHeadingValue = document.getElementById('font-heading-value');
 const fontCodeValue = document.getElementById('font-code-value');
 const contentPaddingRange = document.getElementById('content-padding-range');
 const contentPaddingValue = document.getElementById('content-padding-value');
+const tableConvertToggle = document.getElementById('table-convert-toggle');
 const stylePanelBody = document.getElementById('style-panel-body');
 const stylePanelToggle = document.getElementById('style-panel-toggle');
 const statsPanel = document.getElementById('stats-panel');
@@ -79,6 +80,7 @@ let fontScale = { base: 1, heading: 1, code: 1 };
 let fontBaseWeight = 400;
 let contentPaddingX = 0;
 let fontProfileId = AUTO_FONT_PROFILE_ID;
+let convertComplexTables = true;
 let fontPreviewVarKeys = [];
 let deleteResetTimer = null;
 
@@ -661,6 +663,22 @@ function initContentPaddingControl() {
   });
 }
 
+function applyTableConvertSetting(enabled, { persist = true } = {}) {
+  convertComplexTables = !!enabled;
+  if (tableConvertToggle) tableConvertToggle.checked = convertComplexTables;
+  if (persist) localStorage.setItem('wechat-convert-complex-tables', convertComplexTables ? '1' : '0');
+}
+
+function initTableConvertControl() {
+  if (!tableConvertToggle) return;
+  const saved = localStorage.getItem('wechat-convert-complex-tables');
+  const initial = saved === null ? true : saved === '1';
+  applyTableConvertSetting(initial, { persist: false });
+  tableConvertToggle.addEventListener('change', (event) => {
+    applyTableConvertSetting(event.target.checked);
+  });
+}
+
 function initStylePanelToggle() {
   if (!stylePanelBody || !stylePanelToggle) return;
   const savedState = localStorage.getItem('wechat-style-panel');
@@ -696,6 +714,8 @@ window.resetStyleSettings = function resetStyleSettings() {
   localStorage.removeItem('wechat-font-weight');
   localStorage.removeItem('wechat-content-padding-x');
   localStorage.removeItem('wechat-font-profile');
+  localStorage.removeItem('wechat-convert-complex-tables');
+  applyTableConvertSetting(true, { persist: false });
 };
 
 function wrapTables() {
@@ -808,7 +828,8 @@ window.copyToClipboard = async function copyToClipboard() {
     fontScale,
     fontBaseWeight,
     contentPaddingX,
-    getEffectiveFontProfileId()
+    getEffectiveFontProfileId(),
+    { convertComplexTables }
   );
   const cleanHtml = stripBackgroundStyles(styledHtml);
   await copyHtmlToClipboard(cleanHtml, preview, toast, UI_CONFIG.TOAST_DURATION, (msg) => showToast(msg, UI_CONFIG.TOAST_DURATION, true));
@@ -1253,6 +1274,7 @@ initSpacingControl();
 initFontControl();
 initFontWeightControl();
 initContentPaddingControl();
+initTableConvertControl();
 initStylePanelToggle();
 renderPreview();
 window.switchTab('input');
