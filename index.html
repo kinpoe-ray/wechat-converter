@@ -773,6 +773,15 @@
             cursor: pointer;
         }
 
+        .table-convert-switch input:disabled {
+            cursor: not-allowed;
+            opacity: 0.55;
+        }
+
+        .table-convert-switch.is-muted {
+            opacity: 0.8;
+        }
+
         /* ========== 按钮样式 ========== */
         .btn {
             display: inline-flex;
@@ -2001,9 +2010,13 @@
                         <span class="content-padding-value" id="content-padding-value">0px</span>
                     </div>
                     <div class="table-convert-control">
-                        <label class="table-convert-switch" for="table-convert-toggle" title="超过 4 列或出现长文本单元格时，预览与复制都会自动转清单">
+                        <label class="table-convert-switch" for="table-convert-toggle" title="开启后，表格可按规则转换为清单（预览与复制一致）">
                             <input type="checkbox" id="table-convert-toggle" checked>
-                            <span>复杂表格转清单</span>
+                            <span>表格转清单</span>
+                        </label>
+                        <label class="table-convert-switch is-muted" for="table-convert-all-toggle" title="开启后，不论列数多少，所有表格都转为清单（预览与复制一致）">
+                            <input type="checkbox" id="table-convert-all-toggle">
+                            <span>全部表格</span>
                         </label>
                     </div>
                     <div class="font-control">
@@ -2319,7 +2332,7 @@
     </script>
     <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jszip@3/dist/jszip.min.js"></script>
-    <script type="module" src="ui.js?v=20260303b"></script>
+    <script type="module" src="ui.js?v=20260303c"></script>
 </body>
 
 </html>

@@ -596,6 +596,7 @@ function shouldConvertTable(table, options) {
     maxColumnsBeforeList = 4,
     longCellThreshold = 48,
     minDataRows = 1,
+    forceConvertAllTables = false,
   } = options || {};
 
   const rows = Array.from(table.querySelectorAll('tr'));
@@ -618,6 +619,7 @@ function shouldConvertTable(table, options) {
   const dataRows = hasHeader ? (bodyRows.length ? bodyRows : rows.slice(1)) : rows;
 
   if (dataRows.length < minDataRows) return false;
+  if (forceConvertAllTables) return true;
   return columnCount > maxColumnsBeforeList || hasLongCell;
 }
 
