@@ -1336,7 +1336,6 @@ function setupSwipe() {
 
 function setupFab() {
   const fabContainer = document.getElementById('fab-container');
-  const fabTop = document.getElementById('fab-top');
   const mainContent = document.querySelector('.main-content');
   const previewWrapper = document.getElementById('preview-wrapper');
   const fabButtons = fabContainer ? Array.from(fabContainer.querySelectorAll('.fab')) : [];
@@ -1365,12 +1364,6 @@ function setupFab() {
       fabButtons.forEach((btn) => btn.classList.add('show'));
     } else if (scrollTop < UI_CONFIG.SCROLL_HIDE_FAB_OFFSET) {
       fabButtons.forEach((btn) => btn.classList.remove('show'));
-    }
-
-    if (scrollTop > 400) {
-      fabTop.style.opacity = '1';
-    } else {
-      fabTop.style.opacity = '0';
     }
   };
 
