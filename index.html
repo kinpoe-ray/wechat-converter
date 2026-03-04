@@ -944,6 +944,48 @@
             margin: 0 auto;
         }
 
+        .image-item-stage {
+            background: #fff;
+            min-height: 80px;
+            overflow: auto;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .image-item-stage img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 0 auto;
+            border-radius: 8px;
+            object-fit: contain;
+        }
+
+        .image-item-status {
+            margin: 0;
+            font-size: 12px;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+
+        .image-item-link {
+            font-size: 12px;
+            color: var(--text-muted);
+            line-height: 1.45;
+            word-break: break-all;
+            text-decoration: none;
+            border-bottom: 1px dashed var(--input-border);
+            width: fit-content;
+            max-width: 100%;
+        }
+
+        .image-item-link:hover {
+            color: var(--text-primary);
+            border-bottom-color: var(--text-secondary);
+        }
+
         #preview {
             padding: calc(var(--space-scale) * 20px);
             font-family: var(--font-preview-base);
@@ -2151,6 +2193,14 @@
                         <div class="mermaid-meta" id="mermaid-meta">未检测到 Mermaid 图表</div>
                         <div class="mermaid-list" id="mermaid-list"></div>
                     </div>
+                    <div class="mermaid-panel" id="image-panel">
+                        <div class="panel-header">
+                            <span class="panel-title"><span>🖼️</span> 图片渲染</span>
+                            <button class="btn btn-secondary mermaid-download-all" id="image-download-all" style="display:none;padding:4px 12px;font-size:12px;">📦 全部下载</button>
+                        </div>
+                        <div class="mermaid-meta" id="image-meta">未检测到图片链接</div>
+                        <div class="mermaid-list" id="image-list"></div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -2332,7 +2382,7 @@
     </script>
     <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jszip@3/dist/jszip.min.js"></script>
-    <script type="module" src="ui.js?v=20260303c"></script>
+    <script type="module" src="ui.js?v=20260304a"></script>
 </body>
 
 </html>

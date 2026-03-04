@@ -460,6 +460,201 @@ export function replaceMermaidBlocks(markdown) {
   return extractMermaidBlocks(markdown).markdown;
 }
 
+function extractUrlFromMarkdownImageBody(body) {
+  const trimmed = (body || '').trim();
+  if (!trimmed) return '';
+
+  if (trimmed.startsWith('<')) {
+    const end = trimmed.indexOf('>');
+    if (end > 1) return trimmed.slice(1, end).trim();
+    return '';
+  }
+
+  let i = 0;
+  let parenDepth = 0;
+  while (i < trimmed.length) {
+    const ch = trimmed[i];
+    if (ch === '\\') {
+      i += 2;
+      continue;
+    }
+    if (ch === '(') parenDepth += 1;
+    else if (ch === ')') parenDepth = Math.max(0, parenDepth - 1);
+    else if (/\s/.test(ch) && parenDepth === 0) break;
+    i += 1;
+  }
+  return trimmed.slice(0, i).trim();
+}
+
+function consumeMarkdownImageToken(markdown, start) {
+  if (markdown[start] !== '!' || markdown[start + 1] !== '[') return null;
+  const length = markdown.length;
+
+  let altEnd = -1;
+  for (let i = start + 2; i < length; i++) {
+    const ch = markdown[i];
+    if (ch === '\\') {
+      i += 1;
+      continue;
+    }
+    if (ch === ']') {
+      altEnd = i;
+      break;
+    }
+  }
+  if (altEnd < 0 || markdown[altEnd + 1] !== '(') return null;
+
+  let depth = 1;
+  let inQuote = '';
+  let inAngle = false;
+  let closeIdx = -1;
+  for (let i = altEnd + 2; i < length; i++) {
+    const ch = markdown[i];
+    if (ch === '\\') {
+      i += 1;
+      continue;
+    }
+
+    if (inQuote) {
+      if (ch === inQuote) inQuote = '';
+      continue;
+    }
+
+    if (ch === '"' || ch === '\'') {
+      inQuote = ch;
+      continue;
+    }
+    if (ch === '<') {
+      inAngle = true;
+      continue;
+    }
+    if (ch === '>' && inAngle) {
+      inAngle = false;
+      continue;
+    }
+    if (ch === '(' && !inAngle) {
+      depth += 1;
+      continue;
+    }
+    if (ch === ')' && !inAngle) {
+      depth -= 1;
+      if (depth === 0) {
+        closeIdx = i;
+        break;
+      }
+    }
+  }
+  if (closeIdx < 0) return null;
+
+  const alt = markdown.slice(start + 2, altEnd);
+  const body = markdown.slice(altEnd + 2, closeIdx);
+  const url = extractUrlFromMarkdownImageBody(body);
+  if (!url) return null;
+
+  return {
+    raw: markdown.slice(start, closeIdx + 1),
+    end: closeIdx + 1,
+    alt,
+    url,
+  };
+}
+
+function consumeHtmlImageToken(markdown, start) {
+  const length = markdown.length;
+  let quote = '';
+  let closeIdx = -1;
+  for (let i = start + 4; i < length; i++) {
+    const ch = markdown[i];
+    if (quote) {
+      if (ch === quote) quote = '';
+      continue;
+    }
+    if (ch === '"' || ch === '\'') {
+      quote = ch;
+      continue;
+    }
+    if (ch === '>') {
+      closeIdx = i;
+      break;
+    }
+  }
+  if (closeIdx < 0) return null;
+
+  return {
+    raw: markdown.slice(start, closeIdx + 1),
+    end: closeIdx + 1,
+  };
+}
+
+function parseHtmlImageToken(token) {
+  const srcMatch = token.match(/\bsrc\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/i);
+  if (!srcMatch) return null;
+  const altMatch = token.match(/\balt\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/i);
+
+  const url = (srcMatch[1] || srcMatch[2] || srcMatch[3] || '').trim();
+  if (!url) return null;
+
+  return {
+    alt: altMatch ? (altMatch[1] || altMatch[2] || altMatch[3] || '') : '',
+    url,
+  };
+}
+
+export function extractImageBlocks(markdown) {
+  const blocks = [];
+  let index = 0;
+  let cursor = 0;
+  let result = '';
+
+  const START_RE = /!\[|<img\b/gi;
+  let token;
+  while ((token = START_RE.exec(markdown)) !== null) {
+    const start = token.index;
+    const marker = token[0].toLowerCase();
+    let parsed = null;
+
+    if (marker === '![') {
+      parsed = consumeMarkdownImageToken(markdown, start);
+    } else {
+      const htmlToken = consumeHtmlImageToken(markdown, start);
+      if (htmlToken) {
+        const details = parseHtmlImageToken(htmlToken.raw);
+        if (details && details.url) {
+          parsed = {
+            ...htmlToken,
+            alt: details.alt || '',
+            url: details.url,
+          };
+        }
+      }
+    }
+
+    if (!parsed || !parsed.url) continue;
+
+    result += markdown.slice(cursor, start);
+    index += 1;
+    const id = `P${index}`;
+    const placeholder = `【${id}】`;
+    blocks.push({
+      id,
+      placeholder,
+      url: parsed.url,
+      alt: parsed.alt || '',
+      raw: parsed.raw,
+    });
+    result += `\n\n${placeholder}\n\n`;
+    cursor = parsed.end;
+    START_RE.lastIndex = parsed.end;
+  }
+
+  result += markdown.slice(cursor);
+
+  return {
+    markdown: result,
+    blocks,
+  };
+}
+
 export function extractMermaidBlocks(markdown) {
   const blocks = [];
   let index = 0;
@@ -480,6 +675,17 @@ export function extractMermaidBlocks(markdown) {
   return {
     markdown: nextMarkdown,
     blocks,
+  };
+}
+
+export function extractRenderableBlocks(markdown) {
+  const { markdown: withMermaidPlaceholders, blocks: mermaidBlocks } = extractMermaidBlocks(markdown);
+  const { markdown: withImagePlaceholders, blocks: imageBlocks } = extractImageBlocks(withMermaidPlaceholders);
+
+  return {
+    markdown: withImagePlaceholders,
+    mermaidBlocks,
+    imageBlocks,
   };
 }
 
@@ -886,11 +1092,11 @@ export function getStats(markdown) {
 
 export async function getPreviewHtml(markdown, marked) {
   const normalized = normalizeNotionMarkdown(markdown);
-  const { markdown: processed, blocks: mermaidBlocks } = extractMermaidBlocks(normalized);
+  const { markdown: processed, mermaidBlocks, imageBlocks } = extractRenderableBlocks(normalized);
   let html = marked.parse(processed);
   const languages = extractLanguageFromCodeBlock(processed);
   html = addCodeLanguageLabels(html, languages);
-  return { html, mermaidBlocks };
+  return { html, mermaidBlocks, imageBlocks };
 }
 
 export async function getWeChatStyledHtml(
@@ -921,7 +1127,7 @@ export async function getWeChatStyledHtml(
     contentPaddingX
   );
   const normalized = normalizeNotionMarkdown(markdown);
-  const { markdown: processed } = extractMermaidBlocks(normalized);
+  const { markdown: processed } = extractRenderableBlocks(normalized);
   let html = marked.parse(processed);
   const languages = extractLanguageFromCodeBlock(processed);
   html = addCodeLanguageLabels(html, languages);

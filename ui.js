@@ -16,7 +16,7 @@ import {
   getRecommendedFontScale,
   getRecommendedLayoutSettings,
   buildCustomTheme,
-} from './parser.js?v=20260303c';
+} from './parser.js?v=20260304a';
 import { copyHtmlToClipboard, copyPlainToClipboard } from './clipboard.js?v=20260212c';
 
 const input = document.getElementById('markdown-input');
@@ -59,6 +59,9 @@ const pasteModalDesc = document.getElementById('paste-modal-desc');
 const mermaidPanel = document.getElementById('mermaid-panel');
 const mermaidMeta = document.getElementById('mermaid-meta');
 const mermaidList = document.getElementById('mermaid-list');
+const imagePanel = document.getElementById('image-panel');
+const imageMeta = document.getElementById('image-meta');
+const imageList = document.getElementById('image-list');
 
 const UI_CONFIG = {
   SWIPE_THRESHOLD: 80,
@@ -104,6 +107,7 @@ let renderCounter = 0;
 let renderTimer = null;
 let toastTimer = null;
 let mermaidSvgs = [];
+let imageEntries = [];
 let mermaidInitialized = false;
 
 function getMermaidRuntime() {
@@ -145,6 +149,14 @@ function renderMermaidPanelEmpty() {
   if (fabMermaid) fabMermaid.classList.remove('show');
 }
 
+function renderImagePanelEmpty() {
+  imageEntries = [];
+  if (!imagePanel || !imageMeta || !imageList) return;
+  imagePanel.classList.remove('show');
+  imageMeta.textContent = '未检测到图片链接';
+  imageList.innerHTML = '';
+}
+
 function mermaidTimestamp() {
   const d = new Date();
   const pad = (n) => String(n).padStart(2, '0');
@@ -153,6 +165,67 @@ function mermaidTimestamp() {
 
 function mermaidFilename(idx) {
   return `${mermaidTimestamp()}_M${idx + 1}.png`;
+}
+
+function normalizeImageUrl(rawUrl) {
+  if (typeof rawUrl !== 'string') return '';
+  const trimmed = rawUrl.trim();
+  if (!trimmed) return '';
+  if (/^(data:image\/|blob:|attachment:|https?:\/\/)/i.test(trimmed)) return trimmed;
+  try {
+    return new URL(trimmed, window.location.href).href;
+  } catch (_) {
+    return trimmed;
+  }
+}
+
+function inferImageExtension(rawUrl) {
+  if (typeof rawUrl !== 'string' || !rawUrl.trim()) return '.png';
+  const trimmed = rawUrl.trim();
+  const dataMatch = trimmed.match(/^data:image\/([a-zA-Z0-9.+-]+);/i);
+  if (dataMatch) {
+    const normalized = dataMatch[1].toLowerCase().replace('svg+xml', 'svg').replace('jpeg', 'jpg');
+    return `.${normalized}`;
+  }
+
+  try {
+    const parsed = new URL(trimmed, window.location.href);
+    const extMatch = parsed.pathname.match(/\.([a-zA-Z0-9]{2,5})$/);
+    if (extMatch) return `.${extMatch[1].toLowerCase()}`;
+    const format = parsed.searchParams.get('format');
+    if (format && /^[a-zA-Z0-9]{2,5}$/.test(format)) return `.${format.toLowerCase()}`;
+  } catch (_) { /* ignore */ }
+
+  const directMatch = trimmed.match(/\.([a-zA-Z0-9]{2,5})(?:[?#].*)?$/);
+  if (directMatch) return `.${directMatch[1].toLowerCase()}`;
+  return '.png';
+}
+
+function imageFilename(idx, rawUrl) {
+  return `${mermaidTimestamp()}_P${idx + 1}${inferImageExtension(rawUrl)}`;
+}
+
+async function fetchImageBlob(rawUrl) {
+  const imageUrl = normalizeImageUrl(rawUrl);
+  if (!imageUrl) throw new Error('图片链接为空');
+  if (/^attachment:/i.test(imageUrl)) throw new Error('attachment 链接暂不支持直接下载');
+  const response = await fetch(imageUrl, { mode: 'cors' });
+  if (!response.ok) throw new Error(`请求失败（${response.status}）`);
+  const blob = await response.blob();
+  if (!blob || !blob.size) throw new Error('下载结果为空');
+  return blob;
+}
+
+async function downloadImageAsFile(rawUrl, filename) {
+  const blob = await fetchImageBlob(rawUrl);
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.download = filename;
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  URL.revokeObjectURL(url);
 }
 
 function renderMermaidStageToBlob(stageEl) {
@@ -337,6 +410,150 @@ async function renderMermaidPanel(mermaidBlocks) {
 
   const fabMermaid = document.getElementById('fab-mermaid');
   if (fabMermaid) fabMermaid.classList.add('show');
+}
+
+async function renderImagePanel(imageBlocks) {
+  if (!imagePanel || !imageMeta || !imageList) return;
+  if (!imageBlocks || imageBlocks.length === 0) {
+    renderImagePanelEmpty();
+    return;
+  }
+
+  imagePanel.classList.add('show');
+  imageMeta.textContent = `检测到 ${imageBlocks.length} 个图片链接`;
+  imageList.innerHTML = '';
+  imageEntries = imageBlocks.slice();
+
+  for (let i = 0; i < imageEntries.length; i++) {
+    const block = imageEntries[i];
+    const normalizedUrl = normalizeImageUrl(block.url || '');
+    const item = document.createElement('div');
+    item.className = 'mermaid-item';
+
+    const header = document.createElement('div');
+    header.className = 'mermaid-item-header';
+    const label = document.createElement('span');
+    label.textContent = `${block.placeholder}`;
+    const exportBtn = document.createElement('button');
+    exportBtn.className = 'btn btn-secondary';
+    exportBtn.style.cssText = 'padding: 4px 10px; font-size: 12px;';
+    exportBtn.textContent = '⬇️ 下载图片';
+    header.appendChild(label);
+    header.appendChild(exportBtn);
+
+    const stage = document.createElement('div');
+    stage.className = 'image-item-stage';
+
+    const imageEl = document.createElement('img');
+    imageEl.alt = block.alt || block.placeholder;
+    imageEl.loading = 'lazy';
+    imageEl.decoding = 'async';
+    imageEl.referrerPolicy = 'no-referrer';
+
+    const linkEl = document.createElement('a');
+    linkEl.className = 'image-item-link';
+    linkEl.target = '_blank';
+    linkEl.rel = 'noopener noreferrer';
+    linkEl.textContent = normalizedUrl || '无效链接';
+    if (normalizedUrl) linkEl.href = normalizedUrl;
+
+    const statusEl = document.createElement('p');
+    statusEl.className = 'image-item-status';
+
+    if (!normalizedUrl) {
+      statusEl.textContent = '⚠️ 链接为空，无法渲染或下载';
+      exportBtn.disabled = true;
+    } else if (/^attachment:/i.test(normalizedUrl)) {
+      statusEl.textContent = 'ℹ️ attachment 链接无法直接预览，可按占位符手动回填';
+      exportBtn.disabled = true;
+    } else {
+      imageEl.src = normalizedUrl;
+      imageEl.addEventListener('load', () => {
+        statusEl.textContent = '';
+      });
+      imageEl.addEventListener('error', () => {
+        statusEl.textContent = '⚠️ 图片加载失败，请检查链接可访问性';
+      });
+      stage.appendChild(imageEl);
+    }
+
+    stage.appendChild(statusEl);
+    stage.appendChild(linkEl);
+
+    item.appendChild(header);
+    item.appendChild(stage);
+    imageList.appendChild(item);
+
+    const exportIdx = i;
+    exportBtn.addEventListener('click', async () => {
+      if (!normalizedUrl || /^attachment:/i.test(normalizedUrl)) {
+        showToast('⚠️ 当前链接不支持直接下载');
+        return;
+      }
+      try {
+        await downloadImageAsFile(normalizedUrl, imageFilename(exportIdx, normalizedUrl));
+        showToast(`图 ${exportIdx + 1} 已下载`, UI_CONFIG.TOAST_DURATION, true);
+      } catch (error) {
+        showToast(`⚠️ 下载失败：${error.message}`);
+      }
+    });
+  }
+
+  const downloadAllBtn = document.getElementById('image-download-all');
+  if (downloadAllBtn) {
+    downloadAllBtn.style.display = imageEntries.length >= 2 ? '' : 'none';
+    const newBtn = downloadAllBtn.cloneNode(true);
+    downloadAllBtn.parentNode.replaceChild(newBtn, downloadAllBtn);
+    newBtn.addEventListener('click', async () => {
+      if (!imageEntries.length) return;
+      if (typeof JSZip === 'undefined') {
+        showToast('⚠️ JSZip 未加载，请检查网络');
+        return;
+      }
+
+      newBtn.disabled = true;
+      newBtn.textContent = '⏳ 打包中...';
+      try {
+        const zip = new JSZip();
+        const ts = mermaidTimestamp();
+        let count = 0;
+
+        for (let j = 0; j < imageEntries.length; j++) {
+          const entry = imageEntries[j];
+          const url = normalizeImageUrl(entry.url || '');
+          if (!url || /^attachment:/i.test(url)) continue;
+          try {
+            const blob = await fetchImageBlob(url);
+            zip.file(`${ts}_P${j + 1}${inferImageExtension(url)}`, blob);
+            count++;
+          } catch (_) {
+            // 单张失败跳过，继续打包其余图片
+          }
+        }
+
+        if (!count) {
+          showToast('⚠️ 没有可下载的图片');
+          return;
+        }
+
+        const zipBlob = await zip.generateAsync({ type: 'blob' });
+        const url = URL.createObjectURL(zipBlob);
+        const anchor = document.createElement('a');
+        anchor.href = url;
+        anchor.download = `images_${ts}.zip`;
+        document.body.appendChild(anchor);
+        anchor.click();
+        anchor.remove();
+        URL.revokeObjectURL(url);
+        showToast(`${count} 张图片已打包下载`, UI_CONFIG.TOAST_DURATION, true);
+      } catch (error) {
+        showToast(`⚠️ 打包失败：${error.message}`);
+      } finally {
+        newBtn.disabled = false;
+        newBtn.textContent = '📦 全部下载';
+      }
+    });
+  }
 }
 
 function showToast(message, duration = UI_CONFIG.TOAST_DURATION, withIcon = false) {
@@ -765,11 +982,13 @@ async function renderPreview() {
           <div class="empty-state-text">Markdown 解析器加载失败，请刷新页面后重试</div>
         </div>
       `;
+      renderMermaidPanelEmpty();
+      renderImagePanelEmpty();
       updateStats();
       if (syncWarning) syncWarning.style.display = 'none';
       return;
     }
-    const { html, mermaidBlocks } = await getPreviewHtml(markdown, markdownParser);
+    const { html, mermaidBlocks, imageBlocks } = await getPreviewHtml(markdown, markdownParser);
     if (current !== renderCounter) return;
     const previewHtml = convertComplexTables
       ? convertComplexTablesToPreviewLists(html, {
@@ -781,6 +1000,7 @@ async function renderPreview() {
     wrapTables();
     processHighlightSentences();
     await renderMermaidPanel(mermaidBlocks);
+    await renderImagePanel(imageBlocks);
     updateStats();
     checkStyleSync();
   } else {
@@ -791,6 +1011,7 @@ async function renderPreview() {
       </div>
     `;
     renderMermaidPanelEmpty();
+    renderImagePanelEmpty();
     if (statsPanel) statsPanel.style.display = 'none';
   }
 }
