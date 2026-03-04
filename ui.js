@@ -3,7 +3,6 @@ import {
   getStats,
   getPreviewHtml,
   getWeChatStyledHtml,
-  extractImageBlocks,
   convertComplexTablesToPreviewLists,
   isHighlightCandidate,
   STYLE_PRESETS,
@@ -109,7 +108,6 @@ let renderTimer = null;
 let toastTimer = null;
 let mermaidSvgs = [];
 let imageEntries = [];
-const attachmentResources = new Map();
 let mermaidInitialized = false;
 
 function getMermaidRuntime() {
@@ -169,76 +167,11 @@ function mermaidFilename(idx) {
   return `${mermaidTimestamp()}_M${idx + 1}.png`;
 }
 
-function clearAttachmentResources() {
-  attachmentResources.forEach((entry) => {
-    if (entry && entry.objectUrl) {
-      URL.revokeObjectURL(entry.objectUrl);
-    }
-  });
-  attachmentResources.clear();
-}
-
-function getAttachmentResource(attachmentUrl) {
-  if (typeof attachmentUrl !== 'string') return null;
-  const key = attachmentUrl.trim();
-  if (!key) return null;
-  return attachmentResources.get(key) || null;
-}
-
-function inferImageExtensionFromMime(mimeType) {
-  if (typeof mimeType !== 'string') return '.png';
-  const normalized = mimeType.trim().toLowerCase();
-  if (!normalized.startsWith('image/')) return '.png';
-  const ext = normalized
-    .slice(6)
-    .replace('svg+xml', 'svg')
-    .replace('jpeg', 'jpg');
-  return /^[a-z0-9.+-]{2,12}$/.test(ext) ? `.${ext}` : '.png';
-}
-
-function rebuildAttachmentResources(markdownText, imageBlobs = []) {
-  clearAttachmentResources();
-
-  if (typeof markdownText !== 'string' || !markdownText.trim()) {
-    return { attachmentCount: 0, mappedCount: 0 };
-  }
-
-  const { blocks } = extractImageBlocks(markdownText);
-  const attachmentBlocks = (blocks || []).filter((block) => /^attachment:/i.test((block.url || '').trim()));
-  if (!attachmentBlocks.length || !Array.isArray(imageBlobs) || !imageBlobs.length) {
-    return { attachmentCount: attachmentBlocks.length, mappedCount: 0 };
-  }
-
-  let mappedCount = 0;
-  const max = Math.min(attachmentBlocks.length, imageBlobs.length);
-  for (let i = 0; i < max; i++) {
-    const block = attachmentBlocks[i];
-    const blob = imageBlobs[i];
-    const key = typeof block.url === 'string' ? block.url.trim() : '';
-    if (!key || !(blob instanceof Blob)) continue;
-    if (attachmentResources.has(key)) continue;
-    const objectUrl = URL.createObjectURL(blob);
-    attachmentResources.set(key, { blob, objectUrl });
-    mappedCount++;
-  }
-
-  return { attachmentCount: attachmentBlocks.length, mappedCount };
-}
-
-function applyMarkdownInput(nextValue, imageBlobs = []) {
-  input.value = nextValue;
-  return rebuildAttachmentResources(nextValue, imageBlobs);
-}
-
 function normalizeImageUrl(rawUrl) {
   if (typeof rawUrl !== 'string') return '';
   const trimmed = rawUrl.trim();
   if (!trimmed) return '';
-  if (/^attachment:/i.test(trimmed)) {
-    const mapped = getAttachmentResource(trimmed);
-    return mapped && mapped.objectUrl ? mapped.objectUrl : trimmed;
-  }
-  if (/^(data:image\/|blob:|https?:\/\/)/i.test(trimmed)) return trimmed;
+  if (/^(data:image\/|blob:|attachment:|https?:\/\/)/i.test(trimmed)) return trimmed;
   try {
     return new URL(trimmed, window.location.href).href;
   } catch (_) {
@@ -269,26 +202,13 @@ function inferImageExtension(rawUrl) {
 }
 
 function imageFilename(idx, rawUrl) {
-  if (typeof rawUrl === 'string' && /^attachment:/i.test(rawUrl.trim())) {
-    const mapped = getAttachmentResource(rawUrl);
-    const ext = mapped && mapped.blob ? inferImageExtensionFromMime(mapped.blob.type) : '.png';
-    return `${mermaidTimestamp()}_P${idx + 1}${ext}`;
-  }
   return `${mermaidTimestamp()}_P${idx + 1}${inferImageExtension(rawUrl)}`;
 }
 
 async function fetchImageBlob(rawUrl) {
-  const original = typeof rawUrl === 'string' ? rawUrl.trim() : '';
-  if (/^attachment:/i.test(original)) {
-    const mapped = getAttachmentResource(original);
-    if (!mapped || !mapped.blob) {
-      throw new Error('未找到 attachment 对应的剪贴板图片，请重新点“粘贴”导入');
-    }
-    return mapped.blob;
-  }
-
   const imageUrl = normalizeImageUrl(rawUrl);
   if (!imageUrl) throw new Error('图片链接为空');
+  if (/^attachment:/i.test(imageUrl)) throw new Error('attachment 链接暂不支持直接下载');
   const response = await fetch(imageUrl, { mode: 'cors' });
   if (!response.ok) throw new Error(`请求失败（${response.status}）`);
   const blob = await response.blob();
@@ -506,10 +426,7 @@ async function renderImagePanel(imageBlocks) {
 
   for (let i = 0; i < imageEntries.length; i++) {
     const block = imageEntries[i];
-    const rawUrl = block.url || '';
-    const normalizedUrl = normalizeImageUrl(rawUrl);
-    const isAttachment = /^attachment:/i.test(String(rawUrl).trim());
-    const attachmentResource = isAttachment ? getAttachmentResource(rawUrl) : null;
+    const normalizedUrl = normalizeImageUrl(block.url || '');
     const item = document.createElement('div');
     item.className = 'mermaid-item';
 
@@ -537,8 +454,8 @@ async function renderImagePanel(imageBlocks) {
     linkEl.className = 'image-item-link';
     linkEl.target = '_blank';
     linkEl.rel = 'noopener noreferrer';
-    linkEl.textContent = rawUrl || '无效链接';
-    if (normalizedUrl && (!isAttachment || attachmentResource)) linkEl.href = normalizedUrl;
+    linkEl.textContent = normalizedUrl || '无效链接';
+    if (normalizedUrl) linkEl.href = normalizedUrl;
 
     const statusEl = document.createElement('p');
     statusEl.className = 'image-item-status';
@@ -546,16 +463,13 @@ async function renderImagePanel(imageBlocks) {
     if (!normalizedUrl) {
       statusEl.textContent = '⚠️ 链接为空，无法渲染或下载';
       exportBtn.disabled = true;
-    } else if (isAttachment && !attachmentResource) {
-      statusEl.textContent = 'ℹ️ 该 attachment 未匹配到剪贴板图片，请重新使用“粘贴”按钮导入';
+    } else if (/^attachment:/i.test(normalizedUrl)) {
+      statusEl.textContent = 'ℹ️ attachment 链接无法直接预览，可按占位符手动回填';
       exportBtn.disabled = true;
     } else {
-      if (isAttachment && attachmentResource) {
-        statusEl.textContent = '✅ 已从剪贴板恢复，可预览和下载';
-      }
       imageEl.src = normalizedUrl;
       imageEl.addEventListener('load', () => {
-        if (!isAttachment) statusEl.textContent = '';
+        statusEl.textContent = '';
       });
       imageEl.addEventListener('error', () => {
         statusEl.textContent = '⚠️ 图片加载失败，请检查链接可访问性';
@@ -572,12 +486,12 @@ async function renderImagePanel(imageBlocks) {
 
     const exportIdx = i;
     exportBtn.addEventListener('click', async () => {
-      if (!normalizedUrl || (isAttachment && !attachmentResource)) {
+      if (!normalizedUrl || /^attachment:/i.test(normalizedUrl)) {
         showToast('⚠️ 当前链接不支持直接下载');
         return;
       }
       try {
-        await downloadImageAsFile(rawUrl, imageFilename(exportIdx, rawUrl));
+        await downloadImageAsFile(normalizedUrl, imageFilename(exportIdx, normalizedUrl));
         showToast(`图 ${exportIdx + 1} 已下载`, UI_CONFIG.TOAST_DURATION, true);
       } catch (error) {
         showToast(`⚠️ 下载失败：${error.message}`);
@@ -606,17 +520,11 @@ async function renderImagePanel(imageBlocks) {
 
         for (let j = 0; j < imageEntries.length; j++) {
           const entry = imageEntries[j];
-          const rawUrl = entry.url || '';
-          const url = normalizeImageUrl(rawUrl);
-          const isAttachment = /^attachment:/i.test(String(rawUrl).trim());
-          const attachmentResource = isAttachment ? getAttachmentResource(rawUrl) : null;
-          if (!url || (isAttachment && !attachmentResource)) continue;
+          const url = normalizeImageUrl(entry.url || '');
+          if (!url || /^attachment:/i.test(url)) continue;
           try {
-            const blob = await fetchImageBlob(rawUrl);
-            const ext = isAttachment && attachmentResource
-              ? inferImageExtensionFromMime(blob.type)
-              : inferImageExtension(url);
-            zip.file(`${ts}_P${j + 1}${ext}`, blob);
+            const blob = await fetchImageBlob(url);
+            zip.file(`${ts}_P${j + 1}${inferImageExtension(url)}`, blob);
             count++;
           } catch (_) {
             // 单张失败跳过，继续打包其余图片
@@ -688,70 +596,6 @@ function stripBackgroundStyles(html) {
   });
 }
 
-async function readClipboardPayload() {
-  const payload = {
-    text: '',
-    imageBlobs: [],
-  };
-
-  const canReadRich = !!(window.isSecureContext &&
-    navigator.clipboard &&
-    typeof navigator.clipboard.read === 'function');
-
-  if (canReadRich) {
-    try {
-      const items = await navigator.clipboard.read();
-      for (const item of items) {
-        const types = Array.from(item.types || []);
-        if (!payload.text && types.includes('text/plain')) {
-          try {
-            const textBlob = await item.getType('text/plain');
-            const nextText = await textBlob.text();
-            if (nextText && nextText.trim()) payload.text = nextText;
-          } catch (_) { /* ignore */ }
-        }
-
-        const imageType = types.find((type) => /^image\//i.test(type));
-        if (imageType) {
-          try {
-            const imageBlob = await item.getType(imageType);
-            if (imageBlob && imageBlob.size > 0) {
-              payload.imageBlobs.push(imageBlob);
-            }
-          } catch (_) { /* ignore */ }
-        }
-      }
-    } catch (_) { /* fallback to readText */ }
-  }
-
-  if (!payload.text) {
-    const canReadText = !!(window.isSecureContext &&
-      navigator.clipboard &&
-      typeof navigator.clipboard.readText === 'function');
-    if (canReadText) {
-      try {
-        const text = await navigator.clipboard.readText();
-        if (text && text.trim()) payload.text = text;
-      } catch (_) { /* ignore */ }
-    }
-  }
-
-  return payload;
-}
-
-function collectImageBlobsFromPasteEvent(event) {
-  const blobs = [];
-  const clipboardData = event && event.clipboardData ? event.clipboardData : null;
-  if (!clipboardData || !clipboardData.items) return blobs;
-
-  for (const item of clipboardData.items) {
-    if (!item || item.kind !== 'file' || !/^image\//i.test(item.type || '')) continue;
-    const file = item.getAsFile();
-    if (file && file.size > 0) blobs.push(file);
-  }
-  return blobs;
-}
-
 function openPasteModal(description = '当前环境限制自动读取剪贴板，请在下方粘贴后导入。') {
   if (!pasteModal || !pasteModalInput) {
     showToast('📋 请长按后粘贴到输入框');
@@ -783,7 +627,7 @@ function importPasteModalContent() {
     showToast('⚠️ 请先粘贴内容再导入');
     return;
   }
-  applyMarkdownInput(nextValue);
+  input.value = nextValue;
   closePasteModal();
   scheduleRender();
   showToast('已导入粘贴内容', UI_CONFIG.TOAST_DURATION, true);
@@ -1166,7 +1010,6 @@ async function renderPreview() {
         <div class="empty-state-text">在左侧输入 Markdown 内容<br>这里会实时显示转换效果</div>
       </div>
     `;
-    clearAttachmentResources();
     renderMermaidPanelEmpty();
     renderImagePanelEmpty();
     if (statsPanel) statsPanel.style.display = 'none';
@@ -1249,6 +1092,31 @@ window.copyPlainText = async function copyPlainText() {
   await copyPlainToClipboard(input.value, toast, UI_CONFIG.TOAST_DURATION, showToast);
 };
 
+window.pasteFromClipboard = async function pasteFromClipboard() {
+  if (window.innerWidth <= 768) {
+    window.switchTab('input');
+  }
+
+  const canReadClipboard = !!(window.isSecureContext &&
+    navigator.clipboard &&
+    typeof navigator.clipboard.readText === 'function');
+
+  if (canReadClipboard) {
+    try {
+      const text = await navigator.clipboard.readText();
+      if (text && text.trim()) {
+        input.value = text;
+        scheduleRender();
+        showToast('内容已粘贴', UI_CONFIG.TOAST_DURATION, true);
+        return;
+      }
+    } catch (_) { /* fall through to focus */ }
+  }
+
+  input.focus();
+  showToast('📋 请直接 Ctrl+V / Cmd+V 粘贴', 3000);
+};
+
 window.clearInput = function clearInput() {
   if (!window.__deleteClickCount) window.__deleteClickCount = 0;
   window.__deleteClickCount += 1;
@@ -1266,20 +1134,15 @@ window.clearInput = function clearInput() {
       clearTimeout(deleteResetTimer);
       deleteResetTimer = null;
     }
-    clearAttachmentResources();
     input.value = '';
     renderPreview();
   }
 };
 
 window.pasteFromClipboard = async function pasteFromClipboard() {
-  if (window.innerWidth <= 768) {
-    window.switchTab('input');
-  }
-
   const canReadClipboard = !!(window.isSecureContext &&
     navigator.clipboard &&
-    (typeof navigator.clipboard.read === 'function' || typeof navigator.clipboard.readText === 'function'));
+    typeof navigator.clipboard.readText === 'function');
 
   if (!canReadClipboard) {
     openPasteModal('当前网络环境不支持自动读取剪贴板，请手动粘贴后点击“导入内容”。');
@@ -1287,19 +1150,11 @@ window.pasteFromClipboard = async function pasteFromClipboard() {
   }
 
   try {
-    const { text, imageBlobs } = await readClipboardPayload();
+    const text = await navigator.clipboard.readText();
     if (text && text.trim()) {
-      const { attachmentCount, mappedCount } = applyMarkdownInput(text, imageBlobs);
+      input.value = text;
       scheduleRender();
-      if (attachmentCount > 0) {
-        if (mappedCount > 0) {
-          showToast(`内容已粘贴，已恢复 ${mappedCount}/${attachmentCount} 张 attachment 图片`, UI_CONFIG.TOAST_DURATION, true);
-        } else {
-          showToast('内容已粘贴，attachment 图片未读取到剪贴板二进制', UI_CONFIG.TOAST_DURATION, true);
-        }
-      } else {
-        showToast('内容已粘贴', UI_CONFIG.TOAST_DURATION, true);
-      }
+      showToast('内容已粘贴', UI_CONFIG.TOAST_DURATION, true);
     } else {
       openPasteModal('剪贴板为空，请手动粘贴内容后导入。');
     }
@@ -1636,20 +1491,7 @@ function initPasteModal() {
 }
 
 input.addEventListener('input', scheduleRender);
-input.addEventListener('paste', (event) => {
-  const imageBlobs = collectImageBlobsFromPasteEvent(event);
-  if (!imageBlobs.length) return;
-
-  setTimeout(() => {
-    const { attachmentCount, mappedCount } = rebuildAttachmentResources(input.value, imageBlobs);
-    if (attachmentCount > 0 && mappedCount > 0) {
-      scheduleRender();
-      showToast(`已恢复 ${mappedCount}/${attachmentCount} 张 attachment 图片`, UI_CONFIG.TOAST_DURATION, true);
-    }
-  }, 0);
-});
 window.addEventListener('resize', handleResize);
-window.addEventListener('beforeunload', clearAttachmentResources);
 
 document.addEventListener('keydown', (e) => {
   if ((e.metaKey || e.ctrlKey) && e.key === 'v') {
